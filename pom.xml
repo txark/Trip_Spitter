@@ -30,6 +30,9 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
+		<!-- ============================================== -->
+		<!--  (JPA, WebMVC, PostgreSQL, Lombok) -->
+		<!-- ============================================== -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -40,15 +43,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
 			<scope>test</scope>
@@ -61,6 +63,31 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency> -->
+		<!-- <dependency>
+    		<groupId>org.projectlombok</groupId>
+    		<artifactId>lombok</artifactId>
+    		<version>1.18.30</version>
+    		<scope>provided</scope>
+		</dependency> -->
+		
+		<!-- WebClient สำหรับต่อ API ดึงอัตราแลกเปลี่ยนสกุลเงินแบบเรียลไทม์ -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+		
+		<!-- WebSocket สำหรับอัปเดตคะแนนโหวตและกิจกรรมกลุ่มแบบ Real-time -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+		
+		<!-- ชุดเครื่องมือทดสอบ Unit Test (JUnit & Mockito) สำหรับคำนวณการเงิน -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
