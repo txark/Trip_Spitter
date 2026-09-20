@@ -3,8 +3,10 @@ package com.cp.party_trip.service;
 import com.cp.party_trip.dto.DebtTransfer;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
+import com.cp.party_trip.model.Settlement;
 import com.cp.party_trip.model.TripMember;
 import com.cp.party_trip.repository.ExpenseRepo;
+import com.cp.party_trip.repository.SettlementRepo;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,9 +16,11 @@ import java.util.*;
 @Service
 public class DebtService {
     private final ExpenseRepo expenseRepo;
+    private final SettlementRepo settlementRepo;
 
-    public DebtService(ExpenseRepo expenseRepo) {
+    public DebtService(ExpenseRepo expenseRepo, SettlementRepo settlementRepo) {
         this.expenseRepo = expenseRepo;
+        this.settlementRepo = settlementRepo;
     }
 
     public List<DebtTransfer> calculateDebtSimplification(Long tripId) {
@@ -34,6 +38,16 @@ public class DebtService {
             }
         }
 
+        List<Settlement> settlements = settlementRepo.findByTripId(tripId);
+        for (Settlement settlement : settlements) {
+            TripMember sender = settlement.getSender();
+            TripMember receiver = settlement.getReceiver();
+            BigDecimal amount = settlement.getAmount();
+
+            balances.put(sender, balances.getOrDefault(sender, BigDecimal.ZERO).add(amount));
+            balances.put(receiver, balances.getOrDefault(receiver, BigDecimal.ZERO).subtract(amount));
+        }
+
         // แยกกลุ่มคนที่เป็นหนี้ (ต้องจ่ายเพิ่ม) และคนที่เป็นเจ้าหนี้ (ได้เงินคืน)
         List<Map.Entry<TripMember, BigDecimal>> debtors = new ArrayList<>();
         List<Map.Entry<TripMember, BigDecimal>> creditors = new ArrayList<>();
@@ -47,7 +61,7 @@ public class DebtService {
             }
         }
 
-        // จับคู่ล้างหนี้
+        // จับคู่หักล้างหนี้
         List<DebtTransfer> transfers = new ArrayList<>();
         int i = 0, j = 0;
 
