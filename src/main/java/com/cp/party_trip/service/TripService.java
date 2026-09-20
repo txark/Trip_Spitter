@@ -37,8 +37,7 @@ public class TripService {
     @Transactional
     public TripMember joinTrip(String inviteCode, String userName) {
         Trip trip = tripRepo.findByInviteCode(inviteCode)
-                .orElseThrow(() -> new RuntimeException("Trip not found with the provided invite code"));
-
+                .orElseThrow(() -> new RuntimeException("ไม่พบทริปที่ตรงกับรหัสเชิญนี้"));
         TripMember tripMember = new TripMember();
         tripMember.setTrip(trip);
         tripMember.setUserName(userName);
