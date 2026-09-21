@@ -28,6 +28,9 @@ public class Expense {
     @Column(name = "expense_date", updatable = false)
     private LocalDateTime expenseDate = LocalDateTime.now(); // Date of the expense
 
+    @Column(name = "category")
+    private String category; // FOOD, TRANSPORT, ACCOMMODATION, SHOPPING
+
     @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExpenseSplit> expenseSplits; // List of expense splits
 
@@ -102,6 +105,14 @@ public class Expense {
 
     public void setExpenseSplits(List<ExpenseSplit> expenseSplits) {
         this.expenseSplits = expenseSplits;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
 }
