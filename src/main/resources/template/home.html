@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Party & Trip Expense Splitter Pro</title>
+    <!-- เรียกใช้ไฟล์ CSS กลาง -->
+    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Momo+Trust+Display&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- FontAwesome สำหรับไอคอน -->
+    <!-- <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css"
+    /> -->
+    <script
+      src="https://kit.fontawesome.com/01502edf06.js"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      body {
+        background-color: var(--background);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+      }
+
+      .frame {
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 40px 20px;
+      }
+
+      /* แถบโปรไฟล์ผู้ใช้มุมขวาบน */
+      .frame .rectangle {
+        position: absolute;
+        top: 36px;
+        right: 40px;
+        width: auto;
+        min-width: 140px;
+        height: 48px;
+        background-color: var(--surface);
+        border-radius: 100px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .frame .rectangle:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .frame .username {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-main);
+        margin-left: 8px;
+        white-space: nowrap;
+      }
+
+      .frame .vector {
+        color: var(--primary);
+        font-size: 1rem;
+      }
+
+      /* Responsive: สำหรับหน้าจอมือถือหรือแท็บเล็ตขนาดเล็ก */
+      @media (max-width: 768px) {
+        .frame .rectangle {
+          width: 30px;
+          padding: 0;
+          justify-content: center;
+          right: 20px;
+          top: 20px;
+        }
+
+        .frame .username {
+          display: none;
+        }
+
+        .frame .vector {
+          margin: 0;
+        }
+      }
+
+      /* ส่วนแสดงวันที่และเวลา */
+      header {
+        text-align: center;
+        margin-top: 40px;
+        margin-bottom: 25px;
+      }
+
+      .frame .text-wrapper {
+        font-family: "Momo Trust Display", sans-serif;
+        font-size: 1.8rem;
+        font-weight: 500;
+        color: var(--text-main);
+        margin-bottom: 4px;
+        display: block;
+      }
+
+      .frame .div {
+        font-size: 3.5rem;
+        font-weight: 400;
+        color: var(--text-main);
+        display: block;
+        letter-spacing: 1px;
+      }
+
+      /* ส่วนโลโก้ตรงกลาง */
+      .center-brand {
+        text-align: center;
+        margin-top: 4em;
+        margin-bottom: 35px;
+      }
+
+      .frame .text-wrapper-2 {
+        font-family: "Momo Trust Display", sans-serif;
+        font-size: 1.25em;
+        font-weight: 400;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+
+      .frame .img {
+        font-size: 2.2rem;
+        color: var(--primary);
+      }
+
+      /* ส่วนปุ่มกดหลัก */
+      .action-section {
+        width: 100%;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
+      .frame .rectangle-2 {
+        width: 100%;
+        height: 56px;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, var(--secondary) 0%, #f97316 100%);
+        border: none;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.35);
+        transition: transform 0.2s;
+        text-decoration: none;
+      }
+
+      .frame .rectangle-2:hover {
+        transform: translateY(-2px);
+      }
+
+      .frame .rectangle-3 {
+        width: 100%;
+        height: 56px;
+        border-radius: var(--radius-md);
+        background-color: var(--surface);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+      }
+
+      .frame .rectangle-3:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+      }
+
+      .frame .text-wrapper-3,
+      .frame .text-wrapper-4 {
+        position: static !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+      }
+
+      /* ส่วน History (ประวัติการใช้งาน) */
+      .history-container {
+        width: 100%;
+        max-width: 480px;
+      }
+
+      .history-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 3em;
+        margin-bottom: 10px;
+      }
+
+      .frame .text-wrapper-5 {
+        position: static !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        color: var(--text-muted) !important;
+      }
+
+      .frame .material-symbols {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
+
+      .frame .rectangle-4 {
+        width: 100%;
+        min-height: 56px;
+        background-color: var(--surface);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        padding: 10px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        color: var(--text-main);
+        font-size: 0.88rem;
+        font-weight: 600;
+        padding: 8px 10px;
+        border-radius: 8px;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      .history-item:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+        color: var(--primary);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.2s ease,
+          visibility 0.2s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-box {
+        background-color: var(--surface);
+        width: 100%;
+        max-width: 400px;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        transform: scale(0.95);
+        transition: transform 0.2s ease;
+        box-sizing: border-box; /* ป้องกัน Padding ดันกล่องขยายเกินขนาด */
+      }
+
+      .modal-overlay.active .modal-box {
+        transform: scale(1);
+      }
+
+      .modal-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .modal-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
+
+      .modal-input {
+        width: 100%;
+        height: 44px;
+        padding: 0 14px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background-color: var(--background);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        font-weight: 600;
+        outline: none;
+        margin-bottom: 16px;
+        box-sizing: border-box; /* สำคัญ: ป้องกัน Input ล้นกรอบ */
+        transition: border-color 0.2s;
+      }
+
+      .modal-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .modal-btn-cancel,
+      .modal-btn-save {
+        flex: 1;
+        height: 40px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-btn-cancel {
+        background-color: var(--background);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        transition: background 0.2s;
+      }
+
+      .modal-btn-cancel:hover {
+        background-color: var(--border);
+      }
+
+      .modal-btn-save {
+        background-color: var(--primary);
+        border: none;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: background 0.2s;
+      }
+
+      .modal-btn-save:hover {
+        background-color: var(--primary-hover);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <!-- แถบโปรไฟล์ผู้ใช้มุมขวาบน (คลิกเพื่อเปลี่ยนชื่อเล่นได้) -->
+      <aside aria-label="User account">
+        <div
+          class="rectangle"
+          role="button"
+          aria-label="เปิดเมนูผู้ใช้"
+          onclick="openUsernameModal()"
+          title="คลิกเพื่อเปลี่ยนชื่อเล่น"
+        >
+          <i class="fa-solid fa-user vector" aria-hidden="true"></i>
+          <span class="username" id="username-display">Loading...</span>
+        </div>
+      </aside>
+
+      <!-- แถบแสดงวันที่และเวลาแบบเรียลไทม์ -->
+      <header aria-label="Current date and time">
+        <time class="text-wrapper" id="current-date" datetime="2026-09-26"
+          >Sat, Sep 26</time
+        >
+        <time class="div" id="current-time" datetime="20:49">20 : 49</time>
+      </header>
+
+      <!-- ส่วนโลโก้ตรงกลาง -->
+      <div class="center-brand">
+        <i
+          class="fa-solid fa-route fa-5x"
+          style="color: rgba(86, 46, 209, 0.527)"
+          aria-hidden="true"
+        ></i>
+        <div class="text-wrapper-2" id="page-title">Enjoy Your Time</div>
+      </div>
+
+      <!-- ส่วนปุ่มกดหลัก -->
+      <section class="action-section" aria-labelledby="page-title">
+        <a
+          href="create-trip.html"
+          class="rectangle-2"
+          type="button"
+          aria-label="สร้างห้องใหม่"
+        >
+          <i class="fa-solid fa-circle-plus"></i>
+          <span class="text-wrapper-3">สร้างห้องใหม่</span>
+        </a>
+
+        <a
+          href="join-trip.html"
+          class="rectangle-3"
+          type="button"
+          aria-label="เข้าร่วมด้วยรหัสเชิญ"
+        >
+          <i class="fa-solid fa-link"></i>
+          <span class="text-wrapper-4">เข้าร่วมด้วยรหัสเชิญ</span>
+        </a>
+      </section>
+
+      <!-- ส่วน History (ดึงข้อมูลทริปที่เคยเปิดดูล่าสุดของ User) -->
+      <section class="history-container" aria-labelledby="history-title">
+        <div class="history-header">
+          <i
+            class="fa-solid fa-clock-rotate-left material-symbols"
+            aria-hidden="true"
+          ></i>
+          <span class="text-wrapper-5" id="history-title">History</span>
+        </div>
+        <div
+          class="rectangle-4"
+          id="recent-trips-container"
+          aria-label="ประวัติการใช้งาน"
+        >
+          <span
+            style="
+              color: var(--text-muted);
+              font-size: 0.85rem;
+              text-align: center;
+              width: 100%;
+              padding: 10px 0;
+            "
+            >กำลังโหลดประวัติทริป...</span
+          >
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-overlay" id="username-modal">
+      <div class="modal-box">
+        <div class="modal-title">
+          <i class="fa-solid fa-user-pen" style="color: var(--primary)"></i>
+          เปลี่ยนชื่อเล่นของคุณ
+        </div>
+        <div class="modal-desc">
+          ระบุชื่อเล่นที่ต้องการให้เพื่อนๆ เห็นภายในห้องทริป
+        </div>
+        <input
+          type="text"
+          id="username-input"
+          class="modal-input"
+          placeholder="กรอกชื่อเล่น..."
+          maxlength="30"
+        />
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="modal-btn-cancel"
+            onclick="closeUsernameModal()"
+          >
+            ยกเลิก
+          </button>
+          <button type="button" class="modal-btn-save" onclick="saveUsername()">
+            บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8080/api"; // ปรับพอร์ตตาม Backend จริงของคุณ
+      // let currentUserId = localStorage.getItem("userId") || 1; // ตัวอย่าง User ID ปัจจุบัน
+
+      // 1. ฟังก์ชันอัปเดตวันและเวลาปัจจุบันแบบเรียลไทม์
+      function updateDateTime() {
+        const now = new Date();
+        const dateOptions = {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        };
+        document.getElementById("current-date").innerText =
+          now.toLocaleDateString("en-US", dateOptions);
+
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        document.getElementById("current-time").innerText =
+          `${hours} : ${minutes}`;
+      }
+
+      setInterval(updateDateTime, 1000);
+      updateDateTime();
+
+      // 2. โหลดชื่อผู้ใช้จาก LocalStorage หรือฐานข้อมูล
+      async function loadUserData() {
+        const usernameSpan = document.getElementById("username-display");
+        let savedUsername = localStorage.getItem("username");
+
+        if (savedUsername) {
+          usernameSpan.innerText = savedUsername;
+        } else {
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/users/${currentUserId}`,
+            );
+            if (response.ok) {
+              const userData = await response.json();
+              savedUsername = userData.username || "User";
+              localStorage.setItem("username", savedUsername);
+              usernameSpan.innerText = savedUsername;
+            } else {
+              usernameSpan.innerText = "My Username";
+              localStorage.setItem("username", "My Username");
+            }
+          } catch (error) {
+            usernameSpan.innerText = "My Username";
+            localStorage.setItem("username", "My Username");
+          }
+        }
+      }
+
+      // 2.1 ควบคุมการเปิด-ปิด Custom Popup
+      function openUsernameModal() {
+        const modal = document.getElementById("username-modal");
+        const input = document.getElementById("username-input");
+        const currentName = localStorage.getItem("username") || "My Username";
+
+        input.value = currentName;
+        modal.classList.add("active");
+        input.focus();
+        input.select();
+      }
+
+      function closeUsernameModal() {
+        const modal = document.getElementById("username-modal");
+        modal.classList.remove("active");
+      }
+
+      function saveUsername() {
+        const input = document.getElementById("username-input");
+        const newName = input.value.trim();
+
+        if (newName !== "") {
+          localStorage.setItem("username", newName);
+          document.getElementById("username-display").innerText = newName;
+          closeUsernameModal();
+
+          // ตัวอย่างการส่งค่าอัปเดตชื่อไปยัง Backend (ถ้ามี API รองรับ)
+          /*
+          fetch(`${API_BASE_URL}/users/${currentUserId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username: newName })
+          }).catch((err) => console.log("Error updating username:", err));
+          */
+        } else {
+          alert("กรุณากรอกชื่อเล่นของคุณ");
+        }
+      }
+
+      // 2.2 ปิด Modal เมื่อคลิกพื้นหลังสีดำรอบนอก
+      document
+        .getElementById("username-modal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            closeUsernameModal();
+          }
+        });
+
+      // 3. ดึงข้อมูลห้องทริปที่ User เคยเปิดดูล่าสุดมาแสดงในส่วน History
+      async function loadRecentTrips() {
+        const container = document.getElementById("recent-trips-container");
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/history/recent/${currentUserId}`,
+          );
+          if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลประวัติได้");
+
+          const historyList = await response.json();
+
+          if (historyList.length === 0) {
+            container.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%; padding: 10px 0;">ยังไม่มีประวัติการเข้าชมทริป</span>`;
+            return;
+          }
+
+          container.innerHTML = "";
+          historyList.forEach((item) => {
+            const link = document.createElement("a");
+            link.href = `dashboard.html?tripId=${item.tripId}`;
+            link.className = "history-item";
+            link.innerHTML = `
+              <span>✈️ ทริปรหัส #${item.tripId}</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(item.viewedAt).toLocaleDateString("th-TH")}</span>
+            `;
+            container.appendChild(link);
+          });
+        } catch (error) {
+          container.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%; padding: 10px 0;">ยังไม่มีประวัติทริปในระบบ</span>`;
+        }
+      }
+
+      loadUserData();
+      loadRecentTrips();
+    </script>
+  </body>
+</html>
