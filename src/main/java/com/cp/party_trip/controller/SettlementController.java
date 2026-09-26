@@ -56,8 +56,8 @@ public class SettlementController {
         for (Settlement s : settlements) {
             response.add(new SettlementDTO(
                     s.getId(),
-                    s.getSender().getUserName(), // ดึงชื่อคนโอน
-                    s.getReceiver().getUserName(), // ดึงชื่อคนรับ
+                    s.getSender().getGuestName(), // ใช้ getGuestName() ตาม Entity
+                    s.getReceiver().getGuestName(), // ใช้ getGuestName() ตาม Entity
                     s.getAmount(),
                     s.getSettledAt()));
         }

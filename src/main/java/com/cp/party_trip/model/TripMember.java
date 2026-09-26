@@ -1,6 +1,8 @@
 package com.cp.party_trip.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "trip_members")
@@ -10,13 +12,20 @@ public class TripMember {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "trip_id")
+    @JoinColumn(name = "trip_id", nullable = false)
+    @JsonIgnore // ป้องกัน Infinite Recursion เวลา Return JSON
     private Trip trip;
 
-    private String userName;
-    private String role;
+    @Column(name = "guest_name", nullable = false)
+    private String guestName;
 
-    // --- Getters & Setters ---
+    @Column(nullable = false)
+    private String role = "MEMBER"; // ADMIN หรือ MEMBER
+
+    @Column(name = "joined_at")
+    private LocalDateTime joinedAt = LocalDateTime.now();
+
+    // Getters & Setters
     public Long getId() {
         return id;
     }
@@ -33,12 +42,21 @@ public class TripMember {
         this.trip = trip;
     }
 
+    public String getGuestName() {
+        return guestName;
+    }
+
+    public void setGuestName(String guestName) {
+        this.guestName = guestName;
+    }
+
+    // Alias Methods
     public String getUserName() {
-        return userName;
+        return guestName;
     }
 
     public void setUserName(String userName) {
-        this.userName = userName;
+        this.guestName = userName;
     }
 
     public String getRole() {
@@ -47,5 +65,13 @@ public class TripMember {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public LocalDateTime getJoinedAt() {
+        return joinedAt;
+    }
+
+    public void setJoinedAt(LocalDateTime joinedAt) {
+        this.joinedAt = joinedAt;
     }
 }
