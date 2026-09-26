@@ -16,7 +16,6 @@ public class ChecklistController {
         this.checklistService = checklistService;
     }
 
-    // รองรับการดึงข้อมูลแบบระบุ Filter หมวดหมู่ หรือ ค้นหาชื่อสิ่งของ
     @GetMapping("/{tripId}")
     public ResponseEntity<List<ChecklistItem>> getChecklist(
             @PathVariable Long tripId,
@@ -26,13 +25,13 @@ public class ChecklistController {
     }
 
     @PostMapping
-    public ResponseEntity<ChecklistItem> addItem(@RequestBody com.cp.party_trip.dto.ChecklistRequestDTO request) {
-        ChecklistItem newItem = checklistService.addItem(
-                request.getTripId(),
-                request.getCategory(),
-                request.getItemName(),
-                request.getAssignedToMemberId(),
-                request.getNotes());
+    public ResponseEntity<ChecklistItem> addItem(
+            @RequestParam Long tripId,
+            @RequestParam String category,
+            @RequestParam String itemName,
+            @RequestParam(required = false) Long assignedToMemberId,
+            @RequestParam(required = false) String notes) {
+        ChecklistItem newItem = checklistService.addItem(tripId, category, itemName, assignedToMemberId, notes);
         return ResponseEntity.ok(newItem);
     }
 

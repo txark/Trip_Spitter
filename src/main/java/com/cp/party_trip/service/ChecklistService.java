@@ -63,7 +63,7 @@ public class ChecklistService {
         ChecklistItem item = checklistItemRepo.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("ไม่พบรายการสิ่งของนี้"));
         item.setNotes(notes);
-        item.setUpdatedByMemberId(memberId); // บันทึกรหัสสมาชิกที่ทำการอัปเดต
+        item.setUpdatedByMemberId(memberId); // บันทึกรหัสสมาชิกที่ทำการอัปเดตล่าสุด
         return checklistItemRepo.save(item);
     }
 }

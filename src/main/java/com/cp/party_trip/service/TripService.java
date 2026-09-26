@@ -26,8 +26,8 @@ public class TripService {
         Trip savedTrip = tripRepo.save(trip);
 
         TripMember tripMember = new TripMember();
-        tripMember.setTrip(savedTrip);
-        tripMember.setUserName(creatorName);
+        tripMember.setTrip(savedTrip); // ใช้ setTrip ส่ง Object Trip เข้าไปตรงๆ
+        tripMember.setGuestName(creatorName);
         tripMember.setRole("ADMIN");
         tripMemberRepo.save(tripMember);
 
@@ -38,9 +38,10 @@ public class TripService {
     public TripMember joinTrip(String inviteCode, String userName) {
         Trip trip = tripRepo.findByInviteCode(inviteCode)
                 .orElseThrow(() -> new RuntimeException("ไม่พบทริปที่ตรงกับรหัสเชิญนี้"));
+
         TripMember tripMember = new TripMember();
-        tripMember.setTrip(trip);
-        tripMember.setUserName(userName);
+        tripMember.setTrip(trip); // ใช้ setTrip ส่ง Object Trip เข้าไปตรงๆ
+        tripMember.setGuestName(userName);
         tripMember.setRole("MEMBER");
 
         return tripMemberRepo.save(tripMember);
