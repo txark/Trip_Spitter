@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trip Dashboard - Party & Trip Expense Splitter Pro</title>
+
+    <!-- CSS กลาง -->
+    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Momo+Trust+Display&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- FontAwesome สำหรับไอคอน -->
+    <!-- <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css"
+    /> -->
+    <script
+      src="https://kit.fontawesome.com/01502edf06.js"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      .dashboard-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #818cf8 100%);
+        color: white;
+        padding: 24px 20px;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        margin: -24px -20px 20px -20px;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .trip-title-area h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+
+      .trip-meta {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* ส่วนแชร์รหัสเชิญ */
+      .invite-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 16px;
+      }
+
+      .invite-code-text {
+        font-family: monospace;
+        font-weight: 600;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+      }
+
+      .btn-copy {
+        background: #ffffff;
+        color: var(--primary);
+        border: none;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+
+      .btn-copy:hover {
+        opacity: 0.9;
+      }
+
+      /* เมนูลัด (Quick Action Tabs) */
+      .quick-nav {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      .nav-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 12px 8px;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text-main);
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-sm);
+        transition:
+          transform 0.2s,
+          border-color 0.2s;
+      }
+
+      .nav-item i {
+        font-size: 1.2rem;
+        color: var(--primary);
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .nav-item:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+      }
+
+      /* ส่วนแสดงฟีดบิลและกิจกรรมล่าสุด */
+      .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .feed-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .feed-info h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .feed-info span {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .feed-amount {
+        font-weight: 800;
+        color: var(--secondary);
+        font-size: 1rem;
+      }
+
+      .empty-box {
+        text-align: center;
+        padding: 30px;
+        background: var(--surface);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-size: 0.88rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ส่วนหัวแดชบอร์ด แสดงชื่อทริปและรหัสเชิญ -->
+      <header class="dashboard-header">
+        <div class="trip-title-area">
+          <span
+            style="
+              font-family: &quot;Mono&quot;, sans-serif;
+              font-size: 0.75rem;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              opacity: 0.8;
+            "
+            >────────────────── ⋆.° 𓆉 𓆝 𓆡⋆.° ──────────────────</span
+          >
+          <h2 id="trip-title-display">กำลังโหลดชื่อทริป...</h2>
+          <div class="trip-meta">
+            <span id="trip-dates"
+              ><i class="fa-regular fa-calendar"></i> --</span
+            >
+          </div>
+        </div>
+
+        <!-- กล่องแสดงรหัสเชิญสำหรับแชร์ให้เพื่อน -->
+        <div class="invite-card">
+          <div>
+            <span style="font-size: 0.75rem; display: block; opacity: 0.8"
+              >รหัสเชิญเข้าห้อง</span
+            >
+            <span class="invite-code-text" id="invite-code-display"
+              >-------</span
+            >
+          </div>
+          <button class="btn-copy" onclick="copyInviteCode()">
+            <i class="fa-regular fa-copy"></i> copy
+          </button>
+        </div>
+      </header>
+
+      <!-- เมนูลัดเข้าถึงฟีเจอร์ต่างๆ (Quick Navigation) -->
+      <nav class="quick-nav">
+        <a href="expenses.html" class="nav-item">
+          <i class="fa-solid fa-receipt"></i> บันทึกบิล
+        </a>
+        <a href="debts.html" class="nav-item">
+          <i class="fa-solid fa-scale-balanced"></i> สรุปหนี้
+        </a>
+        <a href="polls.html" class="nav-item">
+          <i class="fa-solid fa-square-poll-vertical"></i> โหวต
+        </a>
+        <a href="checklist.html" class="nav-item">
+          <i class="fa-solid fa-list-check"></i> เช็คลิสต์
+        </a>
+      </nav>
+
+      <!-- ส่วนแสดงรายการบิลค่าใช้จ่ายล่าสุดในทริป -->
+      <section>
+        <div class="section-title">
+          <span
+            ><i
+              class="fa-solid fa-clock-rotate-left"
+              style="color: var(--primary)"
+            ></i>
+            ค่าใช้จ่ายล่าสุดในทริป</span
+          >
+          <a
+            href="expenses.html"
+            style="
+              font-size: 0.8rem;
+              color: var(--primary);
+              text-decoration: none;
+              font-weight: 600;
+            "
+            >ดูทั้งหมด</a
+          >
+        </div>
+
+        <div id="expenses-feed-container">
+          <div class="empty-box">กำลังโหลดรายการบิล...</div>
+        </div>
+      </section>
+
+      <!-- ส่วนท้ายหน้า -->
+      <footer
+        style="
+          text-align: center;
+          padding: 20px 0;
+          font-size: 0.78rem;
+          color: var(--text-muted);
+          margin-top: auto;
+        "
+      >
+        <a
+          href="home.html"
+          style="color: var(--primary); text-decoration: none; font-weight: 600"
+          ><i class="fa-solid fa-house"></i> กลับสู่หน้าแรก</a
+        >
+      </footer>
+    </div>
+
+    <script>
+      // ดึง tripId จาก URL Parameters (เช่น dashboard.html?tripId=1)
+      const urlParams = new URLSearchParams(window.location.search);
+      const tripId = urlParams.get("tripId") || 1;
+      const currentUserId = localStorage.getItem("userId") || 1;
+
+      const API_BASE_URL = "http://localhost:8090/api"; // ปรับพอร์ตตาม Backend จริง
+
+      async function loadTripDashboard() {
+        try {
+          // 1. บันทึกประวัติการเข้าชมทริปล่าสุดลงฐานข้อมูล
+          await fetch(
+            `${API_BASE_URL}/history/view?userId=${currentUserId}&tripId=${tripId}`,
+            {
+              method: "POST",
+            },
+          );
+
+          // 2. ดึงข้อมูลรายละเอียดทริปจริงจาก Backend
+          const response = await fetch(`${API_BASE_URL}/trips/${tripId}`);
+          if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลทริปได้");
+
+          const trip = await response.json();
+
+          const formatDate = (dateStr) => {
+            if (!dateStr) return "--";
+            const d = new Date(dateStr);
+            const options = {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            };
+            return d.toLocaleDateString("en-US", options);
+          };
+
+          // 3. นำข้อมูลมาแสดงผลบนหน้า Dashboard
+          document.getElementById("trip-title-display").innerHTML =
+            `<i class="fa-brands fa-threads" style="margin-right: 3px; font-size: 1.2rem;"></i> ${trip.title}`;
+          document.getElementById("trip-dates").innerHTML =
+            `<i class="fa-solid fa-calendar-day" style="margin-right: 8px;"></i> ${formatDate(trip.startDate)} to ${formatDate(trip.endDate)}`;
+          document.getElementById("invite-code-display").innerHTML =
+            trip.inviteCode;
+
+          // 4. โหลดรายการบิลล่าสุดในทริป
+          loadRecentExpenses(tripId);
+        } catch (error) {
+          console.error("Error loading dashboard:", error);
+          document.getElementById("trip-title-display").innerHTML =
+            "ไม่พบข้อมูลทริป";
+        }
+      }
+
+      async function loadRecentExpenses(id) {
+        const container = document.getElementById("expenses-feed-container");
+        try {
+          const response = await fetch(`${API_BASE_URL}/expenses/trip/${id}`);
+          if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลบิลได้");
+
+          const expenses = await response.json();
+
+          if (expenses.length === 0) {
+            container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบันทึกค่าใช้จ่ายในทริปนี้</div>`;
+            return;
+          }
+
+          container.innerHTML = "";
+          expenses.slice(0, 5).forEach((item) => {
+            const card = document.createElement("div");
+            card.className = "feed-card";
+            card.innerHTML = `
+                        <div class="feed-info">
+                            <h4>🍽️ ${item.title}</h4>
+                            <span>จ่ายโดย: สมาชิก #${item.paidByMemberId || "1"}</span>
+                        </div>
+                        <div class="feed-amount">฿${Number(item.amount).toLocaleString()}</div>
+                    `;
+            container.appendChild(card);
+          });
+        } catch (error) {
+          container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบิลในระบบ</div>`;
+        }
+      }
+
+      // ฟังก์ชันคัดลอกลิงก์เชิญเพื่อน
+      function copyInviteCode() {
+        const code = document.getElementById("invite-code-display").innerHTML;
+        const shareUrl = `${window.location.origin}/join-trip.html?code=${code}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          alert("คัดลอกลิงก์เชิญเพื่อนเรียบร้อยแล้ว!");
+        });
+      }
+
+      loadTripDashboard();
+    </script>
+  </body>
+</html>
