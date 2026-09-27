@@ -8,12 +8,19 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/trips")
+@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })
 public class TripController {
 
     private final TripService tripService;
 
     public TripController(TripService tripService) {
         this.tripService = tripService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Trip> getTripById(@PathVariable Long id) {
+        Trip trip = tripService.getTripById(id);
+        return ResponseEntity.ok(trip);
     }
 
     @PostMapping("/create")

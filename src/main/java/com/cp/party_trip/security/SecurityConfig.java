@@ -21,17 +21,30 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
+    // @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
+    // Exception {
+    // http
+    // .csrf(AbstractHttpConfigurer::disable)
+    // .authorizeHttpRequests(auth -> auth
+    // .requestMatchers("/api/auth/**", "/api/history/**").permitAll() //
+    // เพิ่มเส้นทาง /api/history/**
+    // // ให้เข้าถึงได้อิสระ
+    // .anyRequest().authenticated())
+    // .sessionManagement(sess ->
+    // sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    // .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+    // return http.build();
+    // }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable()) // ปิด CSRF ชั่วคราวเพื่อให้เทส API ง่ายขึ้น
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/history/**").permitAll() // เพิ่มเส้นทาง /api/history/**
-                                                                                        // ให้เข้าถึงได้อิสระ
-                        .anyRequest().authenticated())
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
+                        .requestMatchers("/api/trips/**", "/api/history/**").permitAll()
+                        .anyRequest().authenticated());
         return http.build();
     }
 
