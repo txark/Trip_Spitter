@@ -25,6 +25,7 @@
       src="https://kit.fontawesome.com/01502edf06.js"
       crossorigin="anonymous"
     ></script>
+    <script rel="module" src="/src/main/resources/js/main.js"></script>
     <style>
       .dashboard-header {
         background: linear-gradient(135deg, var(--primary) 0%, #818cf8 100%);
@@ -86,6 +87,26 @@
         opacity: 0.9;
       }
 
+      /* สไตล์เริ่มต้นของปุ่ม */
+      .copy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 8px;
+        background-color: #e0e7ff; /* สีพื้นหลังเดิมของคุณ */
+        color: #4f46e5;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      /* สไตล์เมื่อคัดลอกสำเร็จ (สีเขียว) */
+      .copy-btn.success {
+        background-color: #10b981 !important; /* สีเขียว */
+        color: #ffffff !important;
+      }
+
       /* เมนูลัด (Quick Action Tabs) */
       .quick-nav {
         display: grid;
@@ -122,7 +143,7 @@
         border-color: var(--primary);
       }
 
-      /* ส่วนแสดงฟีดบิลและกิจกรรมล่าสุด */
+      /* รายการบิล */
       .section-title {
         font-size: 1.05rem;
         font-weight: 700;
@@ -205,8 +226,9 @@
               >-------</span
             >
           </div>
-          <button class="btn-copy" onclick="copyInviteCode()">
-            <i class="fa-regular fa-copy"></i> copy
+          <button id="copyBtn" class="copy-btn" onclick="copyInviteCode()">
+            <i id="copyIcon" class="fa-regular fa-copy"></i>
+            <span id="copyText">copy</span>
           </button>
         </div>
       </header>
@@ -214,7 +236,7 @@
       <!-- เมนูลัดเข้าถึงฟีเจอร์ต่างๆ (Quick Navigation) -->
       <nav class="quick-nav">
         <a href="expenses.html" class="nav-item">
-          <i class="fa-solid fa-receipt"></i> บันทึกบิล
+          <i class="fa-solid fa-receipt"></i> ค่าใช้จ่าย
         </a>
         <a href="debts.html" class="nav-item">
           <i class="fa-solid fa-scale-balanced"></i> สรุปหนี้
@@ -234,8 +256,9 @@
             ><i
               class="fa-solid fa-clock-rotate-left"
               style="color: var(--primary)"
+              ;
             ></i>
-            ค่าใช้จ่ายล่าสุดในทริป</span
+            ค่าใช้จ่ายล่าสุด</span
           >
           <a
             href="expenses.html"
@@ -311,7 +334,7 @@
           document.getElementById("trip-title-display").innerHTML =
             `<i class="fa-brands fa-threads" style="margin-right: 3px; font-size: 1.2rem;"></i> ${trip.title}`;
           document.getElementById("trip-dates").innerHTML =
-            `<i class="fa-solid fa-calendar-day" style="margin-right: 8px;"></i> ${formatDate(trip.startDate)} to ${formatDate(trip.endDate)}`;
+            `<i class="fa-solid fa-calendar-day" style="margin-right: 8px;"></i> ${formatDate(trip.startDate)} to  ${formatDate(trip.endDate)}`;
           document.getElementById("invite-code-display").innerHTML =
             trip.inviteCode;
 
@@ -325,45 +348,94 @@
       }
 
       async function loadRecentExpenses(id) {
-        const container = document.getElementById("expenses-feed-container");
+        const container = document.getElementById("expenses-feed-container"); // แก้ไข ID ให้ตรงกับ HTML
         try {
-          const response = await fetch(`${API_BASE_URL}/expenses/trip/${id}`);
+          const response = await fetch(
+            `${API_BASE_URL}/expenses/trip/${tripId}`,
+          );
           if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลบิลได้");
 
           const expenses = await response.json();
-
-          if (expenses.length === 0) {
+          if (!expenses || expenses.length === 0) {
             container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบันทึกค่าใช้จ่ายในทริปนี้</div>`;
             return;
           }
 
           container.innerHTML = "";
-          expenses.slice(0, 5).forEach((item) => {
+          expenses.forEach((item) => {
+            const payerName = item.user
+              ? item.user.guestName || `สมาชิก #${item.user.id}`
+              : "ไม่ระบุ";
+
+            // กำหนดไอคอนตามหมวดหมู่
+            let catIcon = '<i class="fa-solid fa-star"></i>';
+            if (item.category === "FOOD") {
+              catIcon = '<i class="fa-solid fa-utensils"></i>';
+            } else if (item.category === "ACCOMMODATION") {
+              catIcon = '<i class="fa-solid fa-hotel"></i>';
+            } else if (item.category === "TRANSPORT") {
+              catIcon = '<i class="fa-solid fa-car"></i>';
+            } else if (item.category === "SHOPPING") {
+              catIcon = '<i class="fa-solid fa-shopping-bag"></i>';
+            } else if (item.category === "OTHER") {
+              catIcon = '<i class="fa-solid fa-star"></i>';
+            }
+
             const card = document.createElement("div");
             card.className = "feed-card";
             card.innerHTML = `
-                        <div class="feed-info">
-                            <h4>🍽️ ${item.title}</h4>
-                            <span>จ่ายโดย: สมาชิก #${item.paidByMemberId || "1"}</span>
-                        </div>
-                        <div class="feed-amount">฿${Number(item.amount).toLocaleString()}</div>
-                    `;
+              <div class="feed-info">
+                <h4 style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                  <span style="color: var(--text-muted);">${catIcon}</span> ${item.title}
+                </h4>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">จ่ายโดย: ${payerName}</span>
+              </div>
+              <div class="feed-amount">฿${Number(item.totalAmount || 0).toLocaleString()}</div>
+            `;
             container.appendChild(card);
           });
         } catch (error) {
+          console.error("Error loading expenses:", error);
           container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบิลในระบบ</div>`;
         }
       }
 
-      // ฟังก์ชันคัดลอกลิงก์เชิญเพื่อน
-      function copyInviteCode() {
-        const code = document.getElementById("invite-code-display").innerHTML;
-        const shareUrl = `${window.location.origin}/join-trip.html?code=${code}`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          alert("คัดลอกลิงก์เชิญเพื่อนเรียบร้อยแล้ว!");
-        });
-      }
+      let copyTimeout;
 
+      // ฟังก์ชันคัดลอกรหัสเชิญพร้อมเปลี่ยนสถานะปุ่มเป็นสีเขียว 5 วินาที
+      function copyInviteCode() {
+        const code = document
+          .getElementById("invite-code-display")
+          .innerText.trim();
+
+        navigator.clipboard
+          .writeText(code)
+          .then(() => {
+            const btn = document.getElementById("copyBtn");
+            const icon = document.getElementById("copyIcon");
+            const textSpan = document.getElementById("copyText");
+
+            // หากมีการคลิกซ้ำก่อนครบ 5 วินาที ให้เคลียร์เวลาเดิมทิ้งก่อน
+            if (copyTimeout) {
+              clearTimeout(copyTimeout);
+            }
+
+            // 1. เปลี่ยนสถานะปุ่มเป็นสำเร็จ (สีเขียว + เครื่องหมายถูก)
+            btn.classList.add("success");
+            icon.className = "fa-solid fa-check"; // เปลี่ยนไอคอนเป็นเครื่องหมายถูก
+            textSpan.textContent = "Copied"; // เปลี่ยนข้อความ
+
+            // 2. ตั้งเวลา 5 วินาที (5000ms) ให้เปลี่ยนปุ่มกลับเป็นค่าเดิม
+            copyTimeout = setTimeout(() => {
+              btn.classList.remove("success");
+              icon.className = "fa-regular fa-copy"; // เปลี่ยนไอคอนกลับเป็นรูป copy
+              textSpan.textContent = "copy"; // เปลี่ยนข้อความกลับ
+            }, 1200);
+          })
+          .catch((err) => {
+            console.error("ไม่สามารถคัดลอกข้อความได้:", err);
+          });
+      }
       loadTripDashboard();
     </script>
   </body>

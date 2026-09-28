@@ -1,5 +1,6 @@
 package com.cp.party_trip.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
@@ -16,6 +17,7 @@ public class ExpenseSplit {
 
     @ManyToOne
     @JoinColumn(name = "trip_member_id")
+    @JsonIgnore
     private TripMember tripMember;
 
     private BigDecimal amountOwed; // Amount for this split

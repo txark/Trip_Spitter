@@ -43,7 +43,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // ปิด CSRF ชั่วคราวเพื่อให้เทส API ง่ายขึ้น
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/trips/**", "/api/history/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }
