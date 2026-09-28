@@ -1,5 +1,6 @@
 package com.cp.party_trip.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,11 +15,16 @@ public class Expense {
 
     @ManyToOne
     @JoinColumn(name = "trip_id")
+    @JsonIgnore
     private Trip trip;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private TripMember user;
+
+    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ExpenseSplit> expenseSplits; // List of expense splits
 
     private String title; // Title of the expense
     private BigDecimal totalAmount; // Amount of the expense
@@ -30,9 +36,6 @@ public class Expense {
 
     @Column(name = "category")
     private String category; // FOOD, TRANSPORT, ACCOMMODATION, SHOPPING
-
-    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ExpenseSplit> expenseSplits; // List of expense splits
 
     // Getters & Setters
     public Long getId() {

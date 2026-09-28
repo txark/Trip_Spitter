@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trip Expense - Party & Trip Expense Splitter Pro</title>
+
+    <!-- CSS กลาง -->
+    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Momo+Trust+Display&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- FontAwesome สำหรับไอคอน -->
+    <script
+      src="https://kit.fontawesome.com/01502edf06.js"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      /* body {
+        background-color: var(--background);
+        color: var(--text-main);
+        font-family:
+          "Momo Trust Display", "Bai Jamjuree", "Sarabun", sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      } */
+
+      .expense-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #818cf8 100%);
+        color: white;
+        padding: 3.5em 24px 20px;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        margin: -24px -20px 20px -20px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .expense-header h2 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin: 0;
+      }
+
+      /* แถบคำเตือน */
+      .hidden {
+        display: none !important;
+      }
+
+      #warning-banner {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      /* ฟอร์มบันทึกบิล */
+      .form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+      }
+
+      .input-group {
+        margin-bottom: 14px;
+        text-align: left;
+      }
+
+      .input-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        height: 46px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background-color: var(--background);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus {
+        border-color: var(--primary);
+      }
+
+      .submit-btn {
+        width: 100%;
+        height: 48px;
+        border-radius: 10px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffffff;
+        background: linear-gradient(135deg, var(--secondary) 0%, #f97316 100%);
+        box-shadow: 0 6px 15px rgba(255, 107, 107, 0.3);
+        cursor: pointer;
+        transition:
+          opacity 0.2s,
+          transform 0.1s;
+        margin-top: 10px;
+      }
+
+      .submit-btn:hover {
+        opacity: 0.95;
+        transform: translateY(-1px);
+      }
+
+      /* รายการบิล */
+      .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .feed-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .feed-info h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .feed-info span {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .feed-amount {
+        font-weight: 800;
+        color: var(--secondary);
+        font-size: 1.1rem;
+      }
+
+      .empty-box {
+        text-align: center;
+        padding: 30px;
+        background: var(--surface);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-size: 0.88rem;
+      }
+
+      /* แก้ไขให้ใส่จุด . เพื่อให้ CSS ทำงานถูกต้อง และเรียง 5 ปุ่มในแถวเดียว */
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .category-chip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 4px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        white-space: nowrap;
+      }
+
+      .category-chip input {
+        display: none;
+      }
+
+      .category-chip input:checked + span {
+        color: var(--primary);
+      }
+
+      .category-chip:has(input:checked) {
+        background-color: rgba(99, 102, 241, 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 2px 5px rgba(99, 102, 241, 0.15);
+      }
+
+      .category-chip:hover {
+        border-color: var(--primary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ส่วนหัว -->
+      <header class="expense-header">
+        <h2>
+          <i class="fa-solid fa-receipt" style="margin-right: 8px"></i>
+          บันทึกค่าใช้จ่าย
+        </h2>
+        <a
+          id="back-dashboard-btn"
+          href="dashboard.html"
+          style="
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+          "
+        >
+          <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </header>
+
+      <!-- แถบคำเตือน (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+      <div id="warning-banner" class="hidden">
+        <span id="warning-text">กรุณากรอกข้อมูลให้ครบถ้วน</span>
+        <button
+          onclick="closeBanner()"
+          style="
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+          "
+        >
+          &times;
+        </button>
+      </div>
+
+      <!-- ฟอร์มกรอกบิลใหม่ -->
+      <div class="form-card">
+        <div class="input-group">
+          <label>หมวดหมู่ค่าใช้จ่าย</label>
+          <div class="category-grid">
+            <label class="category-chip">
+              <input
+                type="radio"
+                name="expense-category"
+                value="FOOD"
+                checked
+              />
+              <span
+                ><i class="fa-solid fa-utensils" style="margin-right: 4px"></i>
+                อาหาร</span
+              >
+            </label>
+            <label class="category-chip">
+              <input
+                type="radio"
+                name="expense-category"
+                value="ACCOMMODATION"
+              />
+              <span
+                ><i class="fa-solid fa-hotel" style="margin-right: 4px"></i>
+                ที่พัก</span
+              >
+            </label>
+            <label class="category-chip">
+              <input type="radio" name="expense-category" value="TRANSPORT" />
+              <span
+                ><i class="fa-solid fa-car" style="margin-right: 4px"></i>
+                เดินทาง</span
+              >
+            </label>
+            <label class="category-chip">
+              <input type="radio" name="expense-category" value="SHOPPING" />
+              <span
+                ><i
+                  class="fa-solid fa-shopping-bag"
+                  style="margin-right: 4px"
+                ></i>
+                ช้อปปิ้ง</span
+              >
+            </label>
+            <label class="category-chip">
+              <input type="radio" name="expense-category" value="OTHER" />
+              <span
+                ><i class="fa-solid fa-star" style="margin-right: 4px"></i>
+                อื่นๆ</span
+              >
+            </label>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>รายการค่าใช้จ่าย</label>
+          <input
+            type="text"
+            id="expense-title"
+            placeholder="เช่น ค่าอาหารกลางวัน, ค่าแท็กซี่"
+          />
+        </div>
+        <div class="input-group">
+          <label>จำนวนเงิน (บาท)</label>
+          <input
+            type="number"
+            id="expense-amount"
+            placeholder="0.00"
+            min="0"
+            step="any"
+          />
+        </div>
+        <div class="input-group">
+          <label>จ่ายโดยสมาชิก</label>
+          <select id="expense-payer">
+            <option value="">กำลังโหลดรายชื่อสมาชิก...</option>
+          </select>
+        </div>
+        <button type="button" class="submit-btn" onclick="submitExpense()">
+          บันทึกบิล
+        </button>
+      </div>
+
+      <!-- รายการบิลทั้งหมด -->
+      <section>
+        <div class="section-title">
+          <span
+            ><i
+              class="fa-solid fa-list"
+              style="color: var(--primary); margin-right: 0.5em"
+            ></i>
+            รายการบิลทั้งหมด</span
+          >
+        </div>
+        <div id="expenses-list-container">
+          <!-- <div class="empty-box">กำลังโหลดรายการบิล...</div> -->
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const tripId = urlParams.get("tripId") || 1;
+      const API_BASE_URL = "http://localhost:8090/api";
+
+      document.querySelector(".expense-header a").href =
+        `dashboard.html?tripId=${tripId}`;
+
+      let warningTimeout;
+      function showWarning(message) {
+        const banner = document.getElementById("warning-banner");
+        const textSpan = document.getElementById("warning-text");
+        textSpan.textContent = message;
+        banner.classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        if (warningTimeout) {
+          clearTimeout(warningTimeout);
+        }
+
+        warningTimeout = setTimeout(() => {
+          closeBanner();
+        }, 3000); // แสดง 3 วินาทีแล้วหายไป
+      }
+
+      function closeBanner() {
+        const banner = document.getElementById("warning-banner");
+        banner.classList.add("hidden");
+        if (warningTimeout) {
+          clearTimeout(warningTimeout);
+          warningTimeout = null;
+        }
+      }
+
+      document
+        .querySelectorAll(".form-card input, .form-card select")
+        .forEach((element) => {
+          element.addEventListener("input", () => {
+            const banner = document.getElementById("warning-banner");
+            if (!banner.classList.contains("hidden")) {
+              closeBanner();
+            }
+          });
+        });
+
+      async function loadTripMembers() {
+        const payerSelect = document.getElementById("expense-payer");
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/trips/${tripId}/members`,
+          );
+          if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลสมาชิกได้");
+
+          const members = await response.json();
+          if (!members || members.length === 0) {
+            payerSelect.innerHTML = `<option value="">ยังไม่มีสมาชิกในทริปนี้</option>`;
+            return;
+          }
+
+          payerSelect.innerHTML = "";
+          members.forEach((m) => {
+            const option = document.createElement("option");
+            option.value = m.id;
+            option.textContent = m.guestName || `สมาชิก #${m.id}`;
+            payerSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error loading members:", error);
+          payerSelect.innerHTML = `<option value="">ไม่พบรายชื่อสมาชิก</option>`;
+        }
+      }
+
+      // โหลดรายการบิลทั้งหมดของทริป
+      async function loadExpenses() {
+        const container = document.getElementById("expenses-list-container");
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/expenses/trip/${tripId}`,
+          );
+          if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลบิลได้");
+
+          const expenses = await response.json();
+          if (!expenses || expenses.length === 0) {
+            container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบันทึกค่าใช้จ่ายในทริปนี้</div>`;
+            return;
+          }
+
+          container.innerHTML = "";
+          expenses.forEach((item) => {
+            const payerName = item.user
+              ? item.user.guestName || `สมาชิก #${item.user.id}`
+              : "ไม่ระบุ";
+
+            // กำหนดสีและไอคอนตามหมวดหมู่
+            let catClass = "cat-other";
+            let catText = "อื่นๆ";
+            let catIcon = '<i class="fa-solid fa-star"></i>';
+
+            if (item.category === "FOOD") {
+              catText = "อาหาร";
+              catClass = "cat-food";
+              catIcon = '<i class="fa-solid fa-utensils"></i>';
+            } else if (item.category === "ACCOMMODATION") {
+              catText = "ที่พัก";
+              catClass = "cat-accommodation";
+              catIcon = '<i class="fa-solid fa-hotel"></i>';
+            } else if (item.category === "TRANSPORT") {
+              catText = "เดินทาง";
+              catClass = "cat-transport";
+              catIcon = '<i class="fa-solid fa-car"></i>';
+            } else if (item.category === "SHOPPING") {
+              catText = "ช้อป";
+              catClass = "cat-shopping";
+              catIcon = '<i class="fa-solid fa-shopping-bag"></i>';
+            } else if (item.category === "OTHER") {
+              catText = "อื่นๆ";
+              catClass = "cat-other";
+              catIcon = '<i class="fa-solid fa-star"></i>';
+            }
+
+            const card = document.createElement("div");
+            card.className = "feed-card";
+            card.innerHTML = `
+              <div class="feed-info">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem;">
+                    <span " style="color: var(--text-muted);padding: 5px 6px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                    ${catIcon}
+                  </span>
+                    <h4 style="margin-bottom: 6px;">${item.title}</h4>
+                </div>
+                  <span style="color: var(--text-muted);">จ่ายโดย: ${payerName}</span>
+              </div>
+              <div class="feed-amount">฿${Number(item.totalAmount || 0).toLocaleString()}</div>
+            `;
+            container.appendChild(card);
+          });
+        } catch (error) {
+          console.error("Error loading expenses:", error);
+          container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบิลในระบบ</div>`;
+        }
+      }
+
+      async function submitExpense() {
+        const title = document.getElementById("expense-title").value.trim();
+        const totalAmount = document.getElementById("expense-amount").value;
+        const paidByMemberId = document.getElementById("expense-payer").value;
+
+        // แก้ไขวิธีดึงค่าหมวดหมู่จาก Radio Button ที่ถูกเลือกให้ถูกต้อง
+        const selectedCategory = document.querySelector(
+          'input[name="expense-category"]:checked',
+        );
+        const category = selectedCategory ? selectedCategory.value : "FOOD";
+
+        if (!title || !totalAmount || !paidByMemberId) {
+          showWarning("กรุณากรอกข้อมูลบิลให้ครบถ้วน");
+          return;
+        }
+
+        closeBanner();
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/expenses/add/${tripId}?paidByMemberId=${paidByMemberId}&participantIds=${paidByMemberId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: title,
+                totalAmount: Number(totalAmount),
+                currency: "THB",
+                splitType: "equal",
+                category: category,
+              }),
+            },
+          );
+
+          if (response.ok) {
+            document.getElementById("expense-title").value = "";
+            document.getElementById("expense-amount").value = "";
+            loadExpenses();
+          } else {
+            showWarning("ไม่สามารถบันทึกบิลได้ กรุณาลองใหม่อีกครั้ง");
+          }
+        } catch (error) {
+          console.error("Connection error:", error);
+          showWarning("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลังบ้าน");
+        }
+      }
+
+      loadTripMembers();
+      loadExpenses();
+    </script>
+  </body>
+</html>
