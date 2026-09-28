@@ -107,3 +107,65 @@ body {
 .btn-google:hover {
     background-color: #F1F5F9;
 }
+
+/* Custom Pop-up Modal สไตล์เข้ากับเว็บไซต์ */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.custom-alert-box {
+    background: var(--surface, #1e293b);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    padding: 24px;
+    border-radius: var(--radius-lg, 16px);
+    width: 320px;
+    text-align: center;
+    box-shadow: var(--shadow-lg, 0 10px 25px rgba(0, 0, 0, 0.5));
+    color: var(--text-main, #ffffff);
+    animation: scaleUp 0.2s ease-in-out;
+}
+
+.custom-alert-box p {
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    color: var(--text-main, #e2e8f0);
+    line-height: 1.5;
+}
+
+.custom-alert-btn {
+    background: var(--primary, #6366f1);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 100%;
+}
+
+.custom-alert-btn:hover {
+    opacity: 0.9;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}

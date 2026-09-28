@@ -25,6 +25,7 @@
       src="https://kit.fontawesome.com/01502edf06.js"
       crossorigin="anonymous"
     ></script>
+    <script rel="module" src="/src/main/resources/js/main.js"></script>
     <style>
       body {
         background-color: var(--background);
@@ -544,7 +545,7 @@
               type="text"
               id="join-invite-code"
               placeholder="เช่น A7B9X2Y"
-              maxlength="7"
+              maxlength="6"
               style="
                 text-transform: uppercase;
                 font-family: monospace;
@@ -778,7 +779,17 @@
         const title = document.getElementById("trip-title").value.trim();
         const startDate = document.getElementById("trip-start-date").value;
         const endDate = document.getElementById("trip-end-date").value;
-        const creatorName = localStorage.getItem("username") || "Guest";
+
+        // ตรวจสอบและดึงชื่อเล่น ถ้าไม่มีให้ใช้ Guest
+        let creatorName = localStorage.getItem("username");
+        if (
+          !creatorName ||
+          creatorName === "My Username" ||
+          creatorName.trim() === ""
+        ) {
+          creatorName = "Guest_" + Math.floor(Math.random() * 1000);
+          localStorage.setItem("username", creatorName);
+        }
 
         if (!title || !startDate || !endDate) {
           alert("กรุณากรอกข้อมูลทริปให้ครบถ้วน");
@@ -797,12 +808,16 @@
 
           if (response.ok) {
             const trip = await response.json();
+            // พาไปหน้า Dashboard พร้อมส่ง tripId
             window.location.href = `dashboard.html?tripId=${trip.id}`;
           } else {
-            alert("ไม่สามารถสร้างห้องทริปได้ กรุณาลองใหม่อีกครั้ง");
+            alert("ไม่สามารถสร้างทริปได้ กรุณาลองใหม่อีกครั้ง");
           }
         } catch (error) {
-          alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลังบ้าน");
+          console.error("Connection error:", error);
+          alert(
+            "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลังบ้าน ตรวจสอบว่าเปิด Spring Boot หรือยัง",
+          );
         }
       }
 
@@ -828,12 +843,14 @@
           );
 
           if (response.ok) {
-            const member = await response.json();
-            window.location.href = `dashboard.html?tripId=${member.trip.id}`;
+            const trip = await response.json();
+            // พาไปหน้า Dashboard พร้อมส่ง tripId ที่ถูกต้อง
+            window.location.href = `dashboard.html?tripId=${trip.id}`;
           } else {
             alert("รหัสเชิญไม่ถูกต้อง หรือไม่พบห้องทริปนี้");
           }
         } catch (error) {
+          console.error("Join error:", error);
           alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลังบ้าน");
         }
       }
@@ -858,19 +875,72 @@
             return;
           }
 
-          container.innerHTML = "";
-          historyList.forEach((item) => {
-            const link = document.createElement("a");
-            link.href = `dashboard.html?tripId=${item.tripId}`;
-            link.className = "history-item";
-            link.innerHTML = `
-              <span>✈️ ทริปรหัส #${item.tripId}</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(item.viewedAt).toLocaleDateString("th-TH")}</span>
-            `;
-            container.appendChild(link);
+          // กรอง tripId ที่ซ้ำกันออก เพื่อให้แสดงห้องละ 1 บรรทัด (เอาอันล่าสุด)
+          const uniqueTripIds = [];
+          const filteredHistory = historyList.filter((item) => {
+            if (!uniqueTripIds.includes(item.tripId)) {
+              uniqueTripIds.push(item.tripId);
+              return true;
+            }
+            return false;
           });
+
+          container.innerHTML = ""; // ล้างข้อความโหลดก่อนหน้า
+
+          // ฟังก์ชันแปลงวันที่ให้เป็น dd/mm - dd/mm/yyyy
+          const formatTripDateRange = (startStr, endStr) => {
+            if (!startStr || !endStr) return "";
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+
+            const pad = (n) => String(n).padStart(2, "0");
+            const sDay = pad(start.getDate());
+            const sMonth = pad(start.getMonth() + 1);
+            const eDay = pad(end.getDate());
+            const eMonth = pad(end.getMonth() + 1);
+            const eYear = end.getFullYear();
+
+            return `${sDay}/${sMonth} - ${eDay}/${eMonth}/${eYear}`;
+          };
+
+          // วนลูปดึงชื่อทริปจริงของแต่ละประวัติมาแสดงผล
+          const historyItemsHtml = await Promise.all(
+            filteredHistory.map(async (item) => {
+              let tripTitle = `ทริปรหัส #${item.tripId}`;
+              let formattedDate = ""; // <-- เพิ่มการประกาศตัวแปรตั้งต้น
+
+              try {
+                const tripRes = await fetch(
+                  `${API_BASE_URL}/trips/${item.tripId}`,
+                );
+                if (tripRes.ok) {
+                  const tripData = await tripRes.json();
+                  if (tripData && tripData.title) {
+                    tripTitle = tripData.title;
+                  }
+                  // <-- เรียกใช้ฟังก์ชันแปลงวันที่จากข้อมูลทริปที่ได้จาก Backend
+                  if (tripData && tripData.startDate && tripData.endDate) {
+                    formattedDate = formatTripDateRange(
+                      tripData.startDate,
+                      tripData.endDate,
+                    );
+                  }
+                }
+              } catch (e) {
+                console.error("ไม่สามารถดึงชื่อทริปได้:", e);
+              }
+
+              return `
+                <a href="dashboard.html?tripId=${item.tripId}" class="history-item">
+                  <span>✈️ ${tripTitle}</span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">${formattedDate}</span>
+                </a>
+              `;
+            }),
+          );
+
+          container.innerHTML = historyItemsHtml.join("");
         } catch (error) {
-          // ป้องกันไม่ให้ Error ของประวัติไปบล็อกการสร้างห้อง
           container.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%; padding: 10px 0;">ยังไม่มีประวัติทริปในระบบ</span>`;
         }
       }

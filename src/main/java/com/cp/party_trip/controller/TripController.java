@@ -2,6 +2,7 @@ package com.cp.party_trip.controller;
 
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
+import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.service.TripService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.*;
 public class TripController {
 
     private final TripService tripService;
+    private final TripMemberRepo tripMemberRepo;
 
-    public TripController(TripService tripService) {
+    public TripController(TripService tripService, TripMemberRepo tripMemberRepo) {
         this.tripService = tripService;
+        this.tripMemberRepo = tripMemberRepo;
     }
 
     @GetMapping("/{id}")
@@ -30,8 +33,15 @@ public class TripController {
     }
 
     @PostMapping("/join/{inviteCode}")
-    public ResponseEntity<TripMember> joinTrip(@PathVariable String inviteCode, @RequestParam String memberName) {
+    public ResponseEntity<Trip> joinTrip(@PathVariable String inviteCode, @RequestParam String memberName) {
         TripMember joinedMember = tripService.joinTrip(inviteCode, memberName);
-        return ResponseEntity.ok(joinedMember);
+        // ส่งข้อมูล Trip กลับไปตรงๆ ให้หน้าเว็บนำไปใช้งานต่อได้ทันที
+        return ResponseEntity.ok(joinedMember.getTrip());
+    }
+
+    @GetMapping("/{tripId}/members")
+    public ResponseEntity<java.util.List<TripMember>> getTripMembers(@PathVariable Long tripId) {
+        java.util.List<TripMember> members = tripMemberRepo.findByTripId(tripId);
+        return ResponseEntity.ok(members);
     }
 }

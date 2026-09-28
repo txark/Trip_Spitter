@@ -37,23 +37,24 @@ public class TripService {
                     return userRepo.save(newUser);
                 });
 
-        String inviteCode = UUID.randomUUID().toString().replace("-", "").substring(0, 6);
+        String inviteCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         trip.setInviteCode(inviteCode);
         Trip savedTrip = tripRepo.save(trip);
 
         TripMember tripMember = new TripMember();
         tripMember.setTrip(savedTrip); // ใช้ setTrip ส่ง Object Trip เข้าไปตรงๆ
-        tripMember.setGuestName(creator.getUsername());
+        tripMember.setGuestName(creator != null ? creator.getUsername() : "Guest");
         tripMember.setRole("ADMIN");
         tripMemberRepo.save(tripMember);
 
         // บันทึกประวัติการเข้าร่วมทริปของผู้ใช้
         UserTripHistory history = new UserTripHistory();
-        history.setUserId(creator.getId());
+        history.setUserId(creator != null ? creator.getId() : null);
         history.setTripId(savedTrip.getId());
         history.setViewedAt(java.time.LocalDateTime.now());
         userTripHistoryRepo.save(history);
-        System.out.println("===== บันทึกประวัติสำเร็จสำหรับ User ID: " + creator.getId() + " และ Trip ID: "
+        System.out.println("===== บันทึกประวัติสำเร็จสำหรับ User ID: " + (creator != null ? creator.getId() : null)
+                + " และ Trip ID: "
                 + savedTrip.getId() + " =====");
 
         return savedTrip;
@@ -69,23 +70,25 @@ public class TripService {
                     return userRepo.save(newUser);
                 });
 
-        Trip trip = tripRepo.findByInviteCode(inviteCode)
+        Trip trip = tripRepo.findByInviteCodeIgnoreCase(inviteCode.trim())
                 .orElseThrow(() -> new RuntimeException("ไม่พบทริปที่ตรงกับรหัสเชิญนี้"));
 
         TripMember tripMember = new TripMember();
         tripMember.setTrip(trip); // ใช้ setTrip ส่ง Object Trip เข้าไปตรงๆ
-        tripMember.setGuestName(user.getUsername());
+        tripMember.setGuestName(user != null ? user.getUsername() : "Guest");
         tripMember.setRole("MEMBER");
         TripMember savedMember = tripMemberRepo.save(tripMember);
 
         // บันทึกประวัติการเข้าร่วมทริปของผู้ใช้
-        UserTripHistory history = new UserTripHistory();
+        UserTripHistory history = userTripHistoryRepo.findByUserIdAndTripId(user.getId(), trip.getId())
+                .orElse(new UserTripHistory());
         history.setUserId(user.getId());
         history.setTripId(trip.getId());
         history.setViewedAt(java.time.LocalDateTime.now());
         userTripHistoryRepo.save(history);
-        System.out.println("===== บันทึกประวัติสำเร็จสำหรับ User ID: " + user.getId() + " และ Trip ID: "
-                + trip.getId() + " =====");
+        System.out.println(
+                "===== บันทึกประวัติสำเร็จสำหรับ User ID: " + (user != null ? user.getId() : null) + " และ Trip ID: "
+                        + trip.getId() + " =====");
 
         return savedMember;
     }

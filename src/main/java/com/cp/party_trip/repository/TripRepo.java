@@ -5,5 +5,5 @@ import com.cp.party_trip.model.Trip;
 import java.util.Optional;
 
 public interface TripRepo extends JpaRepository<Trip, Long> {
-    Optional<Trip> findByInviteCode(String inviteCode);
+    Optional<Trip> findByInviteCodeIgnoreCase(String inviteCode);
 }
