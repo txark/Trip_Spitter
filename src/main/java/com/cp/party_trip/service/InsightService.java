@@ -36,10 +36,13 @@ public class InsightService {
         List<DailySummaryDTO> summaries = new ArrayList<>();
 
         for (Object[] row : results) {
-            java.sql.Date sqlDate = (java.sql.Date) row[0];
+            // Hibernate 7 คืน LocalDate ส่วนเวอร์ชันเก่าคืน java.sql.Date รองรับทั้งสองแบบ
+            java.time.LocalDate date = row[0] instanceof java.sql.Date sqlDate
+                    ? sqlDate.toLocalDate()
+                    : (java.time.LocalDate) row[0];
             // เพิ่มการตรวจสอบเงื่อนไข row[1] != null เพื่อป้องกันระบบแครช
             BigDecimal total = row[1] != null ? new BigDecimal(row[1].toString()) : BigDecimal.ZERO;
-            summaries.add(new DailySummaryDTO(sqlDate.toLocalDate(), total));
+            summaries.add(new DailySummaryDTO(date, total));
         }
         return summaries;
     }

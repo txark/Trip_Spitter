@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,22 +37,37 @@ public class ExpenseService {
     @Transactional
     public Expense createExpense(Long tripId, Long userId, ExpenseRequest request, List<Long> participantIds) {
         Trip trip = tripRepo.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("ไม่พบข้อมูลทริป"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบข้อมูลทริป"));
 
-        TripMember paidBy = tripMemberRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("ไม่พบข้อมูลผู้จ่ายเงิน"));
+        // ผู้จ่ายต้องเป็นสมาชิกของทริปนี้ (เดิมรับสมาชิกทริปอื่นได้)
+        TripMember paidBy = findTripMember(tripId, userId);
 
-        BigDecimal totalAmount = request.getTotalAmount();
-        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.getTotalAmount() == null) {
             throw badRequest("ยอดบิลต้องมากกว่า 0");
+        }
+        // เก็บเงินเป็นทศนิยม 2 ตำแหน่งเสมอ ให้ยอดบิลกับผลรวมของแต่ละคนตรงกันพอดี
+        BigDecimal totalAmount = request.getTotalAmount().setScale(2, RoundingMode.HALF_UP);
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw badRequest("ยอดบิลต้องมากกว่า 0");
+        }
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw badRequest("กรุณาตั้งชื่อรายการ");
+        }
+
+        // ไม่ระบุวิธีหาร = หารเท่ากัน, ระบุแบบที่ไม่รองรับ = ผิด (เดิมบันทึกบิลโดยไม่มีผู้ร่วมหาร ทำให้ยอดหนี้เพี้ยน)
+        String splitType = request.getSplitType() == null || request.getSplitType().isBlank()
+                ? "EQUAL"
+                : request.getSplitType().trim().toUpperCase();
+        if (!"EQUAL".equals(splitType) && !"CUSTOM".equals(splitType)) {
+            throw badRequest("วิธีหารไม่ถูกต้อง (รองรับ EQUAL หรือ CUSTOM)");
         }
 
         Expense expense = new Expense();
-        expense.setTitle(request.getTitle());
+        expense.setTitle(request.getTitle().trim());
         expense.setTotalAmount(totalAmount);
         expense.setCurrency(request.getCurrency());
         expense.setCategory(request.getCategory());
-        expense.setSplitType(request.getSplitType() != null ? request.getSplitType().toUpperCase() : null);
+        expense.setSplitType(splitType);
         expense.setTrip(trip);
         expense.setUser(paidBy);
 
@@ -74,9 +90,12 @@ public class ExpenseService {
                 if (s.getAmount() == null || s.getAmount().compareTo(BigDecimal.ZERO) < 0) {
                     throw badRequest("ยอดของแต่ละคนต้องไม่ติดลบ");
                 }
+                if (s.getAmount().stripTrailingZeros().scale() > 2) {
+                    throw badRequest("ยอดของแต่ละคนใส่ทศนิยมได้ไม่เกิน 2 ตำแหน่ง");
+                }
                 sum = sum.add(s.getAmount());
             }
-            if (sum.setScale(2, RoundingMode.HALF_UP).compareTo(totalAmount.setScale(2, RoundingMode.HALF_UP)) != 0) {
+            if (sum.setScale(2, RoundingMode.HALF_UP).compareTo(totalAmount) != 0) {
                 throw badRequest("ผลรวมของแต่ละคน (" + sum + ") ไม่เท่ากับยอดบิล (" + totalAmount + ")");
             }
 
@@ -87,15 +106,21 @@ public class ExpenseService {
                 splits.add(newSplit(expense, findTripMember(tripId, s.getMemberId()),
                         s.getAmount().setScale(2, RoundingMode.HALF_UP)));
             }
-        } else if ("EQUAL".equals(expense.getSplitType()) && participantIds != null
-                && !participantIds.isEmpty()) {
-            // EQUAL SPLIT LOGIC Auto System
-            int count = participantIds.size();
+        } else {
+            // EQUAL SPLIT: ตัดรายชื่อซ้ำออก (ซ้ำแล้วคนเดียวจะมี 2 split และกดจ่ายได้แค่อันเดียว)
+            // ไม่มีผู้ร่วมหารเลย = ผู้จ่ายออกเองทั้งหมด
+            List<Long> people = new ArrayList<>(new LinkedHashSet<>(
+                    participantIds == null ? List.<Long>of() : participantIds));
+            people.removeIf(java.util.Objects::isNull);
+            if (people.isEmpty()) {
+                people.add(paidBy.getId());
+            }
+            int count = people.size();
             BigDecimal perPerson = totalAmount.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
             // เศษจากการปัดทศนิยม (เช่น 100/3) ให้คนแรกรับไป เพื่อให้ผลรวม splits เท่ากับยอดบิลพอดี
             BigDecimal remainder = totalAmount.subtract(perPerson.multiply(BigDecimal.valueOf(count)));
 
-            for (Long memberId : participantIds) {
+            for (Long memberId : people) {
                 splits.add(newSplit(expense, findTripMember(tripId, memberId),
                         splits.isEmpty() ? perPerson.add(remainder) : perPerson));
             }

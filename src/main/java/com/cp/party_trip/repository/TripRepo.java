@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface TripRepo extends JpaRepository<Trip, Long> {
     Optional<Trip> findByInviteCodeIgnoreCase(String inviteCode);
+
+    boolean existsByInviteCodeIgnoreCase(String inviteCode);
 }

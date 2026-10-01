@@ -7,6 +7,8 @@ import java.util.List;
 public interface ChecklistItemRepo extends JpaRepository<ChecklistItem, Long> {
     List<ChecklistItem> findByTripId(Long tripId);
 
+    List<ChecklistItem> findByTripIdOrderByIdAsc(Long tripId);
+
     // ค้นหาและกรองตามหมวดหมู่
     List<ChecklistItem> findByTripIdAndCategory(Long tripId, String category);
 

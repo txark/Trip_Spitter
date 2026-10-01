@@ -18,7 +18,6 @@
       src="https://kit.fontawesome.com/01502edf06.js"
       crossorigin="anonymous"
     ></script>
-    <script rel="module" src="/src/main/resources/js/main.js"></script>
     <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
     <script src="/src/main/resources/js/ui.js"></script>
     <style>
@@ -302,7 +301,7 @@
         document.getElementById("stat-owe").textContent = fmt(owe);
         document.getElementById("stat-receive").textContent = fmt(receive);
 
-        const net = receive - owe;
+        const net = roundMoney(receive - owe);
         const netEl = document.getElementById("stat-net");
         const subEl = document.getElementById("stat-net-sub");
         netEl.textContent = fmt(Math.abs(net));
@@ -516,13 +515,9 @@
           const members = memberRes.ok ? await memberRes.json() : [];
 
           // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) ไม่ใช่ ID
-          const currentUsername = localStorage.getItem("username");
-          const myMember =
-            members.find(
-              (m) => currentUsername && m.guestName === currentUsername,
-            ) || members[0];
+          const myMember = findMyMember(members);
           if (!myMember) {
-            const box = emptyBox("fa-solid fa-user-slash", "ไม่พบรายชื่อสมาชิกในทริป");
+            const box = emptyBox("fa-solid fa-user-slash", NOT_MEMBER_TEXT);
             myDebtsContainer.innerHTML = box;
             myPaidBillsContainer.innerHTML = box;
             renderSummary(0, 0);
@@ -647,8 +642,13 @@
         } catch (error) {
           console.error("Error updating payment status:", error);
           showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
-          button.disabled = false;
-          button.textContent = "ยืนยันรับเงิน";
+          if (button.isConnected) {
+            button.disabled = false;
+            button.textContent = "ยืนยันรับเงิน";
+          } else {
+            // ปุ่มถูกแทนด้วยป้าย "จ่ายแล้ว" ไปแล้ว -> โหลดข้อมูลจริงใหม่ ไม่ให้หน้าค้างสถานะผิด
+            loadDebts();
+          }
         }
       }
 

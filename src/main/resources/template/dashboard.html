@@ -25,7 +25,6 @@
       src="https://kit.fontawesome.com/01502edf06.js"
       crossorigin="anonymous"
     ></script>
-    <script rel="module" src="/src/main/resources/js/main.js"></script>
     <style>
       /* --- หัวหน้า: ตั๋วเครื่องบิน (boarding pass) ---
          ตัวตั๋ว (.bp-main) + ต้นขั้ว (.bp-stub) คั่นด้วยรอยปรุ
@@ -48,11 +47,15 @@
         padding: 18px 20px 16px;
         /* มือถือ: รอยเว้าที่มุมล่างซ้าย/ขวา */
         -webkit-mask:
-          radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
-          radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+          radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left /
+            51% 100% no-repeat,
+          radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000)
+            right / 51% 100% no-repeat;
         mask:
-          radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
-          radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+          radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left /
+            51% 100% no-repeat,
+          radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000)
+            right / 51% 100% no-repeat;
       }
 
       .bp-stub {
@@ -70,11 +73,15 @@
         column-gap: 12px;
         /* มือถือ: รอยเว้าที่มุมบนซ้าย/ขวา */
         -webkit-mask:
-          radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
-          radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+          radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left /
+            51% 100% no-repeat,
+          radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000)
+            right / 51% 100% no-repeat;
         mask:
-          radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
-          radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+          radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left /
+            51% 100% no-repeat,
+          radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000)
+            right / 51% 100% no-repeat;
       }
 
       .bp-label {
@@ -270,11 +277,15 @@
         .bp-main {
           border-radius: 18px 0 0 18px;
           -webkit-mask:
-            radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) top / 100% 51% no-repeat,
-            radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+            radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000)
+              top / 100% 51% no-repeat,
+            radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000)
+              bottom / 100% 51% no-repeat;
           mask:
-            radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) top / 100% 51% no-repeat,
-            radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+            radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000)
+              top / 100% 51% no-repeat,
+            radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000)
+              bottom / 100% 51% no-repeat;
         }
 
         .bp-stub {
@@ -290,11 +301,15 @@
           align-content: center;
           row-gap: 4px;
           -webkit-mask:
-            radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) top / 100% 51% no-repeat,
-            radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+            radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) top /
+              100% 51% no-repeat,
+            radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000)
+              bottom / 100% 51% no-repeat;
           mask:
-            radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) top / 100% 51% no-repeat,
-            radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+            radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) top /
+              100% 51% no-repeat,
+            radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000)
+              bottom / 100% 51% no-repeat;
         }
 
         .bp-stub .copy-btn {
@@ -615,7 +630,7 @@
 
             <div class="bp-route">
               <div class="bp-point">
-                <span class="bp-label">ออกเดินทาง</span>
+                <span class="bp-label">เริ่มต้น</span>
                 <strong id="bp-start">--</strong>
                 <small id="bp-start-sub">&nbsp;</small>
               </div>
@@ -624,7 +639,7 @@
                 <span class="bp-days" id="bp-days"></span>
               </div>
               <div class="bp-point end">
-                <span class="bp-label">กลับ</span>
+                <span class="bp-label">สิ้นสุด</span>
                 <strong id="bp-end">--</strong>
                 <small id="bp-end-sub">&nbsp;</small>
               </div>
@@ -632,7 +647,7 @@
 
             <div class="bp-footer">
               <div>
-                <span class="bp-label">ผู้โดยสาร</span>
+                <span class="bp-label">เพื่อนร่วมทาง</span>
                 <div class="value" id="trip-members-meta">-</div>
               </div>
             </div>
@@ -641,7 +656,9 @@
           <!-- ต้นขั้วตั๋ว: รหัสเชิญสำหรับแชร์ให้เพื่อน -->
           <div class="bp-stub">
             <span class="bp-label">รหัสเชิญเพื่อน</span>
-            <span class="invite-code-text" id="invite-code-display">------</span>
+            <span class="invite-code-text" id="invite-code-display"
+              >------</span
+            >
             <div class="barcode" id="bp-barcode" aria-hidden="true"></div>
             <button
               type="button"
@@ -751,7 +768,8 @@
       // ดึง tripId จาก URL Parameters (เช่น dashboard.html?tripId=1)
       const urlParams = new URLSearchParams(window.location.search);
       const tripId = urlParams.get("tripId") || 1;
-      const currentUserId = localStorage.getItem("userId") || 1;
+      // ไม่รู้ว่าเป็นใคร = ไม่บันทึกประวัติ (เดิมใช้ 1 ทำให้ประวัติไปโผล่ในบัญชีของผู้ใช้ #1)
+      const currentUserId = localStorage.getItem("userId");
       const currentUsername = localStorage.getItem("username");
 
       const API_BASE_URL = "http://localhost:8090/api"; // ปรับพอร์ตตาม Backend จริง
@@ -797,10 +815,18 @@
         const weekdayYear = (d) =>
           `${d.toLocaleDateString("th-TH", { weekday: "long" })} · ${d.getFullYear() + 543}`;
 
-        document.getElementById("bp-start").textContent = start ? formatDay(start) : "--";
-        document.getElementById("bp-start-sub").textContent = start ? weekdayYear(start) : "ยังไม่ระบุ";
-        document.getElementById("bp-end").textContent = end ? formatDay(end) : "--";
-        document.getElementById("bp-end-sub").textContent = end ? weekdayYear(end) : "ยังไม่ระบุ";
+        document.getElementById("bp-start").textContent = start
+          ? formatDay(start)
+          : "--";
+        document.getElementById("bp-start-sub").textContent = start
+          ? weekdayYear(start)
+          : "ยังไม่ระบุ";
+        document.getElementById("bp-end").textContent = end
+          ? formatDay(end)
+          : "--";
+        document.getElementById("bp-end-sub").textContent = end
+          ? weekdayYear(end)
+          : "ยังไม่ระบุ";
         document.getElementById("bp-days").textContent =
           start && end ? `${Math.round((end - start) / 86400000) + 1} วัน` : "";
       }
@@ -812,7 +838,10 @@
           .join("");
         document.getElementById("bp-barcode").innerHTML = [...bits.repeat(4)]
           .slice(0, 160) // ยาวพอเต็มต้นขั้วทุกขนาดจอ ส่วนเกินถูกตัดด้วย overflow: hidden
-          .map((b, i) => `<span style="width:${b === "1" ? 3 : 1}px;${i % 7 === 0 ? "opacity:.45" : ""}"></span>`)
+          .map(
+            (b, i) =>
+              `<span style="width:${b === "1" ? 3 : 1}px;${i % 7 === 0 ? "opacity:.45" : ""}"></span>`,
+          )
           .join("");
       }
 
@@ -834,7 +863,10 @@
       // --- สรุปยอด ---
       function renderStats(expenses, myMemberId) {
         const me = String(myMemberId);
-        const total = expenses.reduce((s, e) => s + Number(e.totalAmount || 0), 0);
+        const total = expenses.reduce(
+          (s, e) => s + Number(e.totalAmount || 0),
+          0,
+        );
 
         let myShare = 0;
         let owe = 0; // ที่เราค้างคนอื่น
@@ -856,14 +888,20 @@
           `${expenses.length} บิล`;
         document.getElementById("stat-share").textContent = fmt(myShare);
         document.getElementById("stat-share-sub").textContent =
-          total > 0 ? `${Math.round((myShare / total) * 100)}% ของทั้งทริป` : "";
+          total > 0
+            ? `${Math.round((myShare / total) * 100)}% ของทั้งทริป`
+            : "";
 
-        const net = receive - owe;
+        const net = roundMoney(receive - owe);
         const netEl = document.getElementById("stat-net");
         netEl.textContent = fmt(Math.abs(net));
         netEl.className = `stat-value${net > 0 ? " text-success" : net < 0 ? " text-danger" : ""}`;
         document.getElementById("stat-net-sub").textContent =
-          net > 0 ? "คุณจะได้รับคืน" : net < 0 ? "คุณต้องจ่ายเพิ่ม" : "เคลียร์ครบแล้ว 🎉";
+          net > 0
+            ? "คุณจะได้รับคืน"
+            : net < 0
+              ? "คุณต้องจ่ายเพิ่ม"
+              : "เคลียร์ครบแล้ว 🎉";
       }
 
       // --- ค่าใช้จ่ายล่าสุด: ใบเสร็จยาวใบเดียว พร้อมยอดรวมทั้งทริปด้านล่าง ---
@@ -877,7 +915,10 @@
           return;
         }
         const RECENT = 6;
-        const total = expenses.reduce((s, e) => s + Number(e.totalAmount || 0), 0);
+        const total = expenses.reduce(
+          (s, e) => s + Number(e.totalAmount || 0),
+          0,
+        );
         const today = new Date().toLocaleDateString("th-TH", {
           day: "numeric",
           month: "short",
@@ -945,7 +986,10 @@
         panel.innerHTML = `
           <div class="cat-bar" role="img" aria-label="สัดส่วนค่าใช้จ่ายแยกตามหมวดหมู่">
             ${rows
-              .map(([k, v]) => `<span class="cat-${k}" style="width:${pct(v)}%"></span>`)
+              .map(
+                ([k, v]) =>
+                  `<span class="cat-${k}" style="width:${pct(v)}%"></span>`,
+              )
               .join("")}
           </div>
           ${rows
@@ -1001,10 +1045,12 @@
 
       async function loadTripDashboard() {
         // 1. บันทึกประวัติการเข้าชมทริปล่าสุดลงฐานข้อมูล (ไม่ต้องรอ และไม่ให้พังทั้งหน้าถ้าล้มเหลว)
-        fetch(
-          `${API_BASE_URL}/history/view?userId=${currentUserId}&tripId=${tripId}`,
-          { method: "POST" },
-        ).catch((err) => console.error("Error saving history:", err));
+        if (currentUserId) {
+          fetch(
+            `${API_BASE_URL}/history/view?userId=${currentUserId}&tripId=${tripId}`,
+            { method: "POST" },
+          ).catch((err) => console.error("Error saving history:", err));
+        }
 
         try {
           // 2. ดึงข้อมูลทริป สมาชิก และบิล พร้อมกัน
@@ -1017,12 +1063,12 @@
 
           const trip = await tripRes.json();
           const members = membersRes.ok ? await membersRes.json() : [];
-          const expenses = expensesRes.ok ? (await expensesRes.json()) || [] : [];
+          const expenses = expensesRes.ok
+            ? (await expensesRes.json()) || []
+            : [];
 
           // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) ไม่ใช่ ID
-          const myMember =
-            members.find((m) => currentUsername && m.guestName === currentUsername) ||
-            members[0];
+          const myMember = findMyMember(members);
           const myMemberId = myMember ? myMember.id : null;
 
           // 3. หัวหน้า
@@ -1049,9 +1095,11 @@
             "โหลดข้อมูลไม่สำเร็จ",
             true,
           );
-          ["expenses-feed-container", "category-panel", "members-panel"].forEach(
-            (id) => (document.getElementById(id).innerHTML = box),
-          );
+          [
+            "expenses-feed-container",
+            "category-panel",
+            "members-panel",
+          ].forEach((id) => (document.getElementById(id).innerHTML = box));
           ["stat-total", "stat-share", "stat-net"].forEach(
             (id) => (document.getElementById(id).textContent = "-"),
           );
@@ -1061,7 +1109,9 @@
       // คัดลอกรหัสเชิญ แล้วเปลี่ยนปุ่มเป็นสีเขียวชั่วครู่
       let copyTimeout;
       function copyInviteCode() {
-        const code = document.getElementById("invite-code-display").textContent.trim();
+        const code = document
+          .getElementById("invite-code-display")
+          .textContent.trim();
         if (!code || code === "------") return;
 
         navigator.clipboard
