@@ -57,6 +57,7 @@ public class ExpenseController {
                 expMap.put("category", exp.getCategory());
                 expMap.put("splitType", exp.getSplitType());
                 expMap.put("expenseDate", exp.getExpenseDate());
+                expMap.put("activityId", exp.getActivityId());
 
                 if (exp.getUser() != null) {
                     Map<String, Object> userMap = new HashMap<>();
