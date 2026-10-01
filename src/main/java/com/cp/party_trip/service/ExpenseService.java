@@ -5,6 +5,7 @@ import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
+import com.cp.party_trip.repository.ActivityRepo;
 import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.TripRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
@@ -27,11 +28,14 @@ public class ExpenseService {
     private final ExpenseRepo expenseRepo;
     private final TripRepo tripRepo;
     private final TripMemberRepo tripMemberRepo;
+    private final ActivityRepo activityRepo;
 
-    public ExpenseService(ExpenseRepo expenseRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo) {
+    public ExpenseService(ExpenseRepo expenseRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo,
+            ActivityRepo activityRepo) {
         this.expenseRepo = expenseRepo;
         this.tripRepo = tripRepo;
         this.tripMemberRepo = tripMemberRepo;
+        this.activityRepo = activityRepo;
     }
 
     @Transactional
@@ -67,6 +71,15 @@ public class ExpenseService {
         expense.setTotalAmount(totalAmount);
         expense.setCurrency(request.getCurrency());
         expense.setCategory(request.getCategory());
+        if (request.getActivityId() != null) {
+            boolean sameTrip = activityRepo.findById(request.getActivityId())
+                    .map(a -> a.getTrip() != null && tripId.equals(a.getTrip().getId()))
+                    .orElse(false);
+            if (!sameTrip) {
+                throw badRequest("ไม่พบรายการนี้ในแพลนของทริป");
+            }
+            expense.setActivityId(request.getActivityId());
+        }
         expense.setSplitType(splitType);
         expense.setTrip(trip);
         expense.setUser(paidBy);

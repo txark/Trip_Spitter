@@ -39,6 +39,10 @@ public class Expense {
     @Column(name = "category")
     private String category; // FOOD, TRANSPORT, ACCOMMODATION, SHOPPING
 
+    // บิลนี้บันทึกจากรายการไหนในแพลนเที่ยว (null = บิลทั่วไป)
+    @Column(name = "activity_id")
+    private Long activityId;
+
     // Getters & Setters
     public Long getId() {
         return id;
@@ -110,6 +114,14 @@ public class Expense {
 
     public void setExpenseSplits(List<ExpenseSplit> expenseSplits) {
         this.expenseSplits = expenseSplits;
+    }
+
+    public Long getActivityId() {
+        return activityId;
+    }
+
+    public void setActivityId(Long activityId) {
+        this.activityId = activityId;
     }
 
     public String getCategory() {
