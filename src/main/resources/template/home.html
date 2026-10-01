@@ -7,6 +7,8 @@
 
     <!-- CSS กลาง -->
     <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
+    <script src="/src/main/resources/js/ui.js"></script>
 
     <!-- font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,135 +19,205 @@
     />
 
     <!-- FontAwesome สำหรับไอคอน -->
-    <!-- <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css"
-    /> -->
     <script
       src="https://kit.fontawesome.com/01502edf06.js"
       crossorigin="anonymous"
     ></script>
-    <script rel="module" src="/src/main/resources/js/main.js"></script>
     <style>
-      body {
-        background-color: var(--background);
-        color: var(--text-main);
-        margin: 0;
-        padding: 0;
-      }
-
       .frame {
-        position: relative;
         width: 100%;
+        max-width: 480px;
         min-height: 100vh;
+        margin: 0 auto;
+        padding: 20px 20px 40px;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        padding: 40px 20px;
+        gap: 24px;
       }
 
-      /* แถบโปรไฟล์ผู้ใช้มุมขวาบน */
-      .frame .rectangle {
-        position: absolute;
-        top: 36px;
-        right: 40px;
-        width: auto;
-        min-width: 140px;
-        height: 48px;
-        background-color: var(--surface);
-        border-radius: 100px;
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-sm);
+      /* --- แถบบน: โลโก้ + โปรไฟล์ --- */
+      .topbar {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        padding: 0 16px;
+        gap: 12px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--primary);
+      }
+
+      .profile-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 60%;
+        height: 42px;
+        padding: 0 14px 0 5px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
         cursor: pointer;
-        transition:
-          border-color 0.2s,
-          box-shadow 0.2s;
-      }
-
-      .frame .rectangle:hover {
-        border-color: var(--primary);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .frame .username {
-        font-size: 0.9rem;
-        font-weight: 500;
+        font-size: 0.88rem;
+        font-weight: 600;
         color: var(--text-main);
-        margin-left: 8px;
+        transition: border-color 0.2s;
+      }
+
+      .profile-pill .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+      }
+
+      .profile-pill .name {
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
       }
 
-      .frame .vector {
+      .profile-pill .fa-pen {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+      }
+
+      /* --- ป้ายเที่ยวบินออก (นาฬิกา) --- */
+      .departures {
+        background: var(--text-main);
+        color: #ffffff;
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
+        font-family: var(--font-mono);
+      }
+
+      .departures-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #a5b4fc;
+      }
+
+      .departures-time {
+        display: block;
+        font-size: 3.4rem;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: 0.04em;
+        margin: 8px 0 2px;
+      }
+
+      /* เครื่องหมาย : กะพริบเหมือนป้ายสนามบิน */
+      .departures-time .colon {
+        animation: blink 1s steps(1) infinite;
+      }
+
+      @keyframes blink {
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      .departures-date {
+        display: block;
+        font-family: "Sarabun", sans-serif;
+        font-size: 0.95rem;
+        color: #d4d4d8;
+      }
+
+      .departures-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: rgba(74, 222, 128, 0.15);
+        color: #4ade80;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+      }
+
+      .departures-status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      /* --- แนะนำแอป --- */
+      .hero h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.3;
+      }
+
+      .hero h1 em {
+        font-style: normal;
         color: var(--primary);
-        font-size: 1rem;
       }
 
-      @media (max-width: 768px) {
-        .frame .rectangle {
-          width: 30px;
-          padding: 0;
-          justify-content: center;
-          right: 20px;
-          top: 20px;
-        }
-        .frame .username {
-          display: none;
-        }
-        .frame .vector {
-          margin: 0;
-        }
+      .hero p {
+        margin-top: 8px;
+        font-size: 0.92rem;
+        color: var(--text-muted);
+        line-height: 1.6;
       }
 
-      /* ส่วนแสดงวันที่และเวลา */
-      header {
-        text-align: center;
-        margin-top: 4em;
-        margin-bottom: 2.5em;
-      }
-
-      .frame .text-wrapper {
+      .hero-tagline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
         font-family: "Momo Trust Display", sans-serif;
-        font-size: 1.8rem;
-        font-weight: 500;
-        color: var(--text-main);
-        margin-bottom: 4px;
-        display: block;
+        font-size: 0.95rem;
+        color: var(--text-muted);
       }
 
-      .frame .div {
-        font-size: 3.5rem;
-        font-weight: 400;
-        color: var(--text-main);
-        display: block;
-        letter-spacing: 1px;
+      .hero-tagline i {
+        color: var(--primary);
       }
 
-      /* วิวเริ่มต้น (โลโก้ + ปุ่มใหญ่) */
-      .initial-view {
-        width: 100%;
-        max-width: 480px;
+      .feature-list {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .feature-list li {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
+      .feature-list li i {
+        color: var(--tone);
+      }
+
+      /* --- ปุ่มหลัก --- */
+      .actions {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        margin-bottom: 25px;
-      }
-
-      .center-brand {
-        text-align: center;
-        margin-top: 4em;
-        margin-bottom: 35px;
-      }
-
-      .center-brand .text-wrapper-2 {
-        font-family: "Momo Trust Display", sans-serif;
-        font-size: 1.25em;
-        font-weight: 400;
-        color: var(--text-muted);
-        margin-top: 6px;
+        gap: 12px;
       }
 
       .big-btn {
@@ -160,84 +232,88 @@
         gap: 10px;
         cursor: pointer;
         transition:
-          transform 0.2s,
-          background 0.2s;
-        margin-bottom: 14px;
+          background-color 0.2s,
+          border-color 0.2s,
+          transform 0.1s;
       }
 
+      .big-btn:active {
+        transform: scale(0.98);
+      }
+
+      /* ปุ่มสร้างห้องใหม่: indigo สีหลักของแอป */
       .big-btn-create {
-        background: linear-gradient(135deg, var(--secondary) 0%, #f97316 100%);
+        background: var(--primary);
         border: none;
         color: #ffffff;
-        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.35);
-      }
-
-      .big-btn-create:hover {
-        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
       }
 
       .big-btn-join {
-        background-color: var(--surface);
-        border: 2px solid var(--primary);
-        color: var(--primary);
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        color: var(--text-main);
       }
 
-      .big-btn-join:hover {
-        background-color: rgba(99, 102, 241, 0.05);
-      }
-      @media (max-width: 768px) {
-        .big-btn {
-          height: 50px;
-          width: 70%;
-          font-size: 0.95rem;
-          margin-bottom: 12px;
-        }
-
-        .initial-view {
-          padding: 0 10px;
-          width: 100%;
-          box-sizing: border-box;
-        }
-      }
-
-      /* วิวแท็บฟอร์ม (ถูกซ่อนไว้ตอนแรก) */
+      /* --- ฟอร์ม (สร้าง/เข้าร่วม) --- */
       .action-container {
-        width: 100%;
-        max-width: 480px;
-        background-color: var(--surface);
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: var(--radius-lg);
-        padding: 24px;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 25px;
-        display: none; /* ซ่อนไว้ก่อนจนกว่าจะคลิกปุ่มใหญ่ */
+        padding: 20px;
+      }
+
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 14px;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
       }
 
       .tab-buttons {
-        display: flex;
-        background-color: var(--background);
-        border-radius: var(--radius-md);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
         padding: 4px;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 12px;
       }
 
       .tab-btn {
-        flex: 1;
-        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 40px;
         border: none;
+        border-radius: 9px;
         background: transparent;
-        font-size: 0.95rem;
+        font-size: 0.88rem;
         font-weight: 600;
         color: var(--text-muted);
         cursor: pointer;
-        border-radius: 10px;
-        transition: all 0.2s;
+        transition:
+          background-color 0.15s,
+          color 0.15s;
       }
 
       .tab-btn.active {
-        background-color: var(--surface);
+        background: var(--surface);
+        color: var(--text-main);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+
+      .tab-btn.active i {
         color: var(--primary);
-        box-shadow: var(--shadow-sm);
       }
 
       .form-section {
@@ -250,12 +326,11 @@
 
       .input-group {
         margin-bottom: 14px;
-        text-align: left;
       }
 
       .input-group label {
         display: block;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
         color: var(--text-muted);
         margin-bottom: 6px;
@@ -267,146 +342,179 @@
         padding: 0 14px;
         border-radius: 10px;
         border: 1px solid var(--border);
-        background-color: var(--background);
+        background: var(--background);
         color: var(--text-main);
         font-size: 0.95rem;
         outline: none;
-        transition: border-color 0.2s;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
       }
 
       .input-group input:focus {
         border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      }
+
+      .input-group.invalid input {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+      }
+
+      .date-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* ช่องรหัสเชิญตัวใหญ่ แบบรหัสบนตั๋ว */
+
+      .input-group input.code-input {
+        height: 64px;
+        text-align: center;
+        text-transform: uppercase;
+        font-family: var(--font-mono);
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: 0.4em;
+        padding-left: 0.4em; /* ชดเชย letter-spacing ตัวสุดท้าย ให้อยู่กลางจริง */
+      }
+
+      .form-note {
+        display: flex;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 14px;
       }
 
       .submit-btn {
         width: 100%;
-        height: 48px;
-        border-radius: 10px;
+        height: 50px;
+        border-radius: 12px;
         border: none;
         font-size: 1rem;
         font-weight: 700;
         color: #ffffff;
         cursor: pointer;
-        transition:
-          opacity 0.2s,
-          transform 0.1s;
-        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 6px;
+        transition: background-color 0.15s;
       }
 
-      .submit-btn:hover {
-        opacity: 0.95;
-        transform: translateY(-1px);
+      .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
       }
 
       .btn-create {
-        background: linear-gradient(135deg, var(--secondary) 0%, #f97316 100%);
-        box-shadow: 0 6px 15px rgba(255, 107, 107, 0.3);
+        background: var(--primary);
       }
 
       .btn-join {
-        background-color: var(--primary);
-        box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+        background: var(--secondary);
       }
 
-      @media (max-width: 768px) {
-        .action-container {
-          width: 80%;
-          max-width: 480px;
-          background-color: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-lg);
-          padding: 24px;
-          box-shadow: var(--shadow-sm);
-          margin-bottom: 25px;
-          display: none; /* ซ่อนไว้ก่อนจนกว่าจะคลิกปุ่มใหญ่ */
-        }
-      }
-
-      /* ส่วน History */
-      .history-container {
-        width: 100%;
-        max-width: 480px;
-      }
-
-      .history-header {
+      /* --- ประวัติทริปล่าสุด: ตั๋วใบเล็ก --- */
+      .section-title {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 8px;
+        font-size: 1rem;
+        font-weight: 700;
         margin-bottom: 10px;
       }
 
-      .frame .text-wrapper-5 {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--text-muted);
-      }
-
-      .frame .rectangle-4 {
-        width: 100%;
-        min-height: 56px;
-        background-color: var(--surface);
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-sm);
-        padding: 10px 14px;
+      .history-list {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 10px;
       }
 
       .history-item {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        align-items: stretch;
         text-decoration: none;
         color: var(--text-main);
-        font-size: 0.88rem;
-        font-weight: 600;
-        padding: 8px 10px;
-        border-radius: 8px;
-        transition:
-          background 0.2s,
-          color 0.2s;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        transition: border-color 0.2s;
       }
 
-      .history-item:hover {
-        background-color: rgba(99, 102, 241, 0.05);
+      .history-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+      }
+
+      .history-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-soft);
         color: var(--primary);
       }
 
-      @media (max-width: 768px) {
-        .history-container {
-          width: 80%;
-          max-width: 480px;
-        }
-        .action-container {
-          padding: 20px 16px;
-          border-radius: var(--radius-md);
-        }
-
-        .tab-btn {
-          font-size: 0.88rem;
-          padding: 8px 4px;
-        }
-
-        .input-group label {
-          font-size: 0.8rem;
-        }
-        .input-group input {
-          height: 44px;
-          font-size: 0.9rem;
-        }
-        .submit-btn {
-          height: 46px;
-          font-size: 0.95rem;
-        }
+      .history-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      /* Custom Modal สำหรับเปลี่ยนชื่อ */
+      .history-date {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      /* ต้นขั้วเล็กด้านขวา คั่นด้วยรอยปรุ */
+      .history-stub {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        border-left: 1.5px dashed var(--border-strong);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+      }
+
+      .history-empty {
+        text-align: center;
+        padding: 22px;
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .history-skeleton {
+        height: 62px;
+        margin: 0;
+      }
+
+      /* --- Modal เปลี่ยนชื่อเล่น --- */
       .modal-overlay {
         position: fixed;
         inset: 0;
-        background-color: rgba(15, 23, 42, 0.6);
+        background-color: rgba(15, 23, 42, 0.5);
         backdrop-filter: blur(4px);
         display: flex;
         align-items: center;
@@ -419,250 +527,332 @@
           opacity 0.2s ease,
           visibility 0.2s ease;
       }
+
       .modal-overlay.active {
         opacity: 1;
         visibility: visible;
       }
+
       .modal-box {
         background-color: var(--surface);
         width: 100%;
-        max-width: 400px;
+        max-width: 380px;
         border-radius: var(--radius-lg);
-        padding: 24px;
+        padding: 22px;
         box-shadow: var(--shadow-lg);
         border: 1px solid var(--border);
-        box-sizing: border-box;
+      }
+
+      .modal-box h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .modal-box p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
+
+      .modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .modal-actions button {
+        height: 44px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .btn-ghost {
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        color: var(--text-main);
+      }
+
+      .btn-solid {
+        background: var(--primary);
+        border: none;
+        color: #ffffff;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .profile-pill:hover,
+        .history-item:hover {
+          border-color: var(--border-strong);
+        }
+
+        .big-btn-create:hover,
+        .btn-create:not(:disabled):hover,
+        .btn-solid:hover {
+          background: var(--primary-hover);
+        }
+
+        .big-btn-join:hover,
+        .btn-ghost:hover {
+          background: var(--surface-muted);
+        }
+
+        .btn-join:not(:disabled):hover {
+          background: var(--secondary-hover);
+        }
+
+        .back-btn:hover {
+          color: var(--text-main);
+        }
+      }
+
+      /* --- จอคอม: ซ้ายป้ายเวลา+แนะนำแอป / ขวาปุ่ม+ฟอร์ม+ประวัติ --- */
+      @media (min-width: 1024px) {
+        .frame {
+          max-width: 1040px;
+          padding: 28px 32px 48px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 420px;
+          grid-template-areas:
+            "top top"
+            "intro panel";
+          column-gap: 56px;
+          row-gap: 40px;
+          align-items: start;
+          align-content: start; /* ไม่ให้แถวยืดเต็ม min-height จนเกิดช่องว่างใต้แถบบน */
+        }
+
+        .topbar {
+          grid-area: top;
+        }
+
+        .intro {
+          grid-area: intro;
+          position: sticky;
+          top: 28px;
+        }
+
+        .panel {
+          grid-area: panel;
+        }
+
+        .hero h1 {
+          font-size: 2.4rem;
+        }
+
+        .departures-time {
+          font-size: 4.2rem;
+        }
+      }
+
+      .intro,
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
       }
     </style>
   </head>
   <body>
     <main class="frame">
-      <!-- แถบโปรไฟล์ผู้ใช้มุมขวาบน -->
-      <aside aria-label="User account">
-        <div
-          class="rectangle"
-          role="button"
-          aria-label="เปิดเมนูผู้ใช้"
+      <!-- แถบบน: โลโก้ + โปรไฟล์ (คลิกเพื่อเปลี่ยนชื่อเล่น) -->
+      <div class="topbar">
+        <span class="brand"
+          ><i class="fa-solid fa-suitcase-rolling"></i> Trip Splitter</span
+        >
+        <button
+          type="button"
+          class="profile-pill"
           onclick="openUsernameModal()"
           title="คลิกเพื่อเปลี่ยนชื่อเล่น"
+          aria-label="เปลี่ยนชื่อเล่น"
         >
-          <i class="fa-solid fa-user vector" aria-hidden="true"></i>
-          <span class="username" id="username-display">Loading...</span>
-        </div>
-      </aside>
-
-      <!-- แถบแสดงวันที่และเวลาแบบเรียลไทม์ -->
-      <header aria-label="Current date and time">
-        <time class="text-wrapper" id="current-date">Sat, Sep 26</time>
-        <time class="div" id="current-time">20 : 49</time>
-      </header>
-
-      <!-- วิวเริ่มต้น: โลโก้และปุ่มใหญ่ (แสดงก่อนคลิก) -->
-      <div id="initial-view" class="initial-view">
-        <div class="center-brand">
-          <i
-            class="fa-solid fa-route fa-5x"
-            style="color: rgba(139, 92, 246, 0.8)"
-            aria-hidden="true"
-          ></i>
-          <div class="text-wrapper-2">Enjoy Your Time</div>
-        </div>
-
-        <button
-          type="button"
-          class="big-btn big-btn-create"
-          onclick="openTabMode('create')"
-        >
-          <i class="fa-solid fa-circle-plus"></i> สร้างห้องใหม่
-        </button>
-        <button
-          type="button"
-          class="big-btn big-btn-join"
-          onclick="openTabMode('join')"
-        >
-          <i class="fa-solid fa-link"></i> เข้าร่วมด้วยรหัสเชิญ
+          <span id="profile-avatar"></span>
+          <span class="name" id="username-display">Loading...</span>
+          <i class="fa-solid fa-pen" aria-hidden="true"></i>
         </button>
       </div>
 
-      <!-- วิวแท็บ: ซ่อนโลโก้และสลับแสดงฟอร์ม (แสดงเมื่อถูกคลิกจากวิวเริ่มต้น) -->
-      <div class="action-container" id="tabbed-view">
-        <div class="tab-buttons">
+      <div class="intro">
+        <!-- ป้ายเที่ยวบินออก: วันที่และเวลาแบบเรียลไทม์ -->
+        <header class="departures" aria-label="วันและเวลาปัจจุบัน">
+          <div class="departures-top">
+            <span>Departures</span>
+            <i class="fa-solid fa-plane-departure" aria-hidden="true"></i>
+          </div>
+          <time class="departures-time" id="current-time">--:--</time>
+          <time class="departures-date" id="current-date">--</time>
+          <span class="departures-status">ON TIME</span>
+        </header>
+
+        <section class="hero">
+          <div class="hero-tagline">
+            <i class="fa-solid fa-route"></i> Enjoy Your Time
+          </div>
+          <h1>หารค่าทริปกับเพื่อน<br />ง่าย<em>เหมือนเช็คอิน</em></h1>
+          <p>
+            สร้างห้องทริป ชวนเพื่อนด้วยรหัสเชิญ บันทึกบิลระหว่างเที่ยว
+            แล้วให้ระบบสรุปว่าใครต้องโอนให้ใคร
+          </p>
+          <ul class="feature-list">
+            <li class="tone-primary">
+              <i class="fa-solid fa-receipt"></i> บันทึกบิล
+            </li>
+            <li class="tone-amber">
+              <i class="fa-solid fa-sliders"></i> หารเท่า/ไม่เท่า
+            </li>
+            <li class="tone-success">
+              <i class="fa-solid fa-scale-balanced"></i> สรุปหนี้อัตโนมัติ
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="panel">
+        <!-- วิวเริ่มต้น: ปุ่มใหญ่ 2 ปุ่ม -->
+        <div id="initial-view" class="actions">
           <button
             type="button"
-            class="tab-btn"
-            id="btn-tab-create"
-            onclick="switchTab('create')"
+            class="big-btn big-btn-create"
+            onclick="openTabMode('create')"
           >
             <i class="fa-solid fa-circle-plus"></i> สร้างห้องใหม่
           </button>
           <button
             type="button"
-            class="tab-btn"
-            id="btn-tab-join"
-            onclick="switchTab('join')"
+            class="big-btn big-btn-join"
+            onclick="openTabMode('join')"
           >
-            <i class="fa-solid fa-link"></i> รหัสเชิญ
+            <i class="fa-solid fa-ticket"></i> เข้าร่วมด้วยรหัสเชิญ
           </button>
         </div>
 
-        <!-- ฟอร์มสร้างทริปใหม่ -->
-        <div class="form-section" id="section-create">
-          <div class="input-group">
-            <label>ชื่อห้อง</label>
-            <input
-              type="text"
-              id="trip-title"
-              placeholder="เช่น เที่ยวทะเลแก๊งเพื่อน"
-            />
-          </div>
-          <div class="input-group">
-            <label>วันที่เริ่มต้น</label>
-            <input type="date" id="trip-start-date" />
-          </div>
-          <div class="input-group">
-            <label>วันที่สิ้นสุด</label>
-            <input type="date" id="trip-end-date" />
-          </div>
-          <!-- <a
-            href="dashboard.html"
-            style="color: inherit; text-decoration: none"
-          > -->
-          <button
-            type="button"
-            class="submit-btn btn-create"
-            onclick="submitCreateTrip()"
-          >
-            ยืนยันสร้างห้อง
+        <!-- วิวฟอร์ม: แสดงเมื่อกดปุ่มใหญ่ -->
+        <div class="action-container hidden" id="tabbed-view">
+          <button type="button" class="back-btn" onclick="closeTabMode()">
+            <i class="fa-solid fa-arrow-left"></i> กลับ
           </button>
-          <!-- </a> -->
+          <div class="tab-buttons" role="tablist">
+            <button
+              type="button"
+              class="tab-btn"
+              id="btn-tab-create"
+              role="tab"
+              onclick="switchTab('create')"
+            >
+              <i class="fa-solid fa-circle-plus"></i> สร้างห้องใหม่
+            </button>
+            <button
+              type="button"
+              class="tab-btn"
+              id="btn-tab-join"
+              role="tab"
+              onclick="switchTab('join')"
+            >
+              <i class="fa-solid fa-ticket"></i> รหัสเชิญ
+            </button>
+          </div>
+
+          <!-- ฟอร์มสร้างทริปใหม่ -->
+          <div class="form-section" id="section-create" role="tabpanel">
+            <div class="input-group" id="group-title">
+              <label for="trip-title">ชื่อห้อง</label>
+              <input
+                type="text"
+                id="trip-title"
+                placeholder="เช่น เที่ยวทะเลแก๊งเพื่อน"
+                autocomplete="off"
+              />
+            </div>
+            <div class="date-row">
+              <div class="input-group" id="group-start">
+                <label for="trip-start-date">วันออกเดินทาง</label>
+                <input type="date" id="trip-start-date" />
+              </div>
+              <div class="input-group" id="group-end">
+                <label for="trip-end-date">วันกลับ</label>
+                <input type="date" id="trip-end-date" />
+              </div>
+            </div>
+            <button
+              type="button"
+              class="submit-btn btn-create"
+              id="create-btn"
+              onclick="submitCreateTrip()"
+            >
+              <i class="fa-solid fa-plane-departure"></i>
+              <span>ยืนยันสร้างห้อง</span>
+            </button>
+          </div>
+
+          <!-- ฟอร์มเข้าร่วมทริปด้วยรหัสเชิญ -->
+          <div class="form-section" id="section-join" role="tabpanel">
+            <div class="input-group" id="group-code">
+              <label for="join-invite-code">รหัสเชิญห้องทริป (6 หลัก)</label>
+              <input
+                type="text"
+                id="join-invite-code"
+                class="code-input"
+                placeholder="A7B9X2"
+                maxlength="6"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+              />
+            </div>
+            <div class="form-note">
+              <i class="fa-solid fa-circle-info" style="margin-top: 3px"></i>
+              <span>เพื่อนในห้องจะเห็นคุณด้วยชื่อเล่นที่มุมขวาบน</span>
+            </div>
+            <button
+              type="button"
+              class="submit-btn btn-join"
+              id="join-btn"
+              onclick="submitJoinTrip()"
+            >
+              <i class="fa-solid fa-right-to-bracket"></i>
+              <span>เข้าร่วมห้องทริป</span>
+            </button>
+          </div>
         </div>
 
-        <!-- ฟอร์มเข้าร่วมทริปด้วยรหัสเชิญ -->
-        <div class="form-section" id="section-join">
-          <div class="input-group">
-            <label>รหัสเชิญห้องทริป (7 หลัก)</label>
-            <input
-              type="text"
-              id="join-invite-code"
-              placeholder="เช่น A7B9X2Y"
-              maxlength="6"
-              style="
-                text-transform: uppercase;
-                font-family: monospace;
-                font-size: 1rem;
-                letter-spacing: 2px;
-              "
-            />
+        <!-- ประวัติทริปที่เคยเปิดดูล่าสุด -->
+        <section aria-labelledby="history-title">
+          <div class="section-title">
+            <span id="history-title">ทริปล่าสุดของคุณ</span>
           </div>
-          <p
-            style="
-              font-size: 0.8rem;
-              color: var(--text-muted);
-              margin-bottom: 14px;
-            "
-          >
-            ระบบจะใช้ชื่อเล่นโปรไฟล์มุมขวาบนของคุณในการเข้าร่วมห้อง
-          </p>
-          <button
-            type="button"
-            class="submit-btn btn-join"
-            onclick="submitJoinTrip()"
-          >
-            เข้าร่วมห้องทริป
-          </button>
-        </div>
+          <div class="history-list" id="recent-trips-container">
+            <div class="skeleton history-skeleton"></div>
+            <div class="skeleton history-skeleton"></div>
+          </div>
+        </section>
       </div>
-
-      <!-- ส่วน History (ดึงข้อมูลทริปที่เคยเปิดดูล่าสุดของ User) -->
-      <section class="history-container" aria-labelledby="history-title">
-        <div class="history-header">
-          <i
-            class="fa-solid fa-clock-rotate-left"
-            style="color: var(--text-muted)"
-          ></i>
-          <span class="text-wrapper-5" id="history-title">Recent History</span>
-        </div>
-        <div
-          class="rectangle-4"
-          id="recent-trips-container"
-          aria-label="ประวัติการใช้งาน"
-        >
-          <span
-            style="
-              color: var(--text-muted);
-              font-size: 0.85rem;
-              text-align: center;
-              width: 100%;
-              padding: 10px 0;
-            "
-            >กำลังโหลดประวัติทริป...</span
-          >
-        </div>
-      </section>
     </main>
 
     <!-- Modal เปลี่ยนชื่อเล่น -->
-    <div class="modal-overlay" id="username-modal">
+    <div
+      class="modal-overlay"
+      id="username-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="username-modal-title"
+    >
       <div class="modal-box">
-        <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px">
-          <i class="fa-solid fa-user-pen" style="color: var(--primary)"></i>
-          เปลี่ยนชื่อเล่นของคุณ
+        <h3 id="username-modal-title">เปลี่ยนชื่อเล่นของคุณ</h3>
+        <p>ชื่อที่เพื่อนๆ จะเห็นในห้องทริป</p>
+        <div class="input-group">
+          <input
+            type="text"
+            id="username-input"
+            maxlength="40"
+            autocomplete="off"
+          />
         </div>
-        <div
-          style="
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-          "
-        >
-          ระบุชื่อเล่นที่เพื่อนๆ จะเห็นในห้องทริป
-        </div>
-        <input
-          type="text"
-          id="username-input"
-          style="
-            width: 100%;
-            height: 44px;
-            padding: 0 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--background);
-            color: var(--text-main);
-            font-size: 0.95rem;
-            outline: none;
-            margin-bottom: 16px;
-          "
-        />
-        <div style="display: flex; gap: 10px">
-          <button
-            type="button"
-            onclick="closeUsernameModal()"
-            style="
-              flex: 1;
-              height: 40px;
-              border-radius: 10px;
-              background: var(--background);
-              border: 1px solid var(--border);
-              font-weight: 600;
-              cursor: pointer;
-            "
-          >
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" onclick="closeUsernameModal()">
             ยกเลิก
           </button>
-          <button
-            type="button"
-            onclick="saveUsername()"
-            style="
-              flex: 1;
-              height: 40px;
-              border-radius: 10px;
-              background: var(--primary);
-              border: none;
-              color: #fff;
-              font-weight: 600;
-              cursor: pointer;
-            "
-          >
+          <button type="button" class="btn-solid" onclick="saveUsername()">
             บันทึก
           </button>
         </div>
@@ -671,71 +861,88 @@
 
     <script>
       const API_BASE_URL = "http://localhost:8090/api"; // เชื่อมต่อพอร์ต Backend จริง
-      let currentUserId = localStorage.getItem("userId") || 1;
+      let currentUserId = localStorage.getItem("userId");
 
+      // --- สลับวิวปุ่มใหญ่ <-> ฟอร์ม ---
       function openTabMode(tabName) {
-        document.getElementById("initial-view").style.display = "none";
-        document.getElementById("tabbed-view").style.display = "block";
+        document.getElementById("initial-view").classList.add("hidden");
+        document.getElementById("tabbed-view").classList.remove("hidden");
         switchTab(tabName);
       }
 
-      function switchTab(tabName) {
-        const btnCreate = document.getElementById("btn-tab-create");
-        const btnJoin = document.getElementById("btn-tab-join");
-        const secCreate = document.getElementById("section-create");
-        const secJoin = document.getElementById("section-join");
-
-        if (tabName === "create") {
-          btnCreate.classList.add("active");
-          btnJoin.classList.remove("active");
-          secCreate.classList.add("active");
-          secJoin.classList.remove("active");
-        } else {
-          btnJoin.classList.add("active");
-          btnCreate.classList.remove("active");
-          secJoin.classList.add("active");
-          secCreate.classList.remove("active");
-        }
+      function closeTabMode() {
+        document.getElementById("tabbed-view").classList.add("hidden");
+        document.getElementById("initial-view").classList.remove("hidden");
       }
 
-      // แสดงเวลาแบบเรียลไทม์
+      function switchTab(tabName) {
+        const isCreate = tabName === "create";
+        document.getElementById("btn-tab-create").classList.toggle("active", isCreate);
+        document.getElementById("btn-tab-join").classList.toggle("active", !isCreate);
+        document.getElementById("btn-tab-create").setAttribute("aria-selected", isCreate);
+        document.getElementById("btn-tab-join").setAttribute("aria-selected", !isCreate);
+        document.getElementById("section-create").classList.toggle("active", isCreate);
+        document.getElementById("section-join").classList.toggle("active", !isCreate);
+        document.getElementById(isCreate ? "trip-title" : "join-invite-code").focus();
+      }
+
+      // --- ป้ายเวลา (อัปเดตทุกวินาที) ---
       function updateDateTime() {
         const now = new Date();
-        const dateOptions = {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-        };
-        document.getElementById("current-date").innerText =
-          now.toLocaleDateString("en-US", dateOptions);
-        const hours = String(now.getHours()).padStart(2, "0");
-        const minutes = String(now.getMinutes()).padStart(2, "0");
-        document.getElementById("current-time").innerText =
-          `${hours} : ${minutes}`;
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        document.getElementById("current-time").innerHTML =
+          `${hh}<span class="colon">:</span>${mm}`;
+        document.getElementById("current-date").textContent =
+          now.toLocaleDateString("th-TH", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          });
       }
       setInterval(updateDateTime, 1000);
       updateDateTime();
 
-      // จัดการชื่อเล่น Guest
-      async function loadUserData() {
-        const usernameSpan = document.getElementById("username-display");
-        let savedUsername = localStorage.getItem("username");
+      // --- ชื่อเล่นผู้ใช้ ---
+      function renderProfile(name) {
+        document.getElementById("username-display").textContent = name;
+        document.getElementById("profile-avatar").innerHTML = avatar(name);
+      }
 
+      async function loadUserData() {
+        let savedUsername = localStorage.getItem("username");
         if (!savedUsername) {
           savedUsername = "TripGuest_" + Math.floor(Math.random() * 900 + 100);
           localStorage.setItem("username", savedUsername);
         }
-        usernameSpan.innerText = savedUsername;
+        renderProfile(savedUsername);
 
-        // ส่งชื่อไปบันทึก/ตรวจสอบในตาราง users ที่ Backend
+        // ส่งชื่อไปบันทึก/ตรวจสอบในตาราง users ที่ Backend (ได้ userId กลับมา)
         await registerOrUpdateUser(savedUsername);
       }
 
+      async function registerOrUpdateUser(username) {
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/users/login?username=${encodeURIComponent(username)}`,
+            { method: "POST" },
+          );
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const user = await response.json();
+          localStorage.setItem("userId", user.id);
+          currentUserId = user.id;
+        } catch (error) {
+          // ล้าง userId เดิม ไม่งั้นชื่อใหม่จะไปแสดงประวัติทริปของบัญชีเก่า
+          console.error("ไม่สามารถบันทึกข้อมูลผู้ใช้ได้:", error);
+          localStorage.removeItem("userId");
+          currentUserId = null;
+        }
+      }
+
       function openUsernameModal() {
-        const modal = document.getElementById("username-modal");
         const input = document.getElementById("username-input");
         input.value = localStorage.getItem("username") || "";
-        modal.classList.add("active");
+        document.getElementById("username-modal").classList.add("active");
         input.focus();
         input.select();
       }
@@ -744,58 +951,103 @@
         document.getElementById("username-modal").classList.remove("active");
       }
 
-      async function registerOrUpdateUser(username) {
-        try {
-          const response = await fetch(
-            `${API_BASE_URL}/users/login?username=${encodeURIComponent(username)}`,
-            {
-              method: "POST",
-            },
-          );
-          if (response.ok) {
-            const user = await response.json();
-            localStorage.setItem("userId", user.id);
-            currentUserId = user.id;
-          }
-        } catch (error) {
-          console.error("ไม่สามารถบันทึกข้อมูลผู้ใช้ได้:", error);
-        }
-      }
-
-      function saveUsername() {
+      async function saveUsername() {
         const newName = document.getElementById("username-input").value.trim();
-        if (newName !== "") {
-          localStorage.setItem("username", newName);
-          document.getElementById("username-display").innerText = newName;
-          closeUsernameModal();
-          registerOrUpdateUser(newName); // บันทึกชื่อใหม่ลงตาราง users ทันที
-        } else {
-          alert("กรุณากรอกชื่อเล่น");
+        if (!newName) {
+          showToast("กรุณากรอกชื่อเล่น", "error");
+          return;
+        }
+        localStorage.setItem("username", newName);
+        renderProfile(newName);
+        closeUsernameModal();
+        showToast(`เปลี่ยนชื่อเป็น "${newName}" แล้ว`);
+        // บันทึกชื่อใหม่ลงตาราง users แล้วโหลดประวัติของบัญชีนั้น
+        await registerOrUpdateUser(newName);
+        loadRecentTrips();
+      }
+
+      // Enter = บันทึก, Esc = ปิด, คลิกพื้นหลัง = ปิด
+      document.getElementById("username-input").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.isComposing) saveUsername();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeUsernameModal();
+      });
+      document.getElementById("username-modal").addEventListener("click", (e) => {
+        if (e.target.id === "username-modal") closeUsernameModal();
+      });
+
+      // --- ตรวจฟอร์ม ---
+      function setInvalid(groupId, invalid) {
+        document.getElementById(groupId).classList.toggle("invalid", invalid);
+      }
+
+      [
+        ["trip-title", "group-title"],
+        ["trip-start-date", "group-start"],
+        ["trip-end-date", "group-end"],
+        ["join-invite-code", "group-code"],
+      ].forEach(([inputId, groupId]) =>
+        document.getElementById(inputId).addEventListener("input", () => setInvalid(groupId, false)),
+      );
+
+      // Enter ในฟอร์ม = ส่ง
+      ["trip-title", "trip-start-date", "trip-end-date"].forEach((id) =>
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.isComposing) submitCreateTrip();
+        }),
+      );
+      document.getElementById("join-invite-code").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.isComposing) submitJoinTrip();
+      });
+
+      // กด Back กลับมาหน้านี้ เบราว์เซอร์อาจคืนหน้าเดิมจากแคช (bfcache) ทั้งที่ปุ่มยังหมุนค้าง
+      window.addEventListener("pageshow", (e) => {
+        if (!e.persisted) return;
+        setBusy("create-btn", false);
+        setBusy("join-btn", false);
+      });
+
+      function setBusy(buttonId, busy, label) {
+        const btn = document.getElementById(buttonId);
+        btn.disabled = busy;
+        if (busy) {
+          btn.dataset.html = btn.innerHTML;
+          btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${esc(label)}</span>`;
+        } else if (btn.dataset.html) {
+          btn.innerHTML = btn.dataset.html;
         }
       }
 
-      // สร้างห้องทริปใหม่ส่งไป Backend
+      // --- สร้างห้องทริปใหม่ ---
       async function submitCreateTrip() {
+        const btn = document.getElementById("create-btn");
+        if (btn.disabled) return;
         const title = document.getElementById("trip-title").value.trim();
         const startDate = document.getElementById("trip-start-date").value;
         const endDate = document.getElementById("trip-end-date").value;
 
         // ตรวจสอบและดึงชื่อเล่น ถ้าไม่มีให้ใช้ Guest
         let creatorName = localStorage.getItem("username");
-        if (
-          !creatorName ||
-          creatorName === "My Username" ||
-          creatorName.trim() === ""
-        ) {
+        if (!creatorName || creatorName === "My Username" || creatorName.trim() === "") {
           creatorName = "Guest_" + Math.floor(Math.random() * 1000);
           localStorage.setItem("username", creatorName);
         }
 
+        const endBeforeStart = startDate && endDate && endDate < startDate;
+        setInvalid("group-title", !title);
+        setInvalid("group-start", !startDate);
+        setInvalid("group-end", !endDate || endBeforeStart);
         if (!title || !startDate || !endDate) {
-          alert("กรุณากรอกข้อมูลทริปให้ครบถ้วน");
+          showToast("กรุณากรอกข้อมูลทริปให้ครบถ้วน", "error");
+          return;
+        }
+        if (endBeforeStart) {
+          showToast("วันกลับต้องไม่ก่อนวันออกเดินทาง", "error");
           return;
         }
 
+        setBusy("create-btn", true, "กำลังสร้างห้อง...");
         try {
           const response = await fetch(
             `${API_BASE_URL}/trips/create?creatorName=${encodeURIComponent(creatorName)}`,
@@ -810,19 +1062,20 @@
             const trip = await response.json();
             // พาไปหน้า Dashboard พร้อมส่ง tripId
             window.location.href = `dashboard.html?tripId=${trip.id}`;
-          } else {
-            alert("ไม่สามารถสร้างทริปได้ กรุณาลองใหม่อีกครั้ง");
+            return;
           }
+          showToast("ไม่สามารถสร้างทริปได้ กรุณาลองใหม่อีกครั้ง", "error");
         } catch (error) {
           console.error("Connection error:", error);
-          alert(
-            "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลังบ้าน ตรวจสอบว่าเปิด Spring Boot หรือยัง",
-          );
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบว่าเปิด Spring Boot หรือยัง", "error");
         }
+        setBusy("create-btn", false);
       }
 
-      // เข้าร่วมทริปด้วยรหัสเชิญส่งไป Backend
+      // --- เข้าร่วมทริปด้วยรหัสเชิญ ---
       async function submitJoinTrip() {
+        const btn = document.getElementById("join-btn");
+        if (btn.disabled) return;
         const inviteCode = document
           .getElementById("join-invite-code")
           .value.trim()
@@ -830,123 +1083,107 @@
         const memberName = localStorage.getItem("username") || "Guest";
 
         if (!inviteCode) {
-          alert("กรุณากรอกรหัสเชิญห้องทริป");
+          setInvalid("group-code", true);
+          showToast("กรุณากรอกรหัสเชิญห้องทริป", "error");
           return;
         }
 
+        setBusy("join-btn", true, "กำลังเข้าร่วม...");
         try {
           const response = await fetch(
-            `${API_BASE_URL}/trips/join/${inviteCode}?memberName=${encodeURIComponent(memberName)}`,
-            {
-              method: "POST",
-            },
+            `${API_BASE_URL}/trips/join/${encodeURIComponent(inviteCode)}?memberName=${encodeURIComponent(memberName)}`,
+            { method: "POST" },
           );
 
           if (response.ok) {
             const trip = await response.json();
             // พาไปหน้า Dashboard พร้อมส่ง tripId ที่ถูกต้อง
             window.location.href = `dashboard.html?tripId=${trip.id}`;
-          } else {
-            alert("รหัสเชิญไม่ถูกต้อง หรือไม่พบห้องทริปนี้");
+            return;
           }
+          setInvalid("group-code", true);
+          showToast("รหัสเชิญไม่ถูกต้อง หรือไม่พบห้องทริปนี้", "error");
         } catch (error) {
           console.error("Join error:", error);
-          alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลังบ้าน");
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
         }
+        setBusy("join-btn", false);
       }
 
-      // โหลดประวัติทริปล่าสุด
+      // --- ประวัติทริปล่าสุด ---
+      function historyEmpty(text) {
+        return `<div class="history-empty">${esc(text)}</div>`;
+      }
+
+      // dd/mm – dd/mm/yyyy (ปี พ.ศ.)
+      function formatTripDateRange(startStr, endStr) {
+        if (!startStr || !endStr) return "";
+        const start = new Date(startStr);
+        const end = new Date(endStr);
+        if (isNaN(start) || isNaN(end)) return "";
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(start.getDate())}/${pad(start.getMonth() + 1)} – ${pad(end.getDate())}/${pad(end.getMonth() + 1)}/${end.getFullYear() + 543}`;
+      }
+
       async function loadRecentTrips() {
         const container = document.getElementById("recent-trips-container");
+        if (!currentUserId) {
+          container.innerHTML = historyEmpty("ยังไม่มีประวัติการเข้าชมทริป");
+          return;
+        }
         try {
-          const response = await fetch(
-            `${API_BASE_URL}/history/recent/${currentUserId}`,
-          );
-
-          if (!response.ok) {
-            // ถ้าดึงประวัติไม่ได้ (เช่น ผู้ใช้ใหม่ยังไม่มีในระบบ) ให้แสดงข้อความธรรมดาแทนการโยน Error พัง
-            container.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%; padding: 10px 0;">ยังไม่มีประวัติการเข้าชมทริป</span>`;
-            return;
-          }
-
-          const historyList = await response.json();
+          const response = await fetch(`${API_BASE_URL}/history/recent/${currentUserId}`);
+          const historyList = response.ok ? await response.json() : [];
           if (!historyList || historyList.length === 0) {
-            container.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%; padding: 10px 0;">ยังไม่มีประวัติการเข้าชมทริป</span>`;
+            container.innerHTML = historyEmpty("ยังไม่มีประวัติการเข้าชมทริป ลองสร้างห้องแรกได้เลย");
             return;
           }
 
-          // กรอง tripId ที่ซ้ำกันออก เพื่อให้แสดงห้องละ 1 บรรทัด (เอาอันล่าสุด)
-          const uniqueTripIds = [];
-          const filteredHistory = historyList.filter((item) => {
-            if (!uniqueTripIds.includes(item.tripId)) {
-              uniqueTripIds.push(item.tripId);
-              return true;
-            }
-            return false;
+          // กรอง tripId ที่ซ้ำกันออก เพื่อให้แสดงห้องละ 1 แถว (เอาอันล่าสุด)
+          const seen = new Set();
+          const uniqueHistory = historyList.filter((item) => {
+            if (seen.has(item.tripId)) return false;
+            seen.add(item.tripId);
+            return true;
           });
 
-          container.innerHTML = ""; // ล้างข้อความโหลดก่อนหน้า
-
-          // ฟังก์ชันแปลงวันที่ให้เป็น dd/mm - dd/mm/yyyy
-          const formatTripDateRange = (startStr, endStr) => {
-            if (!startStr || !endStr) return "";
-            const start = new Date(startStr);
-            const end = new Date(endStr);
-
-            const pad = (n) => String(n).padStart(2, "0");
-            const sDay = pad(start.getDate());
-            const sMonth = pad(start.getMonth() + 1);
-            const eDay = pad(end.getDate());
-            const eMonth = pad(end.getMonth() + 1);
-            const eYear = end.getFullYear();
-
-            return `${sDay}/${sMonth} - ${eDay}/${eMonth}/${eYear}`;
-          };
-
-          // วนลูปดึงชื่อทริปจริงของแต่ละประวัติมาแสดงผล
-          const historyItemsHtml = await Promise.all(
-            filteredHistory.map(async (item) => {
-              let tripTitle = `ทริปรหัส #${item.tripId}`;
-              let formattedDate = ""; // <-- เพิ่มการประกาศตัวแปรตั้งต้น
-
+          // ดึงชื่อทริปจริงของแต่ละประวัติมาแสดงผล (พร้อมกัน)
+          const rows = await Promise.all(
+            uniqueHistory.map(async (item) => {
+              let title = `ทริปรหัส #${item.tripId}`;
+              let dates = "";
               try {
-                const tripRes = await fetch(
-                  `${API_BASE_URL}/trips/${item.tripId}`,
-                );
+                const tripRes = await fetch(`${API_BASE_URL}/trips/${item.tripId}`);
                 if (tripRes.ok) {
-                  const tripData = await tripRes.json();
-                  if (tripData && tripData.title) {
-                    tripTitle = tripData.title;
-                  }
-                  // <-- เรียกใช้ฟังก์ชันแปลงวันที่จากข้อมูลทริปที่ได้จาก Backend
-                  if (tripData && tripData.startDate && tripData.endDate) {
-                    formattedDate = formatTripDateRange(
-                      tripData.startDate,
-                      tripData.endDate,
-                    );
-                  }
+                  const trip = await tripRes.json();
+                  if (trip && trip.title) title = trip.title;
+                  dates = formatTripDateRange(trip.startDate, trip.endDate);
                 }
               } catch (e) {
                 console.error("ไม่สามารถดึงชื่อทริปได้:", e);
               }
-
               return `
-                <a href="dashboard.html?tripId=${item.tripId}" class="history-item">
-                  <span>✈️ ${tripTitle}</span>
-                  <span style="font-size: 0.75rem; color: var(--text-muted);">${formattedDate}</span>
-                </a>
-              `;
+                <a href="dashboard.html?tripId=${encodeURIComponent(item.tripId)}" class="history-item">
+                  <div class="history-main">
+                    <div class="history-icon"><i class="fa-solid fa-plane"></i></div>
+                    <div style="min-width: 0">
+                      <div class="history-title">${esc(title)}</div>
+                      <div class="history-date">${esc(dates || "ยังไม่ระบุวันเดินทาง")}</div>
+                    </div>
+                  </div>
+                  <div class="history-stub"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>`;
             }),
           );
-
-          container.innerHTML = historyItemsHtml.join("");
+          container.innerHTML = rows.join("");
         } catch (error) {
-          container.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%; padding: 10px 0;">ยังไม่มีประวัติทริปในระบบ</span>`;
+          console.error("Error loading history:", error);
+          container.innerHTML = historyEmpty("โหลดประวัติทริปไม่สำเร็จ");
         }
       }
 
-      loadUserData();
-      loadRecentTrips();
+      // ต้องรู้ userId ของชื่อเล่นนี้ก่อน จึงค่อยโหลดประวัติ (กันแสดงประวัติของ user อื่น)
+      loadUserData().then(loadRecentTrips);
     </script>
   </body>
 </html>

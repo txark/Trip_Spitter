@@ -10,4 +10,7 @@ public interface UserTripHistoryRepo extends JpaRepository<UserTripHistory, Long
 
     // ค้นหาประวัติเดิมเพื่อป้องกันการบันทึกซ้ำ
     Optional<UserTripHistory> findByUserIdAndTripId(Long userId, Long tripId);
+
+    // ทุกแถวของคู่ user+trip (ข้อมูลเก่าอาจซ้ำหลายแถว) ใหม่สุดก่อน
+    List<UserTripHistory> findByUserIdAndTripIdOrderByViewedAtDesc(Long userId, Long tripId);
 }

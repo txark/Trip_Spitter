@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface PollRepo extends JpaRepository<Poll, Long> {
     List<Poll> findByTripId(Long tripId);
+
+    List<Poll> findByTripIdOrderByIdDesc(Long tripId);
 }

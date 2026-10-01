@@ -23,6 +23,7 @@ public class ActivityController {
     @PostMapping("/add/{tripId}")
     public ResponseEntity<Activity> addActivity(@PathVariable Long tripId, @RequestBody Activity activity) {
         return tripRepo.findById(tripId).map(trip -> {
+            activity.setId(null); // กันผู้ใช้ส่ง id มาเพื่อเขียนทับกิจกรรมเดิม
             activity.setTrip(trip);
             Activity savedActivity = activityRepo.save(activity);
             return ResponseEntity.ok(savedActivity);

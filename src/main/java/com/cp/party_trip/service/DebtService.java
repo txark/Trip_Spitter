@@ -8,6 +8,7 @@ import com.cp.party_trip.model.TripMember;
 import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.SettlementRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,6 +24,9 @@ public class DebtService {
         this.settlementRepo = settlementRepo;
     }
 
+    // ใช้ TripMember เป็น key ของ Map ได้เพราะอยู่ใน transaction เดียวกัน (ได้ object ตัวเดิมเสมอ)
+    // และโหลด expenseSplits แบบ lazy ได้โดยไม่ต้องพึ่ง open-in-view
+    @Transactional(readOnly = true)
     public List<DebtTransfer> calculateDebtSimplification(Long tripId) {
         List<Expense> expenses = expenseRepo.findByTripId(tripId);
         Map<TripMember, BigDecimal> balances = new HashMap<>();
