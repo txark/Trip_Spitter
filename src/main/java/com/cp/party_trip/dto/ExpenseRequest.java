@@ -13,6 +13,7 @@ public class ExpenseRequest {
     private String currency;
     private String splitType;
     private String category;
+    private Long activityId; // บันทึกจากรายการในแพลน (ไม่บังคับ)
     private List<SplitAmount> splits;
 
     public static class SplitAmount {
@@ -67,6 +68,14 @@ public class ExpenseRequest {
 
     public void setSplitType(String splitType) {
         this.splitType = splitType;
+    }
+
+    public Long getActivityId() {
+        return activityId;
+    }
+
+    public void setActivityId(Long activityId) {
+        this.activityId = activityId;
     }
 
     public String getCategory() {

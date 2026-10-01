@@ -5,6 +5,8 @@ import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
+import com.cp.party_trip.model.Activity;
+import com.cp.party_trip.repository.ActivityRepo;
 import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.repository.TripRepo;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.*;
 class ExpenseServiceTest {
 
     private ExpenseRepo expenseRepo;
+    private ActivityRepo activityRepo;
     private TripMemberRepo tripMemberRepo;
     private ExpenseService service;
 
@@ -35,7 +38,8 @@ class ExpenseServiceTest {
         expenseRepo = mock(ExpenseRepo.class);
         TripRepo tripRepo = mock(TripRepo.class);
         tripMemberRepo = mock(TripMemberRepo.class);
-        service = new ExpenseService(expenseRepo, tripRepo, tripMemberRepo);
+        activityRepo = mock(ActivityRepo.class);
+        service = new ExpenseService(expenseRepo, tripRepo, tripMemberRepo, activityRepo);
 
         trip.setId(1L);
         otherTrip.setId(2L);
@@ -73,6 +77,32 @@ class ExpenseServiceTest {
 
     private List<BigDecimal> amounts(Expense e) {
         return e.getExpenseSplits().stream().map(ExpenseSplit::getAmountOwed).toList();
+    }
+
+    @Test
+    void linksBillToPlanActivityOfSameTripOnly() {
+        Activity mine = new Activity();
+        mine.setId(5L);
+        mine.setTrip(trip);
+        when(activityRepo.findById(5L)).thenReturn(Optional.of(mine));
+
+        ExpenseRequest r = request("300", "EQUAL");
+        r.setActivityId(5L);
+        assertEquals(5L, service.createExpense(1L, 10L, r, List.of(10L, 11L)).getActivityId());
+    }
+
+    @Test
+    void rejectsPlanActivityFromAnotherTripOrMissing() {
+        Activity foreign = new Activity();
+        foreign.setId(6L);
+        foreign.setTrip(otherTrip);
+        when(activityRepo.findById(6L)).thenReturn(Optional.of(foreign));
+
+        ExpenseRequest r = request("300", "EQUAL");
+        r.setActivityId(6L); // รายการของทริปอื่น
+        assertBadRequest(r);
+        r.setActivityId(7L); // ไม่มีรายการนี้
+        assertBadRequest(r);
     }
 
     @Test
