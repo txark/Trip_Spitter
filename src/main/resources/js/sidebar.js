@@ -8,6 +8,7 @@
 
   const NAV_ITEMS = [
     { href: "dashboard.html", icon: "fa-solid fa-house", label: "ภาพรวม" },
+    { href: "plan.html", icon: "fa-solid fa-route", label: "แพลนเที่ยว" },
     { href: "expenses.html", icon: "fa-solid fa-receipt", label: "ค่าใช้จ่าย" },
     { href: "debts.html", icon: "fa-solid fa-scale-balanced", label: "สรุปหนี้" },
     { href: "polls.html", icon: "fa-solid fa-square-poll-vertical", label: "โหวต" },
