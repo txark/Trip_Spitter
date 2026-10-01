@@ -5,6 +5,7 @@ import com.cp.party_trip.model.Activity;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
 import com.cp.party_trip.repository.ActivityRepo;
+import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.repository.TripRepo;
 import org.springframework.http.HttpStatus;
@@ -50,11 +51,14 @@ public class ActivityService {
     private final ActivityRepo activityRepo;
     private final TripRepo tripRepo;
     private final TripMemberRepo tripMemberRepo;
+    private final ExpenseRepo expenseRepo;
 
-    public ActivityService(ActivityRepo activityRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo) {
+    public ActivityService(ActivityRepo activityRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo,
+            ExpenseRepo expenseRepo) {
         this.activityRepo = activityRepo;
         this.tripRepo = tripRepo;
         this.tripMemberRepo = tripMemberRepo;
+        this.expenseRepo = expenseRepo;
     }
 
     @Transactional(readOnly = true)
@@ -87,6 +91,10 @@ public class ActivityService {
     public void deleteActivity(Long activityId, Long memberId) {
         Activity activity = requireActivity(activityId);
         requireTripMember(activity.getTrip().getId(), memberId);
+        // บิลที่จ่ายไปแล้วต้องอยู่ต่อ (มีผลกับหนี้) แค่เลิกผูกกับรายการที่ลบ
+        var linked = expenseRepo.findByActivityId(activityId);
+        linked.forEach(e -> e.setActivityId(null));
+        expenseRepo.saveAll(linked);
         activityRepo.delete(activity);
     }
 
