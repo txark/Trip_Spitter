@@ -325,7 +325,7 @@
       /* --- เมนูลัด (มือถือ/แท็บเล็ต; จอคอมใช้ sidebar แทน) --- */
       .quick-nav {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 10px;
         margin: 16px 0 24px;
       }
@@ -709,6 +709,9 @@
 
       <!-- เมนูลัด (จอคอมซ่อน เพราะมี sidebar แล้ว) -->
       <nav class="quick-nav">
+        <a href="plan.html" class="nav-item">
+          <i class="fa-solid fa-route" style="--tone: #7c3aed"></i> แพลน
+        </a>
         <a href="expenses.html" class="nav-item">
           <i class="fa-solid fa-receipt tone-primary"></i> ค่าใช้จ่าย
         </a>
@@ -777,7 +780,7 @@
       // ส่ง tripId ต่อไปยังหน้าย่อย ไม่งั้นหน้าเหล่านั้นจะ fallback ไปเป็นทริป 1
       document
         .querySelectorAll(
-          'a[href="expenses.html"], a[href="debts.html"], a[href="polls.html"], a[href="checklist.html"]',
+          'a[href="plan.html"], a[href="expenses.html"], a[href="debts.html"], a[href="polls.html"], a[href="checklist.html"]',
         )
         .forEach((a) => {
           a.href = `${a.getAttribute("href")}?tripId=${encodeURIComponent(tripId)}`;
