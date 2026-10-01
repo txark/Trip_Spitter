@@ -4,7 +4,9 @@ import com.cp.party_trip.dto.ActivityRequest;
 import com.cp.party_trip.model.Activity;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
+import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.repository.ActivityRepo;
+import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.repository.TripRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +30,7 @@ class ActivityServiceTest {
     private ActivityRepo activityRepo;
     private TripRepo tripRepo;
     private TripMemberRepo tripMemberRepo;
+    private ExpenseRepo expenseRepo;
     private ActivityService service;
     private Trip trip;
 
@@ -36,7 +39,8 @@ class ActivityServiceTest {
         activityRepo = mock(ActivityRepo.class);
         tripRepo = mock(TripRepo.class);
         tripMemberRepo = mock(TripMemberRepo.class);
-        service = new ActivityService(activityRepo, tripRepo, tripMemberRepo);
+        expenseRepo = mock(ExpenseRepo.class);
+        service = new ActivityService(activityRepo, tripRepo, tripMemberRepo, expenseRepo);
         when(activityRepo.save(any(Activity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         trip = new Trip();
@@ -292,6 +296,22 @@ class ActivityServiceTest {
         r.setCategory("STAY");
         r.setGuestsPerRoom(0);
         assertEquals(HttpStatus.BAD_REQUEST, statusOf(() -> service.addActivity(1L, r)));
+    }
+
+    @Test
+    void deletingActivityKeepsBillsButUnlinksThem() {
+        Activity a = activity(7L, LocalDate.of(2026, 10, 12), null);
+        when(activityRepo.findById(7L)).thenReturn(Optional.of(a));
+        Expense bill = new Expense();
+        bill.setActivityId(7L);
+        when(expenseRepo.findByActivityId(7L)).thenReturn(List.of(bill));
+
+        service.deleteActivity(7L, 10L);
+
+        assertNull(bill.getActivityId());
+        verify(expenseRepo).saveAll(List.of(bill));
+        verify(expenseRepo, never()).delete(any());
+        verify(activityRepo).delete(a);
     }
 
     @Test

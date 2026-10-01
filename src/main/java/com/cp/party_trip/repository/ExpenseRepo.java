@@ -12,6 +12,9 @@ public interface ExpenseRepo extends JpaRepository<Expense, Long> {
     @Query("SELECT e FROM Expense e WHERE e.trip.id = :tripId")
     List<Expense> findByTripId(@Param("tripId") Long tripId);
 
+    // บิลที่บันทึกจากรายการในแพลน (ใช้ตอนลบรายการ)
+    List<Expense> findByActivityId(Long activityId);
+
     // หาผลรวมแยกตามหมวดหมู่
     @Query("SELECT e.category, SUM(e.totalAmount) FROM Expense e WHERE e.trip.id = :tripId GROUP BY e.category")
     List<Object[]> sumAmountByCategory(@Param("tripId") Long tripId);

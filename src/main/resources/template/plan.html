@@ -982,6 +982,75 @@
         text-decoration: underline;
       }
 
+      /* บิลจริงของรายการ: ยังไม่บันทึก = ปุ่มเส้นประ, บันทึกแล้ว = ป้ายสีเขียว */
+      .act-bills {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 12px;
+        margin-top: 8px;
+      }
+
+      .record-btn,
+      .paid-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 3px 12px;
+        border-radius: 999px;
+        font-size: var(--fs-xs);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .record-btn {
+        border: 1px dashed var(--border-strong);
+        color: var(--text-muted);
+        background: var(--surface);
+      }
+
+      .paid-chip {
+        border: 1px solid rgba(22, 163, 74, 0.25);
+        background: rgba(22, 163, 74, 0.08);
+        color: #15803d;
+      }
+
+      .paid-chip .money {
+        font-family: var(--font-mono);
+      }
+
+      .paid-chip .diff {
+        font-weight: 500;
+        color: var(--text-muted);
+      }
+
+      .add-bill-link {
+        font-size: var(--fs-xs);
+        font-weight: 600;
+        color: var(--primary);
+        text-decoration: none;
+      }
+
+      /* ในฟอร์มแก้ไข: ทางลัดไปบันทึกบิลของรายการนี้ */
+      .form-record-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--surface-muted);
+        color: var(--text-main);
+        font-size: var(--fs-sm);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .form-record-link span {
+        flex: 1;
+      }
+
       .act-note {
         margin-top: 6px;
         padding: 6px 10px;
@@ -1071,6 +1140,16 @@
         }
 
         .day-empty:is(button):hover .empty-icon {
+          background: var(--primary-soft);
+          color: var(--primary);
+        }
+
+        .record-btn:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+        }
+
+        .form-record-link:hover {
           background: var(--primary-soft);
           color: var(--primary);
         }
@@ -2131,6 +2210,11 @@
             </div>
             </div>
 
+            <a class="form-record-link hidden" id="form-record-link" href="expenses.html">
+              <i class="fa-solid fa-receipt"></i>
+              <span id="form-record-text">บันทึกค่าใช้จ่ายจริงของรายการนี้</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
             <div class="form-actions" id="form-actions">
               <button type="button" class="ghost-btn danger hidden" id="delete-btn">
                 <i class="fa-solid fa-trash-can"></i> <span>ลบ</span>
@@ -2297,6 +2381,7 @@
       let members = [];
       let myMemberId = null; // null = หาชื่อในทริปไม่เจอ ดูได้อย่างเดียว
       let activities = [];
+      let expenses = []; // บิลทั้งทริป (ไว้รวมยอดที่จ่ายจริงของแต่ละรายการในแพลน)
       let days = []; // [{ key: "2026-10-12", date: Date, no: 1, extra: false }]
       let selectedCategory = null; // ค่าเริ่มต้น = ยังไม่เลือกประเภท
       const selectedPeople = new Set(); // ผู้ร่วมกิจกรรม (ประเภทกิจกรรม)
@@ -2493,6 +2578,62 @@
         return { map, next };
       }
 
+      // บิลที่บันทึกจากรายการนี้ และลิงก์ไปบันทึกบิลใหม่ (หน้าค่าใช้จ่ายกรอกให้จากแพลน)
+      const billsOf = (act) => expenses.filter((e) => String(e.activityId) === String(act.id));
+      const billTotal = (bills) => bills.reduce((sum, e) => sum + (Number(e.totalAmount) || 0), 0);
+      const recordUrl = (act) =>
+        `expenses.html?tripId=${encodeURIComponent(tripId)}&activityId=${encodeURIComponent(act.id)}`;
+
+      // ยอดประมาณการทั้งบิล (ให้ตรงกับที่หน้าค่าใช้จ่ายกรอกให้)
+      function planEstimate(act) {
+        const cost = Number(act.cost) || 0;
+        if (cost <= 0) return 0;
+        if (isStay(act)) return stayTotal(act);
+        const people = act.category === "ACTIVITY" && peopleOf(act).length ? peopleOf(act).length : members.length;
+        return cost * Math.max(people, 1);
+      }
+
+      // ส่วนของคุณในบิลที่บันทึกจากแพลน
+      function myActualShare() {
+        if (myMemberId == null) return 0;
+        return expenses
+          .filter((e) => e.activityId != null)
+          .flatMap((e) => e.splits || [])
+          .filter((sp) => sp.tripMember && String(sp.tripMember.id) === String(myMemberId))
+          .reduce((sum, sp) => sum + (Number(sp.amountOwed) || 0), 0);
+      }
+
+      // ใต้รายการ: จ่ายจริงแล้วเท่าไร (เทียบกับประมาณการ) หรือปุ่มบันทึกบิล
+      function billsHtml(act, status) {
+        const bills = billsOf(act);
+        if (bills.length) {
+          const total = billTotal(bills);
+          const estimate = planEstimate(act);
+          const diff = estimate > 0 ? total - estimate : 0;
+          const diffText =
+            Math.abs(diff) >= 1 ? ` <span class="diff">(${diff > 0 ? "เกิน" : "ต่ำกว่า"}งบ ${fmt(Math.abs(diff))})</span>` : "";
+          return `
+            <div class="act-bills">
+              <a class="paid-chip" href="expenses.html?tripId=${encodeURIComponent(tripId)}"
+                 title="ดูบิลในหน้าค่าใช้จ่าย">
+                <i class="fa-solid fa-circle-check"></i> จ่ายจริง <span class="money">${fmt(total)}</span>${
+                  bills.length > 1 ? ` · ${bills.length} บิล` : ""
+                }${diffText}
+              </a>
+              ${canEdit() ? `<a class="add-bill-link" href="${recordUrl(act)}">+ เพิ่มบิล</a>` : ""}
+            </div>`;
+        }
+        // ปุ่มบันทึก: รายการที่มีค่าใช้จ่าย จองแล้ว หรือถึงเวลาแล้ว (ไม่รกทุกแถว)
+        const worth = Number(act.cost) > 0 || act.booked || status === "past" || status === "now";
+        if (!canEdit() || !worth) return "";
+        return `
+          <div class="act-bills">
+            <a class="record-btn" href="${recordUrl(act)}">
+              <i class="fa-solid fa-receipt"></i> บันทึกค่าใช้จ่ายจริง
+            </a>
+          </div>`;
+      }
+
       const occLabel = (o) =>
         o.kind === "checkin" ? `เช็คอิน ${o.act.title}` : o.kind === "checkout" ? `เช็คเอาท์ ${o.act.title}` : o.act.title;
 
@@ -2528,7 +2669,13 @@
             : "ครบทุกวันแล้ว";
         const budget = budgetPerPerson();
         $("stat-budget").textContent = budget > 0 ? `≈ ${fmt(Math.round(budget))}` : "-";
-        $("stat-budget-sub").textContent = myMemberId != null ? "งบของคุณ (ประมาณ)" : "งบต่อคน (ประมาณ)";
+        const actual = myActualShare();
+        $("stat-budget-sub").textContent =
+          actual > 0
+            ? `ประมาณ · จ่ายจริงแล้ว ${fmt(Math.round(actual))}`
+            : myMemberId != null
+              ? "งบของคุณ (ประมาณ)"
+              : "งบต่อคน (ประมาณ)";
 
         $("hero-title").textContent = trip?.title || `ทริป #${tripId}`;
         renderHeroDays(tripDays);
@@ -2812,6 +2959,7 @@
               <div class="act-meta">${metaHtml(o)}</div>
               ${o.kind === "main" && act.category === "TRAVEL" ? ticketHtml(act) : ""}
               ${showNote ? `<div class="act-note">${esc(act.notes)}</div>` : ""}
+              ${o.kind === "main" || o.kind === "checkin" ? billsHtml(act, status) : ""}
             </div>
             ${
               canEdit() && o.kind !== "stay"
@@ -3388,6 +3536,15 @@
           : `<i class="fa-solid fa-plus"></i> <span>เพิ่มลงแพลน</span>`;
         $("delete-btn").classList.toggle("hidden", !editing);
         $("cancel-btn").classList.toggle("hidden", !editing);
+        const act = editing ? activities.find((a) => String(a.id) === String(editingId)) : null;
+        $("form-record-link").classList.toggle("hidden", !act);
+        if (act) {
+          const bills = billsOf(act);
+          $("form-record-link").href = recordUrl(act);
+          $("form-record-text").textContent = bills.length
+            ? `จ่ายจริงแล้ว ${fmt(billTotal(bills))} · เพิ่มบิลของรายการนี้`
+            : "บันทึกค่าใช้จ่ายจริงของรายการนี้";
+        }
         setDeleteArmed(false);
       }
 
@@ -4122,14 +4279,16 @@
         selectCategory(null);
         syncTimeUi();
         try {
-          const [tripData, memberList, activityList] = await Promise.all([
+          const [tripData, memberList, activityList, expenseList] = await Promise.all([
             request(`${API_BASE_URL}/trips/${tripId}`),
             request(`${API_BASE_URL}/trips/${tripId}/members`).catch(() => []),
             request(`${API_BASE_URL}/activities/trip/${tripId}`),
+            request(`${API_BASE_URL}/expenses/trip/${tripId}`).catch(() => []),
           ]);
           trip = tripData;
           members = memberList;
           activities = activityList;
+          expenses = Array.isArray(expenseList) ? expenseList : [];
 
           // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) หาไม่เจอ = ดูอย่างเดียว
           const me = findMyMember(members);
@@ -4144,6 +4303,11 @@
           resetFields({ keepDay: false });
           renderPeople();
           setFormCollapsed(activities.length > 0);
+
+          // กลับมาจากหน้าค่าใช้จ่าย (#day-2026-10-12) = เลื่อนไปวันนั้น
+          if (location.hash.startsWith("#day-")) {
+            document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: "start" });
+          }
 
           // ระหว่างทริป: เลื่อนแถบวันให้เห็น "วันนี้"
           const todayChip = document.querySelector(".day-chip.today");
