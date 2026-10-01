@@ -1,7 +1,6 @@
 package com.cp.party_trip.dto;
 
 import java.math.BigDecimal;
-
 import com.cp.party_trip.model.TripMember;
 
 public class DebtTransfer {
@@ -13,6 +12,15 @@ public class DebtTransfer {
         this.amount = amount;
         this.from = from;
         this.to = to;
+    }
+
+    // เมธอดสำรองป้องกันการเรียกชื่อฟิลด์สลับกัน
+    public TripMember getSender() {
+        return from;
+    }
+
+    public TripMember getReceiver() {
+        return to;
     }
 
     // Getters and Setters

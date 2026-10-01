@@ -7,6 +7,10 @@
 
     <!-- CSS กลาง -->
     <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <!-- Sidebar สำหรับจอคอม (≥1024px) -->
+    <script defer src="/src/main/resources/js/sidebar.js"></script>
+    <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
+    <script src="/src/main/resources/js/ui.js"></script>
 
     <!-- font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,83 +26,55 @@
       crossorigin="anonymous"
     ></script>
     <style>
-      /* body {
-        background-color: var(--background);
-        color: var(--text-main);
-        font-family:
-          "Momo Trust Display", "Bai Jamjuree", "Sarabun", sans-serif;
-        margin: 0;
-        padding: 0;
-      }
-
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-      } */
-
+      /* หัวหน้า: ลิงก์ย้อนกลับอยู่บน ชื่อหน้าอยู่ล่าง (สไตล์หลักอยู่ที่ .page-header ใน all.css) */
       .expense-header {
-        background: linear-gradient(135deg, var(--primary) 0%, #818cf8 100%);
-        color: white;
-        padding: 3.5em 24px 20px;
-        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-        margin: -24px -20px 20px -20px;
-        box-shadow: var(--shadow-lg);
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 6px;
+        padding-top: 12px;
       }
 
-      .expense-header h2 {
-        font-size: 1.4rem;
-        font-weight: 800;
-        margin: 0;
-      }
 
-      /* แถบคำเตือน */
-      .hidden {
-        display: none !important;
-      }
-
-      #warning-banner {
-        background-color: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #ef4444;
-        padding: 12px 16px;
-        border-radius: 10px;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 0.9rem;
-        font-weight: 600;
-      }
-
-      /* ฟอร์มบันทึกบิล */
+      /* --- ฟอร์มบันทึกบิล --- */
       .form-card {
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: var(--radius-lg);
         padding: 20px;
-        box-shadow: var(--shadow-sm);
         margin-bottom: 24px;
       }
 
+      .form-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 18px;
+      }
+
+      .form-heading .avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+      }
+
       .input-group {
-        margin-bottom: 14px;
+        margin-bottom: 16px;
         text-align: left;
       }
 
-      .input-group label {
+      .input-group > label,
+      .input-group > .label {
         display: block;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
         color: var(--text-muted);
         margin-bottom: 6px;
       }
 
-      .input-group input,
-      .input-group select {
+      .input-group input {
         width: 100%;
         height: 46px;
         padding: 0 14px;
@@ -109,73 +85,492 @@
         font-size: 0.95rem;
         outline: none;
         box-sizing: border-box;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .input-group input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      }
+
+      /* ช่องที่กรอกไม่ครบ */
+      .input-group.invalid input,
+      .input-group.invalid .amount-field {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+      }
+
+      .field-error {
+        display: none;
+        font-size: 0.75rem;
+        color: var(--danger);
+        margin-top: 6px;
+      }
+
+      .input-group.invalid .field-error {
+        display: block;
+      }
+
+      /* ช่องจำนวนเงินตัวใหญ่ พร้อม ฿ ด้านหน้า */
+      .amount-field {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 16px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .amount-field:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      }
+
+      .amount-field .currency {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-muted);
+      }
+
+      .container .amount-field input {
+        height: 64px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        font-size: 1.8rem;
+        font-weight: 800;
+      }
+
+      /* ปุ่มเลือกหมวดหมู่ (ไอคอนอยู่บน ข้อความอยู่ล่าง) */
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .category-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background-color: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 4px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        white-space: nowrap;
+      }
+
+      /* ซ่อน radio แต่ยังโฟกัสด้วยคีย์บอร์ดได้ (.container นำหน้าเพื่อชนะ .input-group input ที่ตั้ง width 100%) */
+      .category-chip {
+        position: relative;
+      }
+
+      .container .category-chip input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .category-chip i {
+        font-size: 1.05rem;
+        color: var(--cat);
+      }
+
+      /* เลือกแล้ว: ขอบและพื้นอ่อนตามสีประจำหมวด (.cat-* ใน all.css) */
+      .category-chip:has(input:checked) {
+        background-color: color-mix(in srgb, var(--cat) 8%, white);
+        border-color: var(--cat);
+        color: var(--text-main);
+      }
+
+      /* ผู้จ่าย + ผู้ร่วมหาร */
+      .people-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 46px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .people-row .grow {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .you-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        background: var(--surface-muted);
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+
+      .avatar-stack {
+        display: flex;
+      }
+
+      .avatar-stack .avatar {
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+        border: 2px solid var(--surface);
+      }
+
+      .avatar-stack .avatar + .avatar {
+        margin-left: -8px;
+      }
+
+      .avatar-stack .more {
+        background: var(--surface-muted);
+        color: var(--text-muted);
+      }
+
+      /* ตัวอย่างการหาร */
+      .split-preview {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--surface-muted);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      .split-preview strong {
+        font-size: 1.1rem;
+        color: var(--text-main);
+      }
+
+      /* ปุ่มสลับ หารเท่ากัน / กำหนดเอง */
+      .segmented {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        padding: 4px;
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .segmented label {
+        position: relative;
+        cursor: pointer;
+      }
+
+      .container .segmented input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .segmented span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 38px;
+        border-radius: 9px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        transition:
+          background-color 0.15s,
+          color 0.15s;
+      }
+
+      .segmented input:checked + span {
+        background: var(--surface);
+        color: var(--text-main);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+
+      .segmented label:has(input:focus-visible) span {
+        outline: 2px solid var(--primary);
+        outline-offset: 1px;
+      }
+
+      /* ตารางกรอกยอดแต่ละคน (โหมดกำหนดเอง) */
+      .custom-split {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .input-group.invalid .custom-split {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+      }
+
+      .custom-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+      }
+
+      .custom-row + .custom-row {
+        border-top: 1px solid var(--border);
+      }
+
+      .custom-row .name {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.88rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mini-amount {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: 120px;
+        flex-shrink: 0;
+        height: 38px;
+        padding: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--surface);
+        color: var(--text-muted);
+        font-weight: 700;
         transition: border-color 0.2s;
       }
 
-      .input-group input:focus,
-      .input-group select:focus {
+      .mini-amount:focus-within {
         border-color: var(--primary);
+      }
+
+      /* .container นำหน้าเพื่อชนะ .input-group input */
+      .container .mini-amount input {
+        width: 100%;
+        height: 36px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        text-align: right;
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .custom-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px 12px;
+        background: var(--background);
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+      }
+
+      .custom-tools {
+        display: flex;
+        gap: 14px;
+      }
+
+      .split-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+
+      .split-status.ok {
+        color: var(--success);
+      }
+
+      .split-status.under {
+        color: #f97316;
+      }
+
+      .split-status.over {
+        color: var(--danger);
+      }
+
+      /* แท็บเล็ต: ปุ่มและช่องกรอกใหญ่ขึ้นให้กดด้วยนิ้วง่าย */
+      @media (min-width: 768px) and (max-width: 1023px) {
+        .segmented span {
+          height: 44px;
+        }
+
+        .mini-amount {
+          height: 44px;
+          width: 140px;
+        }
+
+        .container .mini-amount input {
+          height: 42px;
+        }
+
+        .custom-tools .text-btn {
+          min-height: 40px;
+        }
       }
 
       .submit-btn {
         width: 100%;
-        height: 48px;
-        border-radius: 10px;
+        height: 50px;
+        border-radius: 12px;
         border: none;
         font-size: 1rem;
         font-weight: 700;
         color: #ffffff;
-        background: linear-gradient(135deg, var(--secondary) 0%, #f97316 100%);
-        box-shadow: 0 6px 15px rgba(255, 107, 107, 0.3);
+        background: var(--secondary);
         cursor: pointer;
-        transition:
-          opacity 0.2s,
-          transform 0.1s;
-        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background-color 0.15s;
+        margin-top: 14px;
       }
 
-      .submit-btn:hover {
-        opacity: 0.95;
-        transform: translateY(-1px);
+      .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
       }
 
-      /* รายการบิล */
+      @media (hover: hover) and (pointer: fine) {
+        .submit-btn:not(:disabled):hover {
+          background: var(--secondary-hover);
+        }
+
+        .category-chip:hover {
+          border-color: var(--cat);
+        }
+      }
+
+      /* --- รายการบิล --- */
       .section-title {
         font-size: 1.05rem;
         font-weight: 700;
         margin-bottom: 12px;
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 8px;
       }
 
-      .feed-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: 16px;
-        margin-bottom: 12px;
-        box-shadow: var(--shadow-sm);
+      .section-title .title-text {
         display: flex;
         align-items: center;
+        gap: 8px;
+      }
+
+      /* บิลของคุณ: ใบเสร็จต่อบิล (.receipt ใน all.css) */
+      .receipt-head {
+        display: flex;
         justify-content: space-between;
+        gap: 8px;
+      }
+
+      .bill-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+      }
+
+      .cat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        color: var(--cat, var(--text-muted));
+        background: color-mix(in srgb, var(--cat, #71717a) 10%, white);
+      }
+
+      .feed-info {
+        flex: 1;
+        min-width: 0;
       }
 
       .feed-info h4 {
         font-size: 0.95rem;
         font-weight: 700;
-        margin-bottom: 4px;
+        margin: 0 0 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .feed-info span {
-        font-size: 0.78rem;
+      .feed-meta {
+        font-size: 0.75rem;
         color: var(--text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .feed-amount {
-        font-weight: 800;
-        color: var(--secondary);
         font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        flex-shrink: 0;
+      }
+
+      /* รายชื่อแต่ละคนในใบเสร็จ */
+      .receipt-line .who {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .receipt-line .who i {
+        color: var(--success);
+        font-size: 0.75rem;
+      }
+
+      .receipt-line.is-paid .money {
+        color: var(--text-muted);
+        text-decoration: line-through;
       }
 
       .empty-box {
@@ -188,237 +583,707 @@
         font-size: 0.88rem;
       }
 
-      /* แก้ไขให้ใส่จุด . เพื่อให้ CSS ทำงานถูกต้อง และเรียง 5 ปุ่มในแถวเดียว */
-      .category-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 6px;
-        margin-top: 6px;
-      }
-
-      .category-chip {
+      /* --- Modal เลือกผู้ร่วมหาร --- */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--background);
+        z-index: 1000;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .modal-content {
+        background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 8px 4px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        text-align: center;
+        border-radius: var(--radius-lg);
+        padding: 18px;
+        width: 100%;
+        max-width: 360px;
+        box-shadow: var(--shadow-lg);
+        animation: scaleUp 0.15s ease;
+      }
+
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+
+      .modal-head h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.3rem;
         cursor: pointer;
-        transition: all 0.2s ease;
-        user-select: none;
-        white-space: nowrap;
+        color: var(--text-muted);
       }
 
-      .category-chip input {
-        display: none;
+      .modal-sub {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-bottom: 12px;
       }
 
-      .category-chip input:checked + span {
+      .modal-tools {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .text-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0;
         color: var(--primary);
       }
 
-      .category-chip:has(input:checked) {
-        background-color: rgba(99, 102, 241, 0.1);
-        border-color: var(--primary);
-        box-shadow: 0 2px 5px rgba(99, 102, 241, 0.15);
+      .text-btn.muted {
+        color: var(--text-muted);
       }
 
-      .category-chip:hover {
-        border-color: var(--primary);
+      #modal-participants-container {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-height: 260px;
+        overflow-y: auto;
+        margin-bottom: 14px;
+        padding: 6px 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .member-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: background-color 0.15s;
+      }
+
+      .member-option:has(input:checked) {
+        background: var(--surface-muted);
+      }
+
+      .member-option .name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .member-option input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+        flex-shrink: 0;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .member-option:hover {
+          background: var(--background);
+        }
       }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div class="container container--wide">
       <!-- ส่วนหัว -->
-      <header class="expense-header">
-        <h2>
-          <i class="fa-solid fa-receipt" style="margin-right: 8px"></i>
-          บันทึกค่าใช้จ่าย
-        </h2>
-        <a
-          id="back-dashboard-btn"
-          href="dashboard.html"
-          style="
-            color: white;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-          "
-        >
-          <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+      <header class="expense-header page-header">
+        <h2>ค่าใช้จ่าย</h2>
+        <a id="back-dashboard-btn" class="back-link" href="dashboard.html">
+          <i class="fa-solid fa-arrow-left"></i> ภาพรวมทริป
         </a>
       </header>
 
-      <!-- แถบคำเตือน (ซ่อนไว้เป็นค่าเริ่มต้น) -->
-      <div id="warning-banner" class="hidden">
-        <span id="warning-text">กรุณากรอกข้อมูลให้ครบถ้วน</span>
-        <button
-          onclick="closeBanner()"
-          style="
-            background: none;
-            border: none;
-            color: #ef4444;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1.1rem;
-          "
-        >
-          &times;
-        </button>
-      </div>
-
-      <!-- ฟอร์มกรอกบิลใหม่ -->
-      <div class="form-card">
-        <div class="input-group">
-          <label>หมวดหมู่ค่าใช้จ่าย</label>
-          <div class="category-grid">
-            <label class="category-chip">
-              <input
-                type="radio"
-                name="expense-category"
-                value="FOOD"
-                checked
-              />
-              <span
-                ><i class="fa-solid fa-utensils" style="margin-right: 4px"></i>
-                อาหาร</span
-              >
-            </label>
-            <label class="category-chip">
-              <input
-                type="radio"
-                name="expense-category"
-                value="ACCOMMODATION"
-              />
-              <span
-                ><i class="fa-solid fa-hotel" style="margin-right: 4px"></i>
-                ที่พัก</span
-              >
-            </label>
-            <label class="category-chip">
-              <input type="radio" name="expense-category" value="TRANSPORT" />
-              <span
-                ><i class="fa-solid fa-car" style="margin-right: 4px"></i>
-                เดินทาง</span
-              >
-            </label>
-            <label class="category-chip">
-              <input type="radio" name="expense-category" value="SHOPPING" />
-              <span
-                ><i
-                  class="fa-solid fa-shopping-bag"
-                  style="margin-right: 4px"
-                ></i>
-                ช้อปปิ้ง</span
-              >
-            </label>
-            <label class="category-chip">
-              <input type="radio" name="expense-category" value="OTHER" />
-              <span
-                ><i class="fa-solid fa-star" style="margin-right: 4px"></i>
-                อื่นๆ</span
-              >
-            </label>
+      <!-- แถบสรุปยอดของผู้ใช้ -->
+      <div class="stat-summary" aria-live="polite">
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-receipt tone-primary"></i>
+            บิลที่คุณจ่าย
+          </div>
+          <div class="stat-value" id="stat-count">
+            <div class="skeleton-line"></div>
           </div>
         </div>
-        <div class="input-group">
-          <label>รายการค่าใช้จ่าย</label>
-          <input
-            type="text"
-            id="expense-title"
-            placeholder="เช่น ค่าอาหารกลางวัน, ค่าแท็กซี่"
-          />
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-wallet tone-amber"></i>
+            ยอดที่สำรองจ่าย
+          </div>
+          <div class="stat-value" id="stat-total">
+            <div class="skeleton-line"></div>
+          </div>
         </div>
-        <div class="input-group">
-          <label>จำนวนเงิน (บาท)</label>
-          <input
-            type="number"
-            id="expense-amount"
-            placeholder="0.00"
-            min="0"
-            step="any"
-          />
+        <div class="stat-tile highlight">
+          <div class="stat-label">
+            <i class="fa-solid fa-hand-holding-dollar tone-success"></i>
+            รอเพื่อนคืน
+          </div>
+          <div class="stat-value text-success" id="stat-pending">
+            <div class="skeleton-line"></div>
+          </div>
+          <div class="stat-sub" id="stat-pending-sub"></div>
         </div>
-        <div class="input-group">
-          <label>จ่ายโดยสมาชิก</label>
-          <select id="expense-payer">
-            <option value="">กำลังโหลดรายชื่อสมาชิก...</option>
-          </select>
-        </div>
-        <button type="button" class="submit-btn" onclick="submitExpense()">
-          บันทึกบิล
-        </button>
       </div>
 
-      <!-- รายการบิลทั้งหมด -->
-      <section>
-        <div class="section-title">
-          <span
-            ><i
-              class="fa-solid fa-list"
-              style="color: var(--primary); margin-right: 0.5em"
-            ></i>
-            รายการบิลทั้งหมด</span
+      <!-- จอคอม: ฟอร์มซ้าย / รายการบิลขวา, มือถือ: เรียงลงมา -->
+      <div class="two-col">
+        <!-- ฟอร์มกรอกบิลใหม่ -->
+        <div class="form-card sticky-col">
+          <div class="form-heading">
+            <div class="avatar icon"><i class="fa-solid fa-plus"></i></div>
+            เพิ่มบิลใหม่
+          </div>
+
+          <div class="input-group" id="group-amount">
+            <label for="expense-amount">จำนวนเงิน</label>
+            <div class="amount-field">
+              <span class="currency">฿</span>
+              <input
+                type="number"
+                id="expense-amount"
+                placeholder="0"
+                min="0"
+                step="any"
+                inputmode="decimal"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field-error">กรุณากรอกจำนวนเงินที่มากกว่า 0</div>
+          </div>
+
+          <div class="input-group" id="group-title">
+            <label for="expense-title">รายการค่าใช้จ่าย</label>
+            <input
+              type="text"
+              id="expense-title"
+              placeholder="เช่น ค่าอาหารกลางวัน, ค่าแท็กซี่"
+              autocomplete="off"
+            />
+            <div class="field-error">กรุณาตั้งชื่อรายการ</div>
+          </div>
+
+          <div class="input-group">
+            <span class="label">หมวดหมู่</span>
+            <div class="category-grid" id="category-grid">
+              <!-- JavaScript สร้างจาก CATEGORIES -->
+            </div>
+          </div>
+
+          <div class="input-group">
+            <span class="label">จ่ายโดย</span>
+            <div class="people-row" id="expense-payer-display">
+              <span class="grow">กำลังโหลดชื่อผู้จ่าย...</span>
+            </div>
+            <!-- เก็บ ID ผู้จ่ายสำหรับส่งหลังบ้าน -->
+            <input type="hidden" id="expense-payer" value="" />
+          </div>
+
+          <div class="input-group">
+            <span class="label">ผู้ร่วมหาร</span>
+            <div
+              id="participant-select-btn"
+              class="people-row clickable-field"
+              role="button"
+              tabindex="0"
+              onclick="openParticipantModal()"
+            >
+              <div class="avatar-stack" id="participant-avatars"></div>
+              <span class="grow" id="participant-summary-text"
+                >กำลังโหลดรายชื่อสมาชิก...</span
+              >
+              <i
+                class="fa-solid fa-chevron-right"
+                style="color: var(--text-muted); font-size: 0.8rem"
+              ></i>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <span class="label">วิธีหาร</span>
+            <div class="segmented" role="radiogroup" aria-label="วิธีหาร">
+              <label>
+                <input type="radio" name="split-mode" value="EQUAL" checked />
+                <span><i class="fa-solid fa-equals"></i> หารเท่ากัน</span>
+              </label>
+              <label>
+                <input type="radio" name="split-mode" value="CUSTOM" />
+                <span><i class="fa-solid fa-sliders"></i> กำหนดเอง</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- หารเท่ากัน: ตัวอย่างการหาร อัปเดตตามจำนวนเงินและจำนวนคน -->
+          <div class="split-preview" id="split-preview">
+            <span id="split-preview-label">หาร 1 คน (รวมคุณ)</span>
+            <span>คนละ <strong id="split-preview-amount">฿0</strong></span>
+          </div>
+
+          <!-- กำหนดเอง: กรอกยอดของแต่ละคน ผลรวมต้องเท่ากับยอดบิล -->
+          <div class="input-group hidden" id="group-custom">
+            <div class="custom-split">
+              <div id="custom-rows"></div>
+              <div class="custom-footer">
+                <span class="split-status" id="custom-status"></span>
+                <div class="custom-tools">
+                  <button type="button" class="text-btn" onclick="splitEvenly()">
+                    แบ่งเท่ากัน
+                  </button>
+                  <button type="button" class="text-btn" onclick="giveRestToMe()">
+                    ที่เหลือเป็นของฉัน
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="field-error">ผลรวมของแต่ละคนต้องเท่ากับยอดบิลพอดี</div>
+          </div>
+
+          <button
+            type="button"
+            class="submit-btn"
+            id="submit-btn"
+            onclick="submitExpense()"
           >
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>บันทึกบิล</span>
+          </button>
         </div>
-        <div id="expenses-list-container">
-          <!-- <div class="empty-box">กำลังโหลดรายการบิล...</div> -->
-        </div>
-      </section>
+
+        <!-- รายการบิลของผู้ใช้ -->
+        <section>
+          <div class="section-title">
+            <span class="title-text"
+              >บิลของคุณ</span
+            >
+            <span class="count-pill" id="expenses-count" hidden></span>
+          </div>
+          <div class="filter-bar hidden" id="filter-bar"></div>
+          <div id="expenses-list-container">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </section>
+      </div>
     </div>
+    <!-- Pop-up Modal สำหรับเลือกสมาชิก (อยู่นอก .container เพื่อให้ทับทุกอย่างได้จริง:
+         ถ้าอยู่ในฟอร์มที่เป็น position: sticky z-index จะถูกจำกัดอยู่แค่ในฟอร์ม) -->
+    <div id="participant-modal" class="modal-overlay hidden">
+      <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="participant-modal-title"
+      >
+        <div class="modal-head">
+          <h3 id="participant-modal-title">เลือกผู้ร่วมหาร</h3>
+          <button
+            type="button"
+            class="modal-close"
+            onclick="closeParticipantModal()"
+            aria-label="ปิด"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="modal-sub">คุณเป็นผู้จ่าย จึงถูกนับรวมในการหารอยู่แล้ว</div>
+
+        <div class="modal-tools">
+          <button
+            type="button"
+            class="text-btn"
+            onclick="toggleModalSelectAll(true)"
+          >
+            เลือกทั้งหมด
+          </button>
+          <button
+            type="button"
+            class="text-btn muted"
+            onclick="toggleModalSelectAll(false)"
+          >
+            ล้างทั้งหมด
+          </button>
+        </div>
+
+        <!-- รายชื่อสมาชิกใน Modal -->
+        <div id="modal-participants-container">
+          <!-- Javascript จะเติมรายชื่อตรงนี้ -->
+        </div>
+
+        <button
+          type="button"
+          class="submit-btn"
+          id="modal-confirm-btn"
+          onclick="confirmParticipantSelection()"
+          style="height: 44px; font-size: 0.95rem; margin-top: 0"
+        >
+          ยืนยัน
+        </button>
+      </div>
+    </div>
+
 
     <script>
       const urlParams = new URLSearchParams(window.location.search);
       const tripId = urlParams.get("tripId") || 1;
+      let currentMemberId = null;
       const API_BASE_URL = "http://localhost:8090/api";
 
-      document.querySelector(".expense-header a").href =
+      document.getElementById("back-dashboard-btn").href =
         `dashboard.html?tripId=${tripId}`;
 
-      let warningTimeout;
-      function showWarning(message) {
-        const banner = document.getElementById("warning-banner");
-        const textSpan = document.getElementById("warning-text");
-        textSpan.textContent = message;
-        banner.classList.remove("hidden");
-        window.scrollTo({ top: 0, behavior: "smooth" });
+      const CATEGORIES = [
+        { value: "FOOD", label: "อาหาร", icon: "fa-solid fa-utensils" },
+        { value: "ACCOMMODATION", label: "ที่พัก", icon: "fa-solid fa-hotel" },
+        { value: "TRANSPORT", label: "เดินทาง", icon: "fa-solid fa-car" },
+        { value: "SHOPPING", label: "ช้อปปิ้ง", icon: "fa-solid fa-shopping-bag" },
+        { value: "OTHER", label: "อื่นๆ", icon: "fa-solid fa-star" },
+      ];
+      // หมวดที่เลือกไว้ตอนเปิดหน้า
+      const DEFAULT_CATEGORY = "OTHER";
+      const categoryOf = (value) =>
+        CATEGORIES.find((c) => c.value === value) || CATEGORIES[4];
 
-        if (warningTimeout) {
-          clearTimeout(warningTimeout);
-        }
+      let allMyExpenses = [];
+      let activeFilter = "ALL";
+      let justAddedId = null;
+      let currentMemberName = "";
 
-        warningTimeout = setTimeout(() => {
-          closeBanner();
-        }, 3000); // แสดง 3 วินาทีแล้วหายไป
+      // --- โหมดหารแบบกำหนดเอง ---
+      // เก็บยอดที่กรอกไว้ตาม memberId เพื่อให้ค่าไม่หายเวลาเพิ่ม/ลดคนใน modal
+      const customAmounts = new Map();
+      // คิดเป็นสตางค์ (จำนวนเต็ม) กันปัญหาทศนิยมของ JS เช่น 0.1 + 0.2
+      const toCents = (v) => Math.round((Number(v) || 0) * 100);
+
+      function splitMode() {
+        return (
+          document.querySelector('input[name="split-mode"]:checked')?.value ||
+          "EQUAL"
+        );
       }
 
-      function closeBanner() {
-        const banner = document.getElementById("warning-banner");
-        banner.classList.add("hidden");
-        if (warningTimeout) {
-          clearTimeout(warningTimeout);
-          warningTimeout = null;
-        }
+      // คนที่ร่วมหาร: คนที่เลือกใน modal ก่อน แล้วผู้จ่าย (คุณ) อยู่ล่างสุดเสมอ
+      function splitPeople() {
+        const me =
+          currentMemberId == null
+            ? []
+            : [{ id: String(currentMemberId), name: currentMemberName, isMe: true }];
+        const others = Array.from(
+          document.querySelectorAll('input[name="participant"]:checked'),
+        ).map((cb) => ({ id: cb.value, name: cb.dataset.name, isMe: false }));
+        return [...others, ...me];
       }
 
-      document
-        .querySelectorAll(".form-card input, .form-card select")
-        .forEach((element) => {
-          element.addEventListener("input", () => {
-            const banner = document.getElementById("warning-banner");
-            if (!banner.classList.contains("hidden")) {
-              closeBanner();
+      function customSumCents() {
+        return splitPeople().reduce(
+          (sum, p) => sum + toCents(customAmounts.get(p.id)),
+          0,
+        );
+      }
+
+      function renderCustomRows() {
+        document.getElementById("custom-rows").innerHTML = splitPeople()
+          .map(
+            (p) => `
+              <div class="custom-row">
+                ${avatar(p.name, "sm")}
+                <span class="name">${esc(p.name)}</span>
+                ${p.isMe ? '<span class="you-tag">คุณ</span>' : ""}
+                <label class="mini-amount">
+                  <span>฿</span>
+                  <input type="number" min="0" step="any" inputmode="decimal" placeholder="0"
+                    data-member-id="${esc(p.id)}"
+                    value="${esc(customAmounts.get(p.id) ?? "")}"
+                    aria-label="ยอดของ ${esc(p.name)}" />
+                </label>
+              </div>`,
+          )
+          .join("");
+        updateCustomStatus();
+      }
+
+      function updateCustomStatus() {
+        const total = toCents(document.getElementById("expense-amount").value);
+        const sum = customSumCents();
+        const diff = total - sum;
+        const el = document.getElementById("custom-status");
+
+        let cls = "";
+        let html = `แบ่งแล้ว ${fmt(sum / 100)}`;
+        if (total > 0 && diff === 0) {
+          cls = "ok";
+          html = `<i class="fa-solid fa-circle-check"></i> ครบพอดี ${fmt(total / 100)}`;
+        } else if (total > 0 && diff > 0) {
+          cls = "under";
+          html = `<i class="fa-solid fa-circle-half-stroke"></i> เหลืออีก ${fmt(diff / 100)}`;
+        } else if (total > 0 && diff < 0) {
+          cls = "over";
+          html = `<i class="fa-solid fa-circle-exclamation"></i> เกิน ${fmt(-diff / 100)}`;
+        }
+        el.className = `split-status ${cls}`;
+        el.innerHTML = html;
+      }
+
+      // ปุ่ม "แบ่งเท่ากัน": เติมยอดเท่ากันเป็นจุดเริ่มต้น (เศษจากการปัดให้ผู้จ่าย เพื่อนได้ยอดลงตัว)
+      function splitEvenly() {
+        const people = splitPeople();
+        const total = toCents(document.getElementById("expense-amount").value);
+        if (people.length === 0 || total === 0) {
+          showToast("กรอกจำนวนเงินก่อน แล้วค่อยแบ่ง", "error");
+          return;
+        }
+        const each = Math.floor(total / people.length);
+        const remainder = total - each * people.length;
+        people.forEach((p) =>
+          customAmounts.set(p.id, String((each + (p.isMe ? remainder : 0)) / 100)),
+        );
+        setInvalid("group-custom", false);
+        renderCustomRows();
+      }
+
+      // ปุ่ม "ที่เหลือเป็นของฉัน": กรอกยอดเพื่อนก่อน ส่วนต่างที่เหลือให้ผู้จ่าย
+      function giveRestToMe() {
+        const total = toCents(document.getElementById("expense-amount").value);
+        const people = splitPeople();
+        const othersSum = people
+          .filter((p) => !p.isMe)
+          .reduce((s, p) => s + toCents(customAmounts.get(p.id)), 0);
+        const rest = total - othersSum;
+        if (total === 0) {
+          showToast("กรอกจำนวนเงินก่อน แล้วค่อยแบ่ง", "error");
+          return;
+        }
+        if (rest < 0) {
+          showToast(`ยอดของเพื่อนรวมกันเกินบิลไป ${fmt(-rest / 100)}`, "error");
+          return;
+        }
+        customAmounts.set(String(currentMemberId), String(rest / 100));
+        setInvalid("group-custom", false);
+        renderCustomRows();
+      }
+
+      // สลับโหมดหาร
+      document.querySelectorAll('input[name="split-mode"]').forEach((radio) =>
+        radio.addEventListener("change", () => {
+          const custom = splitMode() === "CUSTOM";
+          document.getElementById("split-preview").classList.toggle("hidden", custom);
+          document.getElementById("group-custom").classList.toggle("hidden", !custom);
+          if (custom) {
+            // ครั้งแรกที่เปิด เติมยอดเท่ากันให้ก่อน แล้วค่อยปรับ
+            if (customSumCents() === 0 && toCents(document.getElementById("expense-amount").value) > 0) {
+              splitEvenly();
+            } else {
+              renderCustomRows();
             }
-          });
+          }
+        }),
+      );
+
+      // พิมพ์ยอดของแต่ละคน (ไม่ render ใหม่ เพื่อให้โฟกัสไม่หลุด)
+      const customRowsEl = document.getElementById("custom-rows");
+      customRowsEl.addEventListener("input", (e) => {
+        if (!e.target.dataset.memberId) return;
+        customAmounts.set(e.target.dataset.memberId, e.target.value);
+        setInvalid("group-custom", false);
+        updateCustomStatus();
+      });
+      customRowsEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.isComposing && e.target.dataset.memberId) {
+          e.preventDefault();
+          submitExpense();
+        }
+      });
+
+      // --- ปุ่มเลือกหมวดหมู่ ---
+      document.getElementById("category-grid").innerHTML = CATEGORIES.map(
+        (c) => `
+          <label class="category-chip cat-${c.value}">
+            <input type="radio" name="expense-category" value="${c.value}" ${c.value === DEFAULT_CATEGORY ? "checked" : ""} />
+            <i class="${c.icon}"></i>
+            <span>${c.label}</span>
+          </label>`,
+      ).join("");
+
+      // --- การตรวจฟอร์ม ---
+      function setInvalid(groupId, invalid) {
+        document.getElementById(groupId).classList.toggle("invalid", invalid);
+      }
+
+      // พิมพ์แก้แล้วเอากรอบแดงออก
+      [
+        ["expense-amount", "group-amount"],
+        ["expense-title", "group-title"],
+      ].forEach(([inputId, groupId]) => {
+        document.getElementById(inputId).addEventListener("input", () => {
+          setInvalid(groupId, false);
+          updateSplitPreview();
+          updateCustomStatus();
+        });
+      });
+
+      // --- ตัวอย่างการหาร (ปัดเศษแบบเดียวกับหลังบ้าน: คนแรกรับเศษ) ---
+      function selectedParticipantIds() {
+        return Array.from(
+          document.querySelectorAll('input[name="participant"]:checked'),
+        ).map((cb) => cb.value);
+      }
+
+      function updateSplitPreview() {
+        const amount = Number(document.getElementById("expense-amount").value) || 0;
+        const people = selectedParticipantIds().length + 1; // +1 = ผู้จ่าย
+        const perPerson = Math.round((amount / people) * 100) / 100;
+        document.getElementById("split-preview-label").textContent =
+          people === 1 ? "จ่ายคนเดียว" : `หาร ${people} คน (รวมคุณ)`;
+        document.getElementById("split-preview-amount").textContent = fmt(perPerson);
+      }
+
+      // --- Modal เลือกผู้ร่วมหาร ---
+      function openParticipantModal() {
+        document.getElementById("participant-modal").classList.remove("hidden");
+        updateModalConfirmLabel();
+        // ย้ายโฟกัสเข้า modal เพื่อให้ใช้ Tab/Space ต่อได้ทันที
+        const firstCheckbox = document.querySelector(
+          '#participant-modal input[name="participant"]',
+        );
+        if (firstCheckbox) firstCheckbox.focus();
+      }
+
+      function closeParticipantModal() {
+        // อัปเดตสรุปทุกครั้งที่ปิด เพราะตอนบันทึกบิลจะอ่านจาก checkbox โดยตรง
+        updateParticipantSummary();
+        document.getElementById("participant-modal").classList.add("hidden");
+        document.getElementById("participant-select-btn").focus();
+      }
+
+      function isParticipantModalOpen() {
+        return !document
+          .getElementById("participant-modal")
+          .classList.contains("hidden");
+      }
+
+      // คลิกพื้นหลังมืดนอกกล่อง = ปิด modal
+      document
+        .getElementById("participant-modal")
+        .addEventListener("click", (e) => {
+          if (e.target.id === "participant-modal") closeParticipantModal();
         });
 
+      // เปลี่ยน checkbox แล้วอัปเดตปุ่มยืนยันใน modal
+      document
+        .getElementById("modal-participants-container")
+        .addEventListener("change", updateModalConfirmLabel);
+
+      // Esc = ปิด modal
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && isParticipantModalOpen()) {
+          closeParticipantModal();
+        }
+      });
+
+      // Enter/Space บนช่องเลือกผู้ร่วมหาร = เปิด modal (เหมือนปุ่ม)
+      document
+        .getElementById("participant-select-btn")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openParticipantModal();
+          }
+        });
+
+      // Enter ในช่องชื่อรายการหรือจำนวนเงิน = บันทึกบิล
+      ["expense-title", "expense-amount"].forEach((id) => {
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.isComposing) {
+            e.preventDefault();
+            submitExpense();
+          }
+        });
+      });
+
+      // เลือก/ยกเลิกทั้งหมดใน Modal
+      function toggleModalSelectAll(select) {
+        document
+          .querySelectorAll('input[name="participant"]')
+          .forEach((cb) => (cb.checked = select));
+        updateModalConfirmLabel();
+      }
+
+      function updateModalConfirmLabel() {
+        const n = selectedParticipantIds().length;
+        document.getElementById("modal-confirm-btn").textContent =
+          n === 0 ? "ยืนยัน (จ่ายคนเดียว)" : `ยืนยัน (${n} คน + คุณ)`;
+      }
+
+      // อัปเดตข้อความสรุป + avatar ของคนที่เลือกบนฟอร์มหลัก
+      function updateParticipantSummary() {
+        const checkboxes = Array.from(
+          document.querySelectorAll('input[name="participant"]'),
+        );
+        const checked = checkboxes.filter((cb) => cb.checked);
+        const summaryText = document.getElementById("participant-summary-text");
+        const avatars = document.getElementById("participant-avatars");
+
+        if (checked.length === 0) {
+          summaryText.textContent = "จ่ายคนเดียว (ไม่มีผู้ร่วมหาร)";
+          summaryText.style.color = "var(--text-muted)";
+        } else if (checked.length === checkboxes.length) {
+          summaryText.textContent = `ทุกคน (${checked.length} คน)`;
+          summaryText.style.color = "var(--text-main)";
+        } else {
+          summaryText.textContent = `เลือกแล้ว ${checked.length} คน`;
+          summaryText.style.color = "var(--text-main)";
+        }
+
+        const MAX_AVATARS = 4;
+        avatars.innerHTML =
+          checked
+            .slice(0, MAX_AVATARS)
+            .map((cb) => avatar(cb.dataset.name))
+            .join("") +
+          (checked.length > MAX_AVATARS
+            ? `<div class="avatar more">+${checked.length - MAX_AVATARS}</div>`
+            : "");
+
+        updateSplitPreview();
+        // เพิ่ม/ลดคนแล้ว แถวกรอกยอดต้องเปลี่ยนตาม (ยอดที่กรอกไว้ยังอยู่ใน customAmounts)
+        if (splitMode() === "CUSTOM") renderCustomRows();
+      }
+
+      // กดปุ่มยืนยันใน Modal
+      function confirmParticipantSelection() {
+        closeParticipantModal();
+      }
+
+      // --- โหลดรายชื่อสมาชิก ---
       async function loadTripMembers() {
-        const payerSelect = document.getElementById("expense-payer");
+        const payerDisplay = document.getElementById("expense-payer-display");
+        const payerInput = document.getElementById("expense-payer");
+        const modalContainer = document.getElementById(
+          "modal-participants-container",
+        );
+        const currentUsername = localStorage.getItem("username");
+
         try {
           const response = await fetch(
             `${API_BASE_URL}/trips/${tripId}/members`,
@@ -427,24 +1292,228 @@
 
           const members = await response.json();
           if (!members || members.length === 0) {
-            payerSelect.innerHTML = `<option value="">ยังไม่มีสมาชิกในทริปนี้</option>`;
+            payerDisplay.innerHTML = `<span class="grow">ไม่พบรายชื่อสมาชิกในทริป</span>`;
+            modalContainer.innerHTML = emptyBox(
+              "fa-solid fa-user-slash",
+              "ยังไม่มีสมาชิกในทริปนี้",
+            );
             return;
           }
 
-          payerSelect.innerHTML = "";
-          members.forEach((m) => {
-            const option = document.createElement("option");
-            option.value = m.id;
-            option.textContent = m.guestName || `สมาชิก #${m.id}`;
-            payerSelect.appendChild(option);
-          });
+          // ค้นหาสมาชิกที่ตรงกับ User ปัจจุบัน (TripMember ผูกกับ User ด้วยชื่อ ไม่ใช่ ID)
+          // ถ้าหาไม่เจอ ให้ใช้คนแรกเป็นค่าสำรอง
+          const currentUserMember =
+            members.find(
+              (m) => currentUsername && m.guestName === currentUsername,
+            ) || members[0];
+
+          currentMemberId = currentUserMember.id;
+          const myName =
+            currentUserMember.guestName || `สมาชิก #${currentMemberId}`;
+          currentMemberName = myName;
+
+          // ผู้จ่ายล็อกเป็นผู้ใช้ปัจจุบันเสมอ
+          payerDisplay.innerHTML = `
+            ${avatar(myName, "sm")}
+            <span class="grow">${esc(myName)}</span>
+            <span class="you-tag">คุณ</span>`;
+          payerInput.value = currentMemberId;
+
+          // checkbox ผู้ร่วมหาร (ไม่รวมผู้จ่าย)
+          const others = members.filter(
+            (m) => String(m.id) !== String(currentMemberId),
+          );
+          modalContainer.innerHTML =
+            others.length === 0
+              ? emptyBox("fa-solid fa-user-plus", "ยังไม่มีเพื่อนในทริป ชวนเพื่อนด้วยรหัสเชิญได้เลย")
+              : others
+                  .map((m) => {
+                    const name = m.guestName || `สมาชิก #${m.id}`;
+                    return `
+                      <label class="member-option">
+                        ${avatar(name, "sm")}
+                        <span class="name">${esc(name)}</span>
+                        <input type="checkbox" name="participant" value="${esc(m.id)}" data-name="${esc(name)}" checked />
+                      </label>`;
+                  })
+                  .join("");
+
+          updateParticipantSummary();
         } catch (error) {
           console.error("Error loading members:", error);
-          payerSelect.innerHTML = `<option value="">ไม่พบรายชื่อสมาชิก</option>`;
+          payerDisplay.innerHTML = `<span class="grow" style="color: var(--danger)">ไม่สามารถโหลดข้อมูลได้</span>`;
+          modalContainer.innerHTML = emptyBox(
+            "fa-solid fa-triangle-exclamation",
+            "ไม่สามารถโหลดรายชื่อสมาชิกได้",
+            true,
+          );
         }
       }
 
-      // โหลดรายการบิลทั้งหมดของทริป
+      // --- สรุปยอดด้านบน ---
+      function pendingFromOthers(item) {
+        return (item.splits || [])
+          .filter(
+            (s) =>
+              !s.isPaid &&
+              s.tripMember &&
+              String(s.tripMember.id) !== String(currentMemberId),
+          )
+          .reduce((sum, s) => sum + Number(s.amountOwed || 0), 0);
+      }
+
+      function renderSummary() {
+        const total = allMyExpenses.reduce(
+          (s, e) => s + Number(e.totalAmount || 0),
+          0,
+        );
+        const pending = allMyExpenses.reduce(
+          (s, e) => s + pendingFromOthers(e),
+          0,
+        );
+        document.getElementById("stat-count").textContent =
+          `${allMyExpenses.length} บิล`;
+        document.getElementById("stat-total").textContent = fmt(total);
+        document.getElementById("stat-pending").textContent = fmt(pending);
+        document.getElementById("stat-pending-sub").textContent =
+          pending > 0 ? "ดูรายละเอียดที่หน้าสรุปหนี้" : "ได้คืนครบแล้ว 🎉";
+      }
+
+      // --- ตัวกรองหมวดหมู่ (แสดงเฉพาะหมวดที่มีบิล) ---
+      function renderFilterBar() {
+        const bar = document.getElementById("filter-bar");
+        const used = CATEGORIES.filter((c) =>
+          allMyExpenses.some((e) => categoryOf(e.category).value === c.value),
+        );
+        if (used.length < 2) {
+          bar.classList.add("hidden");
+          activeFilter = "ALL";
+          return;
+        }
+        if (activeFilter !== "ALL" && !used.some((c) => c.value === activeFilter)) {
+          activeFilter = "ALL";
+        }
+        bar.classList.remove("hidden");
+        const chip = (value, label, icon, count, extraClass = "") => `
+          <button type="button" class="filter-chip ${extraClass}${activeFilter === value ? " active" : ""}" data-filter="${value}">
+            ${icon ? `<i class="${icon}"></i>` : ""}${label} <span style="opacity:.7">${count}</span>
+          </button>`;
+        bar.innerHTML =
+          chip("ALL", "ทั้งหมด", "", allMyExpenses.length) +
+          used
+            .map((c) =>
+              chip(
+                c.value,
+                c.label,
+                c.icon,
+                allMyExpenses.filter((e) => categoryOf(e.category).value === c.value).length,
+                `cat-${c.value}`,
+              ),
+            )
+            .join("");
+      }
+
+      document.getElementById("filter-bar").addEventListener("click", (e) => {
+        const btn = e.target.closest(".filter-chip");
+        if (!btn) return;
+        activeFilter = btn.dataset.filter;
+        renderFilterBar();
+        renderExpenseList();
+      });
+
+      // --- การ์ดบิล ---
+      function formatDate(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        if (isNaN(d)) return "";
+        return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+      }
+
+      function renderExpenseCard(item) {
+        const cat = categoryOf(item.category);
+        const splits = item.splits || [];
+        const isMe = (sp) => sp.tripMember && String(sp.tripMember.id) === String(currentMemberId);
+        const others = splits.filter((sp) => sp.tripMember && !isMe(sp));
+        const mine = splits.filter(isMe);
+        const pending = pendingFromOthers(item);
+        const paidCount = others.filter((sp) => sp.isPaid).length;
+        const allBack = others.length > 0 && pending === 0;
+
+        const isCustom = String(item.splitType || "").toUpperCase() === "CUSTOM";
+        const meta = [
+          cat.label,
+          splits.length > 1
+            ? `${isCustom ? "แบ่งเอง" : "หาร"} ${splits.length} คน`
+            : "จ่ายคนเดียว",
+        ].join(" · ");
+
+        // รายชื่อแบบใบเสร็จ: เพื่อนก่อน แล้วคุณอยู่ล่างสุด (เหมือนฟอร์ม)
+        const line = (sp, label) => `
+          <div class="receipt-line${sp.isPaid && !isMe(sp) ? " is-paid" : ""}">
+            <span class="who">${esc(label)}${sp.isPaid && !isMe(sp) ? ' <i class="fa-solid fa-check" title="จ่ายแล้ว"></i>' : ""}</span>
+            <span class="leader"></span>
+            <span class="money">${fmt(sp.amountOwed)}</span>
+          </div>`;
+        const lines =
+          splits.length > 1
+            ? `<hr class="receipt-divider" />` +
+              others.map((sp) => line(sp, sp.tripMember.guestName || `สมาชิก #${sp.tripMember.id}`)).join("") +
+              mine.map((sp) => line(sp, "คุณ")).join("")
+            : "";
+
+        const footer =
+          others.length > 0 && pending > 0
+            ? `<hr class="receipt-divider" />
+               <div class="receipt-total">
+                 <span>รอคืน · ${paidCount}/${others.length} คน</span>
+                 <span class="money text-danger">${fmt(pending)}</span>
+               </div>`
+            : "";
+
+        const date = formatDate(item.expenseDate);
+        return `
+          <article class="receipt${String(item.id) === String(justAddedId) ? " print-in" : ""}">
+            <div class="receipt-head">
+              <span class="receipt-no">Bill #${String(item.id).padStart(5, "0")}</span>
+              <span class="receipt-no">${esc(date)}</span>
+            </div>
+            <div class="bill-head">
+              <div class="cat-icon cat-${cat.value}"><i class="${cat.icon}"></i></div>
+              <div class="feed-info">
+                <h4>${esc(item.title)}</h4>
+                <div class="feed-meta">${esc(meta)}</div>
+              </div>
+              <div class="feed-amount money">${fmt(item.totalAmount)}</div>
+            </div>
+            ${lines}
+            ${footer}
+            ${allBack ? paidStampHtml("ได้คืนครบ") : ""}
+          </article>`;
+      }
+
+      function renderExpenseList() {
+        const container = document.getElementById("expenses-list-container");
+        const list =
+          activeFilter === "ALL"
+            ? allMyExpenses
+            : allMyExpenses.filter(
+                (e) => categoryOf(e.category).value === activeFilter,
+              );
+
+        const countPill = document.getElementById("expenses-count");
+        countPill.hidden = allMyExpenses.length === 0;
+        countPill.textContent = `${allMyExpenses.length} รายการ`;
+
+        container.innerHTML =
+          allMyExpenses.length === 0
+            ? emptyBox(
+                "fa-solid fa-receipt",
+                "คุณยังไม่มีบิลในทริปนี้ ลองเพิ่มบิลแรกจากฟอร์มได้เลย",
+              )
+            : list.map(renderExpenseCard).join("");
+      }
+
+      // --- โหลดเฉพาะบิลที่ผู้ใช้ปัจจุบันเป็นคนจ่าย ---
       async function loadExpenses() {
         const container = document.getElementById("expenses-list-container");
         try {
@@ -453,116 +1522,156 @@
           );
           if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลบิลได้");
 
-          const expenses = await response.json();
-          if (!expenses || expenses.length === 0) {
-            container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบันทึกค่าใช้จ่ายในทริปนี้</div>`;
-            return;
-          }
+          const expenses = (await response.json()) || [];
+          allMyExpenses = expenses
+            .filter(
+              (item) =>
+                item.user && String(item.user.id) === String(currentMemberId),
+            )
+            .sort((a, b) => Number(b.id) - Number(a.id)); // ล่าสุดขึ้นก่อน
 
-          container.innerHTML = "";
-          expenses.forEach((item) => {
-            const payerName = item.user
-              ? item.user.guestName || `สมาชิก #${item.user.id}`
-              : "ไม่ระบุ";
-
-            // กำหนดสีและไอคอนตามหมวดหมู่
-            let catClass = "cat-other";
-            let catText = "อื่นๆ";
-            let catIcon = '<i class="fa-solid fa-star"></i>';
-
-            if (item.category === "FOOD") {
-              catText = "อาหาร";
-              catClass = "cat-food";
-              catIcon = '<i class="fa-solid fa-utensils"></i>';
-            } else if (item.category === "ACCOMMODATION") {
-              catText = "ที่พัก";
-              catClass = "cat-accommodation";
-              catIcon = '<i class="fa-solid fa-hotel"></i>';
-            } else if (item.category === "TRANSPORT") {
-              catText = "เดินทาง";
-              catClass = "cat-transport";
-              catIcon = '<i class="fa-solid fa-car"></i>';
-            } else if (item.category === "SHOPPING") {
-              catText = "ช้อป";
-              catClass = "cat-shopping";
-              catIcon = '<i class="fa-solid fa-shopping-bag"></i>';
-            } else if (item.category === "OTHER") {
-              catText = "อื่นๆ";
-              catClass = "cat-other";
-              catIcon = '<i class="fa-solid fa-star"></i>';
-            }
-
-            const card = document.createElement("div");
-            card.className = "feed-card";
-            card.innerHTML = `
-              <div class="feed-info">
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem;">
-                    <span " style="color: var(--text-muted);padding: 5px 6px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                    ${catIcon}
-                  </span>
-                    <h4 style="margin-bottom: 6px;">${item.title}</h4>
-                </div>
-                  <span style="color: var(--text-muted);">จ่ายโดย: ${payerName}</span>
-              </div>
-              <div class="feed-amount">฿${Number(item.totalAmount || 0).toLocaleString()}</div>
-            `;
-            container.appendChild(card);
-          });
+          renderSummary();
+          renderFilterBar();
+          renderExpenseList();
         } catch (error) {
           console.error("Error loading expenses:", error);
-          container.innerHTML = `<div class="empty-box">ยังไม่มีรายการบิลในระบบ</div>`;
+          container.innerHTML = emptyBox(
+            "fa-solid fa-triangle-exclamation",
+            "โหลดรายการบิลไม่สำเร็จ",
+            true,
+          );
+          ["stat-count", "stat-total", "stat-pending"].forEach(
+            (id) => (document.getElementById(id).textContent = "-"),
+          );
         }
       }
 
+      // --- บันทึกบิล ---
+      // กันกด Enter ค้าง/ดับเบิลคลิกแล้วได้บิลซ้ำ
+      let isSubmitting = false;
+
+      function setSubmitting(on) {
+        isSubmitting = on;
+        const btn = document.getElementById("submit-btn");
+        btn.disabled = on;
+        btn.innerHTML = on
+          ? '<i class="fa-solid fa-spinner fa-spin"></i><span>กำลังบันทึก...</span>'
+          : '<i class="fa-solid fa-floppy-disk"></i><span>บันทึกบิล</span>';
+      }
+
       async function submitExpense() {
-        const title = document.getElementById("expense-title").value.trim();
-        const totalAmount = document.getElementById("expense-amount").value;
+        if (isSubmitting) return;
+        const titleInput = document.getElementById("expense-title");
+        const amountInput = document.getElementById("expense-amount");
+        const title = titleInput.value.trim();
+        const totalAmount = Number(amountInput.value);
         const paidByMemberId = document.getElementById("expense-payer").value;
 
-        // แก้ไขวิธีดึงค่าหมวดหมู่จาก Radio Button ที่ถูกเลือกให้ถูกต้อง
-        const selectedCategory = document.querySelector(
-          'input[name="expense-category"]:checked',
-        );
-        const category = selectedCategory ? selectedCategory.value : "FOOD";
-
-        if (!title || !totalAmount || !paidByMemberId) {
-          showWarning("กรุณากรอกข้อมูลบิลให้ครบถ้วน");
+        // ตรวจฟอร์ม: ทำเครื่องหมายทุกช่องที่ผิด แล้วโฟกัสช่องแรก
+        const amountBad = !(totalAmount > 0);
+        const titleBad = !title;
+        setInvalid("group-amount", amountBad);
+        setInvalid("group-title", titleBad);
+        if (amountBad || titleBad) {
+          (amountBad ? amountInput : titleInput).focus();
+          showToast("กรุณากรอกข้อมูลบิลให้ครบถ้วน", "error");
+          return;
+        }
+        if (!paidByMemberId) {
+          showToast("ยังโหลดข้อมูลผู้จ่ายไม่สำเร็จ ลองรีเฟรชหน้า", "error");
           return;
         }
 
-        closeBanner();
+        const category =
+          document.querySelector('input[name="expense-category"]:checked')
+            ?.value || DEFAULT_CATEGORY;
 
+        // ผู้จ่ายร่วมหารด้วยเสมอ
+        const participantIds = selectedParticipantIds();
+        if (!participantIds.includes(paidByMemberId)) {
+          participantIds.push(paidByMemberId);
+        }
+
+        const mode = splitMode();
+        const body = {
+          title: title,
+          totalAmount: totalAmount,
+          currency: "THB",
+          splitType: mode,
+          category: category,
+        };
+
+        // กำหนดเอง: ผลรวมของแต่ละคนต้องเท่ากับยอดบิลพอดี (หลังบ้านตรวจซ้ำอีกชั้น)
+        if (mode === "CUSTOM") {
+          const diff = toCents(totalAmount) - customSumCents();
+          if (diff !== 0) {
+            setInvalid("group-custom", true);
+            showToast(
+              diff > 0
+                ? `ยังแบ่งไม่ครบ เหลืออีก ${fmt(diff / 100)}`
+                : `แบ่งเกินยอดบิลไป ${fmt(-diff / 100)}`,
+              "error",
+            );
+            document.querySelector("#custom-rows input")?.focus();
+            return;
+          }
+          body.splits = splitPeople().map((p) => ({
+            memberId: Number(p.id),
+            amount: toCents(customAmounts.get(p.id)) / 100,
+          }));
+        }
+
+        setSubmitting(true);
         try {
           const response = await fetch(
-            `${API_BASE_URL}/expenses/add/${tripId}?paidByMemberId=${paidByMemberId}&participantIds=${paidByMemberId}`,
+            `${API_BASE_URL}/expenses/add/${tripId}?paidByMemberId=${paidByMemberId}&participantIds=${participantIds.join(",")}`,
             {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: title,
-                totalAmount: Number(totalAmount),
-                currency: "THB",
-                splitType: "equal",
-                category: category,
-              }),
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify(body),
             },
           );
 
           if (response.ok) {
-            document.getElementById("expense-title").value = "";
-            document.getElementById("expense-amount").value = "";
-            loadExpenses();
+            const saved = await response.json().catch(() => null);
+            justAddedId = saved ? saved.id : null;
+
+            titleInput.value = "";
+            amountInput.value = "";
+            // รีเซ็ต checkbox กลับมาเป็นเลือกทั้งหมด
+            document
+              .querySelectorAll('input[name="participant"]')
+              .forEach((cb) => (cb.checked = true));
+            customAmounts.clear(); // ล้างยอดที่กรอกเอง (โหมดยังคงเดิม)
+            updateParticipantSummary();
+            updateCustomStatus();
+
+            showToast(`บันทึก "${title}" ${fmt(totalAmount)} แล้ว`);
+            await loadExpenses();
+            amountInput.focus(); // พร้อมกรอกบิลถัดไปทันที
           } else {
-            showWarning("ไม่สามารถบันทึกบิลได้ กรุณาลองใหม่อีกครั้ง");
+            const errData = await response.text();
+            console.error("Server error response:", errData);
+            showToast(
+              response.status === 400
+                ? "ข้อมูลบิลไม่ถูกต้อง กรุณาตรวจยอดของแต่ละคน"
+                : "ไม่สามารถบันทึกบิลได้ กรุณาลองใหม่",
+              "error",
+            );
           }
         } catch (error) {
           console.error("Connection error:", error);
-          showWarning("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์หลังบ้าน");
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
+        } finally {
+          setSubmitting(false);
         }
       }
 
-      loadTripMembers();
-      loadExpenses();
+      // ต้องรู้ currentMemberId ก่อน จึงค่อยกรองรายการบิล
+      loadTripMembers().then(loadExpenses);
     </script>
   </body>
 </html>

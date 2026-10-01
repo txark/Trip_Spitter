@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debts - Party & Trip Expense Splitter Pro</title>
+
+    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <!-- Sidebar สำหรับจอคอม (≥1024px) -->
+    <script defer src="/src/main/resources/js/sidebar.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Momo+Trust+Display&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://kit.fontawesome.com/01502edf06.js"
+      crossorigin="anonymous"
+    ></script>
+    <script rel="module" src="/src/main/resources/js/main.js"></script>
+    <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
+    <script src="/src/main/resources/js/ui.js"></script>
+    <style>
+      /* หัวหน้า: ลิงก์ย้อนกลับอยู่บน ชื่อหน้าอยู่ล่าง (สไตล์หลักอยู่ที่ .page-header ใน all.css) */
+      .debt-header {
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 6px;
+        padding-top: 12px;
+      }
+
+      /* --- หัวข้อแต่ละส่วน --- */
+      .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 16px 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .section-title .title-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      /* --- การ์ด: ใบเสร็จ (.receipt ใน all.css) --- */
+      .receipt-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .card-head-main {
+        flex: 1;
+        min-width: 0;
+      }
+      .card-kicker {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .card-amount {
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .card-amount .amount {
+        font-size: 1.3rem;
+        font-weight: 800;
+      }
+      .card-amount .amount-sub {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+      }
+
+      .card-hint {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        margin-top: 12px;
+        font-size: 0.76rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      /* ความคืบหน้าการรับเงินคืน */
+      .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.76rem;
+        color: var(--text-muted);
+        margin: 14px 0 6px;
+      }
+      .progress-track {
+        height: 8px;
+        border-radius: 999px;
+        background: var(--border);
+        overflow: hidden;
+      }
+      .progress-bar {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--success);
+        transition: width 0.4s ease;
+      }
+
+      /* แถวเพื่อนร่วมหาร */
+      .participant-list {
+        list-style: none;
+        margin: 12px 0 0;
+        padding: 0;
+      }
+      .participant-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+      }
+      .participant-row + .participant-row {
+        border-top: 1px solid var(--border);
+      }
+      .participant-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .participant-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .participant-amount.money {
+        font-weight: 500;
+      }
+      .participant-amount {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .status-pending {
+        background-color: rgba(239, 68, 68, 0.12);
+        color: var(--danger);
+      }
+      .status-partial {
+        background-color: rgba(217, 119, 6, 0.12);
+        color: #d97706;
+      }
+      .status-paid {
+        background-color: rgba(16, 185, 129, 0.12);
+        color: var(--success);
+      }
+
+      .confirm-btn {
+        padding: 7px 12px;
+        background: var(--secondary);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .confirm-btn:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+
+      .empty-box {
+        text-align: center;
+        padding: 28px 20px;
+        background: var(--surface);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-size: 0.88rem;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .confirm-btn:not(:disabled):hover {
+          background: var(--secondary-hover);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container container--wide">
+      <header class="debt-header page-header">
+        <h2>สรุปยอดหนี้</h2>
+        <a id="back-dashboard-btn" class="back-link" href="dashboard.html">
+          <i class="fa-solid fa-arrow-left"></i> ภาพรวมทริป
+        </a>
+      </header>
+
+      <!-- แถบสรุปยอดรวม -->
+      <div class="stat-summary" aria-live="polite">
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-arrow-up-right-from-square tone-danger"></i>
+            ต้องจ่าย
+          </div>
+          <div class="stat-value text-danger" id="stat-owe">
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-hand-holding-dollar tone-success"></i>
+            รอรับคืน
+          </div>
+          <div class="stat-value text-success" id="stat-receive">
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+        <div class="stat-tile highlight">
+          <div class="stat-label">
+            <i class="fa-solid fa-scale-balanced tone-primary"></i>
+            สุทธิ
+          </div>
+          <div class="stat-value" id="stat-net">
+            <div class="skeleton-line"></div>
+          </div>
+          <div class="stat-sub" id="stat-net-sub"></div>
+        </div>
+      </div>
+
+      <!-- จอคอม: หนี้ของคุณซ้าย / บิลที่สำรองจ่ายขวา, มือถือ: เรียงลงมา -->
+      <div class="two-col two-col--even">
+        <!-- ส่วนที่ 1: รายการที่ต้องจ่าย (หนี้ของคุณ) -->
+        <section>
+          <div class="section-title">
+            <span class="title-text"
+              >รายการที่ต้องชำระ</span
+            >
+            <span class="count-pill" id="debts-count" hidden></span>
+          </div>
+          <div id="my-debts-container">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </section>
+
+        <!-- ส่วนที่ 2: บิลที่คุณสำรองจ่าย -->
+        <section>
+          <div class="section-title">
+            <span class="title-text"
+              >บิลที่คุณสำรองจ่าย</span
+            >
+            <span class="count-pill" id="bills-count" hidden></span>
+          </div>
+          <div class="filter-bar hidden" id="bill-filter-bar" role="group" aria-label="กรองตามสถานะการจ่าย"></div>
+          <div id="my-paid-bills-container">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const tripId = urlParams.get("tripId") || 1;
+      const API_BASE_URL = "http://localhost:8090/api";
+
+      document.getElementById("back-dashboard-btn").href =
+        `dashboard.html?tripId=${tripId}`;
+
+      function setCount(id, n) {
+        const el = document.getElementById(id);
+        el.hidden = !n;
+        el.textContent = n ? `${n} รายการ` : "";
+      }
+
+      function renderSummary(owe, receive) {
+        document.getElementById("stat-owe").textContent = fmt(owe);
+        document.getElementById("stat-receive").textContent = fmt(receive);
+
+        const net = receive - owe;
+        const netEl = document.getElementById("stat-net");
+        const subEl = document.getElementById("stat-net-sub");
+        netEl.textContent = fmt(Math.abs(net));
+        if (net > 0) {
+          netEl.className = "stat-value text-success";
+          subEl.textContent = "คุณจะได้รับคืน";
+        } else if (net < 0) {
+          netEl.className = "stat-value text-danger";
+          subEl.textContent = "คุณต้องจ่ายเพิ่ม";
+        } else {
+          netEl.className = "stat-value";
+          subEl.textContent = "เคลียร์ครบแล้ว 🎉";
+        }
+      }
+
+      // --- ส่วนที่ 1: การ์ดหนี้ที่ต้องจ่าย (จัดกลุ่มตามเจ้าหนี้) ---
+      function renderDebtCard(debtGroup) {
+        const items = debtGroup.items || [];
+        const lines = items
+          .map(
+            (item) => `
+              <div class="receipt-line">
+                <span class="who">${esc(item.title)}</span>
+                <span class="leader"></span>
+                <span class="money">${fmt(item.amount)}</span>
+              </div>`,
+          )
+          .join("");
+
+        return `
+          <article class="receipt debt-card owe">
+            <div class="receipt-head">
+              <span class="receipt-no">IOU · ใบแจ้งหนี้</span>
+              <span class="receipt-no">${items.length} รายการ</span>
+            </div>
+            <div class="card-head">
+              ${avatar(debtGroup.creditorName)}
+              <div class="card-head-main">
+                <div class="card-kicker">ต้องจ่ายให้</div>
+                <h4 class="card-title">${esc(debtGroup.creditorName)}</h4>
+              </div>
+              <div class="card-amount">
+                <div class="amount money text-danger">${fmt(debtGroup.totalAmount)}</div>
+              </div>
+            </div>
+            <hr class="receipt-divider" />
+            ${lines}
+            <div class="card-hint">
+              <i class="fa-solid fa-circle-info" style="margin-top: 3px;"></i>
+              <span>โอนเงินให้ ${esc(debtGroup.creditorName)} แล้วแจ้งให้กดยืนยันในระบบ รายการจะหายไปเมื่อได้รับการยืนยัน</span>
+            </div>
+          </article>`;
+      }
+
+      // --- ส่วนที่ 2: การ์ดบิลที่เราสำรองจ่าย + สถานะเพื่อนแต่ละคน ---
+      // --- สถานะของบิลที่เราสำรองจ่าย (ดูจากเพื่อนร่วมหาร) ---
+      const BILL_STATUS = {
+        UNPAID: { label: "ยังไม่จ่าย", icon: "fa-solid fa-hourglass-half", badgeClass: "status-pending", tone: "tone-danger" },
+        PARTIAL: { label: "จ่ายบางส่วน", icon: "fa-solid fa-circle-half-stroke", badgeClass: "status-partial", tone: "tone-amber" },
+        PAID: { label: "จ่ายครบแล้ว", icon: "fa-solid fa-check-double", badgeClass: "status-paid", tone: "tone-success" },
+      };
+      const STATUS_ORDER = ["UNPAID", "PARTIAL", "PAID"];
+
+      // ไม่มีผู้ร่วมหาร (จ่ายคนเดียว) = ไม่มีใครค้าง จึงนับเป็นจ่ายครบแล้ว
+      function billStatus(bill) {
+        const splits = bill.splits || [];
+        const paid = splits.filter((x) => x.isPaid).length;
+        if (paid === splits.length) return "PAID";
+        return paid === 0 ? "UNPAID" : "PARTIAL";
+      }
+
+      let allPaidBills = [];
+      let billFilter = "ALL";
+
+      function renderBillFilter() {
+        const bar = document.getElementById("bill-filter-bar");
+        if (allPaidBills.length === 0) {
+          bar.classList.add("hidden");
+          return;
+        }
+        bar.classList.remove("hidden");
+        const count = (st) => allPaidBills.filter((b) => billStatus(b) === st).length;
+        const chip = (value, label, icon, tone, n) => `
+          <button type="button" class="filter-chip ${tone}${billFilter === value ? " active" : ""}"
+            data-filter="${value}" aria-pressed="${billFilter === value}">
+            ${icon ? `<i class="${icon}"></i>` : ""}${label} <span class="chip-count">${n}</span>
+          </button>`;
+        bar.innerHTML =
+          chip("ALL", "ทั้งหมด", "", "", allPaidBills.length) +
+          STATUS_ORDER.map((st) =>
+            chip(st, BILL_STATUS[st].label, BILL_STATUS[st].icon, BILL_STATUS[st].tone, count(st)),
+          ).join("");
+      }
+
+      function renderPaidBills() {
+        const container = document.getElementById("my-paid-bills-container");
+        if (allPaidBills.length === 0) {
+          container.innerHTML = emptyBox("fa-solid fa-receipt", "คุณยังไม่มีบิลที่สำรองจ่ายในทริปนี้");
+          return;
+        }
+        // เรียง: ยังไม่จ่าย -> จ่ายบางส่วน -> จ่ายครบแล้ว
+        const list = allPaidBills
+          .filter((b) => billFilter === "ALL" || billStatus(b) === billFilter)
+          .sort((a, b) => STATUS_ORDER.indexOf(billStatus(a)) - STATUS_ORDER.indexOf(billStatus(b)));
+        container.innerHTML =
+          list.length === 0
+            ? emptyBox(BILL_STATUS[billFilter].icon, `ไม่มีบิลที่${BILL_STATUS[billFilter].label}`)
+            : list.map(renderPaidBillCard).join("");
+      }
+
+      document.getElementById("bill-filter-bar").addEventListener("click", (e) => {
+        const btn = e.target.closest(".filter-chip");
+        if (!btn) return;
+        billFilter = btn.dataset.filter;
+        renderBillFilter();
+        renderPaidBills();
+      });
+
+      function renderPaidBillCard(bill) {
+        const splits = bill.splits || [];
+        const billNo = `Bill #${String(bill.expenseId).padStart(5, "0")}`;
+
+        if (splits.length === 0) {
+          return `
+            <article class="receipt debt-card">
+              <div class="receipt-head">
+                <span class="receipt-no">${esc(billNo)}</span>
+              </div>
+              <div class="card-head">
+                <div class="avatar icon"><i class="fa-solid fa-receipt"></i></div>
+                <div class="card-head-main">
+                  <h4 class="card-title">${esc(bill.title)}</h4>
+                  <div class="card-kicker">จ่ายคนเดียว ไม่มีผู้ร่วมหาร</div>
+                </div>
+                <div class="card-amount"><div class="amount money">${fmt(bill.totalAmount)}</div></div>
+              </div>
+            </article>`;
+        }
+
+        const totalOwed = splits.reduce((s, x) => s + Number(x.amountOwed || 0), 0);
+        const received = splits
+          .filter((x) => x.isPaid)
+          .reduce((s, x) => s + Number(x.amountOwed || 0), 0);
+        const paidCount = splits.filter((x) => x.isPaid).length;
+        const status = billStatus(bill);
+        const allPaid = status === "PAID";
+        const percent = totalOwed > 0 ? Math.round((received / totalOwed) * 100) : 100;
+
+        const rows = splits
+          .map((split) => {
+            const action = split.isPaid
+              ? `<span class="badge-status status-paid"><i class="fa-solid fa-check"></i> จ่ายแล้ว</span>`
+              : `<button type="button" class="confirm-btn small-action-btn"
+                   data-expense-id="${esc(split.expenseId)}"
+                   data-member-id="${esc(split.memberId)}"
+                   data-member-name="${esc(split.memberName)}"
+                   data-amount="${esc(split.amountOwed)}">
+                   ยืนยันรับเงิน
+                 </button>`;
+            return `
+              <li class="participant-row">
+                ${avatar(split.memberName, "sm")}
+                <div class="participant-info">
+                  <div class="participant-name">${esc(split.memberName)}</div>
+                  <div class="participant-amount money">${fmt(split.amountOwed)}</div>
+                </div>
+                ${action}
+              </li>`;
+          })
+          .join("");
+
+        return `
+          <article class="receipt debt-card" data-expense-id="${esc(bill.expenseId)}">
+            <div class="receipt-head">
+              <span class="receipt-no">${esc(billNo)}</span>
+              <span class="badge-status ${BILL_STATUS[status].badgeClass}">
+                <i class="${BILL_STATUS[status].icon}"></i> ${BILL_STATUS[status].label}
+              </span>
+            </div>
+            <div class="card-head">
+              <div class="avatar icon"><i class="fa-solid fa-receipt"></i></div>
+              <div class="card-head-main">
+                <h4 class="card-title">${esc(bill.title)}</h4>
+                <div class="card-kicker">ยอดรวมบิล <span class="money">${fmt(bill.totalAmount)}</span></div>
+              </div>
+            </div>
+            <div class="progress-meta">
+              <span>รับคืนแล้ว <span class="money">${fmt(received)} / ${fmt(totalOwed)}</span></span>
+              <span>${paidCount}/${splits.length} คน</span>
+            </div>
+            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
+              <div class="progress-bar" style="width: ${percent}%"></div>
+            </div>
+            <hr class="receipt-divider" />
+            <ul class="participant-list">${rows}</ul>
+            ${allPaid ? paidStampHtml("จ่ายครบแล้ว") : ""}
+          </article>`;
+      }
+
+      async function loadDebts() {
+        const myDebtsContainer = document.getElementById("my-debts-container");
+        const myPaidBillsContainer = document.getElementById(
+          "my-paid-bills-container",
+        );
+
+        try {
+          // 1. ดึงข้อมูลสมาชิกเพื่อเทียบ ID
+          const memberRes = await fetch(
+            `${API_BASE_URL}/trips/${tripId}/members`,
+          );
+          const members = memberRes.ok ? await memberRes.json() : [];
+
+          // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) ไม่ใช่ ID
+          const currentUsername = localStorage.getItem("username");
+          const myMember =
+            members.find(
+              (m) => currentUsername && m.guestName === currentUsername,
+            ) || members[0];
+          if (!myMember) {
+            const box = emptyBox("fa-solid fa-user-slash", "ไม่พบรายชื่อสมาชิกในทริป");
+            myDebtsContainer.innerHTML = box;
+            myPaidBillsContainer.innerHTML = box;
+            renderSummary(0, 0);
+            return;
+          }
+          const myMemberId = String(myMember.id);
+
+          // 2. ดึงข้อมูลสรุปหนี้และบิลสำรองจ่าย
+          const res = await fetch(
+            `${API_BASE_URL}/debts/summary-details/${tripId}?userId=${myMemberId}`,
+          );
+          if (!res.ok)
+            throw new Error("ไม่สามารถเชื่อมต่อดึงข้อมูลสรุปหนี้ได้");
+          const data = await res.json();
+          const myDebts = data.myDebts || [];
+          const myPaidBills = data.myPaidBills || [];
+
+          // 3. สรุปยอด
+          const totalOwe = myDebts.reduce(
+            (s, d) => s + Number(d.totalAmount || 0),
+            0,
+          );
+          const totalReceive = myPaidBills.reduce(
+            (s, b) =>
+              s +
+              (b.splits || [])
+                .filter((x) => !x.isPaid)
+                .reduce((t, x) => t + Number(x.amountOwed || 0), 0),
+            0,
+          );
+          renderSummary(totalOwe, totalReceive);
+
+          // 4. ส่วนที่ 1: รายการที่ต้องชำระ
+          setCount("debts-count", myDebts.length);
+          myDebtsContainer.innerHTML =
+            myDebts.length === 0
+              ? emptyBox("fa-solid fa-champagne-glasses", "ไม่มีรายการที่คุณต้องชำระ 🎉")
+              : myDebts.map(renderDebtCard).join("");
+
+          // 5. ส่วนที่ 2: บิลที่คุณสำรองจ่าย + ตัวกรองสถานะ (ตัวกรองที่เลือกไว้ยังคงอยู่หลังกดยืนยันรับเงิน)
+          allPaidBills = myPaidBills;
+          setCount("bills-count", myPaidBills.length);
+          renderBillFilter();
+          renderPaidBills();
+        } catch (error) {
+          console.error("Error loading debts:", error);
+          const box = emptyBox(
+            "fa-solid fa-triangle-exclamation",
+            "เกิดข้อผิดพลาดในการโหลดข้อมูล",
+            true,
+          );
+          myDebtsContainer.innerHTML = box;
+          myPaidBillsContainer.innerHTML = box;
+          ["stat-owe", "stat-receive", "stat-net"].forEach(
+            (id) => (document.getElementById(id).textContent = "-"),
+          );
+        }
+      }
+
+      // ปุ่ม "ยืนยันรับเงิน" (ใช้ event delegation เพราะการ์ดถูกสร้างใหม่ทุกครั้งที่โหลด)
+      document
+        .getElementById("my-paid-bills-container")
+        .addEventListener("click", (e) => {
+          const btn = e.target.closest(".confirm-btn");
+          if (btn) confirmFriendPaid(btn);
+        });
+
+      async function confirmFriendPaid(button) {
+        const { expenseId, memberId, memberName, amount } = button.dataset;
+
+        // ยกเลิกไม่ได้ จึงถามยืนยันก่อน
+        if (!confirm(`ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} แล้ว?`)) {
+          return;
+        }
+
+        // กันดับเบิลคลิกส่งซ้ำระหว่างรอผล
+        button.disabled = true;
+        button.textContent = "กำลังบันทึก...";
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/expenses/splits/${expenseId}/${memberId}/pay`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+
+          if (!response.ok) throw new Error("ไม่สามารถอัปเดตสถานะในระบบได้");
+
+          // อัปเดตข้อมูลในเครื่องก่อน เพื่อเล่นอนิเมชันทันทีโดยไม่ต้องรอโหลดใหม่
+          const card = button.closest("article");
+          const bill = allPaidBills.find((b) => String(b.expenseId) === String(expenseId));
+          const split = bill && (bill.splits || []).find((sp) => String(sp.memberId) === String(memberId));
+          if (split) split.isPaid = true;
+
+          // 1. ป้าย "จ่ายแล้ว" ของเพื่อนคนนี้เด้งขึ้นแทนปุ่ม
+          button.outerHTML =
+            '<span class="badge-status status-paid pop-in"><i class="fa-solid fa-check"></i> จ่ายแล้ว</span>';
+
+          // 2. บิลนี้ได้คืนครบแล้ว -> ประทับ PAID ลงบนใบเสร็จ
+          const billDone = bill && billStatus(bill) === "PAID";
+          if (billDone && card) {
+            card.insertAdjacentHTML("beforeend", paidStampHtml("จ่ายครบแล้ว", true));
+            card.classList.add("stamp-shake");
+          }
+
+          // 3. ไม่มีใครค้างเราแล้วทุกบิล -> โปรยกระดาษสี
+          const nobodyOwesMe = allPaidBills.every((b) => (b.splits || []).every((sp) => sp.isPaid));
+          if (nobodyOwesMe) launchConfetti();
+
+          showToast(
+            nobodyOwesMe
+              ? "ได้เงินคืนครบทุกบิลแล้ว 🎉"
+              : billDone
+                ? `"${bill.title}" ได้คืนครบแล้ว`
+                : `บันทึกแล้ว: ${memberName} จ่ายแล้ว`,
+          );
+
+          // รอให้อนิเมชันเล่นจบ แล้วโหลดข้อมูลจริงใหม่ทั้งหน้า (ยอดสรุป/ตัวกรอง/แถบความคืบหน้า)
+          await new Promise((r) => setTimeout(r, billDone ? 1100 : 500));
+          await loadDebts();
+        } catch (error) {
+          console.error("Error updating payment status:", error);
+          showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
+          button.disabled = false;
+          button.textContent = "ยืนยันรับเงิน";
+        }
+      }
+
+      loadDebts();
+    </script>
+  </body>
+</html>
