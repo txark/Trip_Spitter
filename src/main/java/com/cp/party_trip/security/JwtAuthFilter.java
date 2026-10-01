@@ -37,7 +37,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        username = jwtUtil.extractUsername(jwt);
+        try {
+            username = jwtUtil.extractUsername(jwt);
+        } catch (RuntimeException e) {
+            // token เสีย/หมดอายุ/เซ็นด้วยกุญแจเก่า (กุญแจสุ่มใหม่ทุกครั้งที่รีสตาร์ต) -> ข้ามการยืนยันตัวตน
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // ถ้ามี Username และยังไม่มีการ Authentication ใน Context
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

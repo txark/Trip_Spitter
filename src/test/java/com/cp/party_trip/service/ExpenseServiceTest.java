@@ -131,6 +131,39 @@ class ExpenseServiceTest {
         assertBadRequest(request("0", "EQUAL"));
     }
 
+    @Test
+    void equalSplitDropsDuplicatesAndFallsBackToPayer() {
+        Expense dup = service.createExpense(1L, 10L, request("90", "EQUAL"), List.of(10L, 11L, 11L));
+        assertEquals(List.of(new BigDecimal("45.00"), new BigDecimal("45.00")), amounts(dup));
+
+        // ไม่มีผู้ร่วมหาร / ไม่ระบุวิธีหาร = ผู้จ่ายออกเองทั้งหมด (ไม่ใช่บิลที่ไม่มี split)
+        Expense solo = service.createExpense(1L, 10L, request("50", null), null);
+        assertEquals("EQUAL", solo.getSplitType());
+        assertEquals(List.of(10L), solo.getExpenseSplits().stream().map(ExpenseSplit::getTripMemberId).toList());
+    }
+
+    @Test
+    void rejectsUnknownSplitTypeAndForeignPayer() {
+        assertBadRequest(request("100", "PERCENTAGE"));
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> service.createExpense(1L, 99L, request("100", "EQUAL"), List.of(10L)));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    }
+
+    @Test
+    void roundsTotalToTwoDecimals() {
+        Expense e = service.createExpense(1L, 10L, request("10.005", "EQUAL"), List.of(10L));
+        assertEquals(new BigDecimal("10.01"), e.getTotalAmount());
+    }
+
+    @Test
+    void rejectsShareWithTooManyDecimals() {
+        ExpenseRequest r = request("100.004", "CUSTOM");
+        r.setSplits(List.of(share(10L, "50.002"), share(11L, "50.002")));
+        assertBadRequest(r);
+    }
+
     private void assertBadRequest(ExpenseRequest r) {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.createExpense(1L, 10L, r, List.of(10L)));

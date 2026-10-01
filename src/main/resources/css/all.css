@@ -140,6 +140,11 @@ body {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
+    /* เหลือคอลัมน์เดียว (เช่น ซ่อนฟอร์มเมื่อดูได้อย่างเดียว) ให้รายการกว้างเต็ม */
+    .two-col.single {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .sticky-col {
         position: sticky;
         top: 20px;
@@ -420,6 +425,8 @@ a:focus-visible,
     border-radius: var(--radius-md);
     padding: 14px;
     min-width: 0;
+    /* ให้ตัวเลขด้านในอ้างอิงความกว้างของกล่องได้ (หน่วย cqi) */
+    container-type: inline-size;
 }
 
 .stat-tile.highlight {
@@ -450,8 +457,10 @@ a:focus-visible,
     background: color-mix(in srgb, var(--tone, #71717a) 12%, white);
 }
 
+/* ขนาดตัวเลขย่อตามความกว้างกล่อง: 13cqi พอสำหรับ "-฿139,213.33" ไม่ใหญ่เกิน 1.25rem
+   (ตัวเลขยาวกว่านี้ ui.js fitStatValues จะย่อต่อให้อีก) */
 .stat-value {
-    font-size: 1.25rem;
+    font-size: min(1.25rem, 13cqi);
     font-weight: 800;
     white-space: nowrap;
     overflow: hidden;
@@ -469,7 +478,7 @@ a:focus-visible,
 
 @media (max-width: 420px) {
     .stat-value {
-        font-size: 1.05rem;
+        font-size: min(1.05rem, 13cqi);
     }
 
     .stat-tile {

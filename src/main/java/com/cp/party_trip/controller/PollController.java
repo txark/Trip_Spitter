@@ -1,10 +1,17 @@
 package com.cp.party_trip.controller;
 
+import com.cp.party_trip.dto.PollRequest;
 import com.cp.party_trip.dto.PollResultDTO;
+import com.cp.party_trip.dto.PollSummaryDTO;
+import com.cp.party_trip.model.Poll;
 import com.cp.party_trip.model.PollOption;
+import com.cp.party_trip.model.PollVote;
 import com.cp.party_trip.service.PollService;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -17,45 +24,84 @@ public class PollController {
         this.pollService = pollService;
     }
 
+    // โหวตทั้งหมดของทริป + ข้อที่ memberId เลือก
+    @GetMapping("/trip/{tripId}")
+    public ResponseEntity<List<PollSummaryDTO>> getTripPolls(
+            @PathVariable Long tripId,
+            @RequestParam(required = false) Long memberId) {
+        return ResponseEntity.ok(pollService.getTripPolls(tripId, memberId));
+    }
+
     @PostMapping("/{pollId}/vote")
     public ResponseEntity<?> vote(
             @PathVariable Long pollId,
             @RequestParam Long optionId,
             @RequestParam Long memberId) {
         try {
-            pollService.castVote(pollId, optionId, memberId);
-            return ResponseEntity.ok("บันทึกคะแนนโหวตสำเร็จ");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            PollVote vote = pollService.castVote(pollId, optionId, memberId);
+            return ResponseEntity.ok(vote == null ? "ยกเลิกโหวตแล้ว" : "บันทึกคะแนนโหวตสำเร็จ");
+        } catch (ResponseStatusException e) {
+            return error(e);
+        } catch (DataIntegrityViolationException e) {
+            // กดโหวตพร้อมกัน 2 ครั้ง (เช่น 2 แท็บ) ชน unique (poll_id, member_id)
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("มีการโหวตซ้อนกัน กรุณาลองใหม่อีกครั้ง");
         }
     }
 
     @GetMapping("/{pollId}/results")
-    public ResponseEntity<List<PollResultDTO>> getResults(@PathVariable Long pollId) {
-        return ResponseEntity.ok(pollService.getPollResults(pollId));
+    public ResponseEntity<?> getResults(@PathVariable Long pollId) {
+        try {
+            List<PollResultDTO> results = pollService.getPollResults(pollId);
+            return ResponseEntity.ok(results);
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
     @PostMapping("/{pollId}/options")
     public ResponseEntity<?> addOption(
             @PathVariable Long pollId,
-            @RequestParam String optionText) {
+            @RequestParam String optionText,
+            @RequestParam(required = false) Long memberId) {
         try {
-            PollOption newOption = pollService.addOptionToPoll(pollId, optionText);
+            PollOption newOption = pollService.addOptionToPoll(pollId, optionText, memberId);
             return ResponseEntity.ok(newOption);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ResponseStatusException e) {
+            return error(e);
         }
     }
 
     @PostMapping
-    public ResponseEntity<com.cp.party_trip.model.Poll> createPoll(
-            @RequestParam Long tripId,
-            @RequestParam String question) {
+    public ResponseEntity<?> createPoll(@RequestBody PollRequest request) {
         try {
-            com.cp.party_trip.model.Poll newPoll = pollService.createPoll(tripId, question);
+            Poll newPoll = pollService.createPoll(request);
             return ResponseEntity.ok(newPoll);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
+        } catch (ResponseStatusException e) {
+            return error(e);
         }
+    }
+
+    @PutMapping("/{pollId}/close")
+    public ResponseEntity<?> closePoll(@PathVariable Long pollId, @RequestParam Long memberId) {
+        try {
+            return ResponseEntity.ok(pollService.closePoll(pollId, memberId));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
+    }
+
+    @DeleteMapping("/{pollId}")
+    public ResponseEntity<?> deletePoll(@PathVariable Long pollId, @RequestParam Long memberId) {
+        try {
+            pollService.deletePoll(pollId, memberId);
+            return ResponseEntity.ok("ลบโหวตแล้ว");
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
+    }
+
+    // ส่งข้อความภาษาไทยกลับไปให้หน้าเว็บแสดงได้ตรง ๆ
+    private ResponseEntity<String> error(ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
     }
 }

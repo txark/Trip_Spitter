@@ -8,8 +8,12 @@ import com.cp.party_trip.repository.TripRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.repository.UserRepo;
 import com.cp.party_trip.repository.UserTripHistoryRepo;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -30,6 +34,17 @@ public class TripService {
 
     @Transactional
     public Trip createTrip(Trip trip, String creatorName) {
+        if (creatorName == null || creatorName.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "กรุณาระบุชื่อผู้สร้างทริป");
+        }
+        if (trip.getTitle() == null || trip.getTitle().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "กรุณาตั้งชื่อทริป");
+        }
+        // กันผู้ใช้ส่ง id มาเพื่อเขียนทับทริปเดิม หรือแนบสมาชิก/กิจกรรมมาเอง
+        trip.setId(null);
+        trip.setTripMembers(null);
+        trip.setActivities(null);
+
         User creator = userRepo.findByUsername(creatorName)
                 .orElseGet(() -> {
                     User newUser = new User();
@@ -37,8 +52,7 @@ public class TripService {
                     return userRepo.save(newUser);
                 });
 
-        String inviteCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        trip.setInviteCode(inviteCode);
+        trip.setInviteCode(generateInviteCode());
         Trip savedTrip = tripRepo.save(trip);
 
         TripMember tripMember = new TripMember();
@@ -71,17 +85,23 @@ public class TripService {
                 });
 
         Trip trip = tripRepo.findByInviteCodeIgnoreCase(inviteCode.trim())
-                .orElseThrow(() -> new RuntimeException("ไม่พบทริปที่ตรงกับรหัสเชิญนี้"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบทริปที่ตรงกับรหัสเชิญนี้"));
 
-        TripMember tripMember = new TripMember();
-        tripMember.setTrip(trip); // ใช้ setTrip ส่ง Object Trip เข้าไปตรงๆ
-        tripMember.setGuestName(user != null ? user.getUsername() : "Guest");
-        tripMember.setRole("MEMBER");
-        TripMember savedMember = tripMemberRepo.save(tripMember);
+        // เข้าร่วมซ้ำ (หรือคนสร้างกรอกรหัสของตัวเอง) = ใช้สมาชิกเดิม ไม่สร้างคนซ้ำ
+        String guestName = user != null ? user.getUsername() : "Guest";
+        TripMember savedMember = tripMemberRepo.findFirstByTripIdAndGuestNameOrderByIdAsc(trip.getId(), guestName)
+                .orElseGet(() -> {
+                    TripMember tripMember = new TripMember();
+                    tripMember.setTrip(trip); // ใช้ setTrip ส่ง Object Trip เข้าไปตรงๆ
+                    tripMember.setGuestName(guestName);
+                    tripMember.setRole("MEMBER");
+                    return tripMemberRepo.save(tripMember);
+                });
 
-        // บันทึกประวัติการเข้าร่วมทริปของผู้ใช้
-        UserTripHistory history = userTripHistoryRepo.findByUserIdAndTripId(user.getId(), trip.getId())
-                .orElse(new UserTripHistory());
+        // บันทึกประวัติการเข้าร่วมทริปของผู้ใช้ (ข้อมูลเก่าอาจซ้ำหลายแถว ใช้แถวล่าสุด)
+        List<UserTripHistory> rows = userTripHistoryRepo.findByUserIdAndTripIdOrderByViewedAtDesc(user.getId(),
+                trip.getId());
+        UserTripHistory history = rows.isEmpty() ? new UserTripHistory() : rows.get(0);
         history.setUserId(user.getId());
         history.setTripId(trip.getId());
         history.setViewedAt(java.time.LocalDateTime.now());
@@ -95,6 +115,17 @@ public class TripService {
 
     public Trip getTripById(Long id) {
         return tripRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("ไม่พบข้อมูลทริปที่มีรหัส: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบข้อมูลทริปที่มีรหัส: " + id));
+    }
+
+    // รหัสเชิญ 6 ตัว สุ่มใหม่จนกว่าจะไม่ซ้ำกับทริปอื่น (ซ้ำแล้วค้นหาด้วยรหัสจะ error ทั้งสองทริป)
+    private String generateInviteCode() {
+        for (int attempt = 0; attempt < 20; attempt++) {
+            String code = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+            if (!tripRepo.existsByInviteCodeIgnoreCase(code)) {
+                return code;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "สร้างรหัสเชิญไม่สำเร็จ กรุณาลองใหม่");
     }
 }

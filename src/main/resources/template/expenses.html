@@ -1301,11 +1301,14 @@
           }
 
           // ค้นหาสมาชิกที่ตรงกับ User ปัจจุบัน (TripMember ผูกกับ User ด้วยชื่อ ไม่ใช่ ID)
-          // ถ้าหาไม่เจอ ให้ใช้คนแรกเป็นค่าสำรอง
-          const currentUserMember =
-            members.find(
-              (m) => currentUsername && m.guestName === currentUsername,
-            ) || members[0];
+          // หาไม่เจอ = ยังไม่ได้เข้าร่วมทริป ห้ามบันทึกบิลในนามคนอื่น
+          const currentUserMember = findMyMember(members);
+          if (!currentUserMember) {
+            payerDisplay.innerHTML = `<span class="grow" style="color: var(--danger)">${esc(NOT_MEMBER_TEXT)}</span>`;
+            modalContainer.innerHTML = emptyBox("fa-solid fa-user-slash", NOT_MEMBER_TEXT);
+            document.getElementById("submit-btn").disabled = true;
+            return "not-member";
+          }
 
           currentMemberId = currentUserMember.id;
           const myName =
@@ -1339,6 +1342,7 @@
                   .join("");
 
           updateParticipantSummary();
+          return true;
         } catch (error) {
           console.error("Error loading members:", error);
           payerDisplay.innerHTML = `<span class="grow" style="color: var(--danger)">ไม่สามารถโหลดข้อมูลได้</span>`;
@@ -1347,6 +1351,9 @@
             "ไม่สามารถโหลดรายชื่อสมาชิกได้",
             true,
           );
+          document.getElementById("participant-summary-text").textContent =
+            "โหลดรายชื่อสมาชิกไม่สำเร็จ ลองรีเฟรชหน้า";
+          return false;
         }
       }
 
@@ -1586,16 +1593,17 @@
           document.querySelector('input[name="expense-category"]:checked')
             ?.value || DEFAULT_CATEGORY;
 
-        // ผู้จ่ายร่วมหารด้วยเสมอ
-        const participantIds = selectedParticipantIds();
-        if (!participantIds.includes(paidByMemberId)) {
-          participantIds.push(paidByMemberId);
-        }
+        // ผู้จ่ายร่วมหารด้วยเสมอ และอยู่หน้าสุด: หลังบ้านให้เศษสตางค์ (เช่น 100/3) กับคนแรก
+        // ผู้จ่ายจึงรับเศษไปเอง ตรงกับปุ่ม "แบ่งเท่ากัน" ในโหมดกำหนดเอง
+        const participantIds = [
+          paidByMemberId,
+          ...selectedParticipantIds().filter((id) => String(id) !== String(paidByMemberId)),
+        ];
 
         const mode = splitMode();
         const body = {
           title: title,
-          totalAmount: totalAmount,
+          totalAmount: toCents(totalAmount) / 100,
           currency: "THB",
           splitType: mode,
           category: category,
@@ -1603,6 +1611,13 @@
 
         // กำหนดเอง: ผลรวมของแต่ละคนต้องเท่ากับยอดบิลพอดี (หลังบ้านตรวจซ้ำอีกชั้น)
         if (mode === "CUSTOM") {
+          const negative = splitPeople().some((p) => Number(customAmounts.get(p.id)) < 0);
+          if (negative) {
+            setInvalid("group-custom", true);
+            showToast("ยอดของแต่ละคนต้องไม่ติดลบ", "error");
+            document.querySelector("#custom-rows input")?.focus();
+            return;
+          }
           const diff = toCents(totalAmount) - customSumCents();
           if (diff !== 0) {
             setInvalid("group-custom", true);
@@ -1655,10 +1670,15 @@
           } else {
             const errData = await response.text();
             console.error("Server error response:", errData);
+            let serverMessage = "";
+            try {
+              serverMessage = JSON.parse(errData).message || "";
+            } catch {}
             showToast(
-              response.status === 400
-                ? "ข้อมูลบิลไม่ถูกต้อง กรุณาตรวจยอดของแต่ละคน"
-                : "ไม่สามารถบันทึกบิลได้ กรุณาลองใหม่",
+              serverMessage ||
+                (response.status === 400
+                  ? "ข้อมูลบิลไม่ถูกต้อง กรุณาตรวจยอดของแต่ละคน"
+                  : "ไม่สามารถบันทึกบิลได้ กรุณาลองใหม่"),
               "error",
             );
           }
@@ -1671,7 +1691,18 @@
       }
 
       // ต้องรู้ currentMemberId ก่อน จึงค่อยกรองรายการบิล
-      loadTripMembers().then(loadExpenses);
+      // โหลดสมาชิกไม่สำเร็จ/ไม่ได้เป็นสมาชิก: ไม่แสดง "0 บิล" ให้เข้าใจผิด
+      loadTripMembers().then((ok) => {
+        if (ok === true) return loadExpenses();
+        document.getElementById("expenses-list-container").innerHTML = emptyBox(
+          "fa-solid fa-user-slash",
+          ok === "not-member" ? NOT_MEMBER_TEXT : "โหลดรายชื่อสมาชิกไม่สำเร็จ ลองรีเฟรชหน้า",
+          true,
+        );
+        ["stat-count", "stat-total", "stat-pending"].forEach(
+          (id) => (document.getElementById(id).textContent = "-"),
+        );
+      });
     </script>
   </body>
 </html>

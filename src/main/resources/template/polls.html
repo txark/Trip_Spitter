@@ -1,0 +1,1857 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polls - Party & Trip Expense Splitter Pro</title>
+
+    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+
+    <script defer src="/src/main/resources/js/sidebar.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://kit.fontawesome.com/01502edf06.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="/src/main/resources/js/ui.js"></script>
+    <style>
+      /* หัวหน้า: ลิงก์ย้อนกลับอยู่บน ชื่อหน้าอยู่ล่าง (สไตล์หลักอยู่ที่ .page-header ใน all.css) */
+      .poll-header {
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 6px;
+        padding-top: 12px;
+      }
+
+      .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 16px 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      /* ตัวกรองมี 5 ปุ่ม: จอแคบให้ขึ้นบรรทัดใหม่ แทนการเลื่อนข้าง
+         (.filter-bar ใน all.css เลื่อนข้างแบบซ่อน scrollbar ทำให้ปุ่มท้าย ๆ ตกขอบจนมองไม่เห็น) */
+      #filter-bar {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        padding-bottom: 0;
+      }
+
+      /* แต่ละตัวกรองใช้สีของตัวเอง (--chip จาก FILTERS): ปกติพื้นอ่อน, เลือกอยู่พื้นเข้ม */
+      #filter-bar .filter-chip {
+        --tone: var(--chip);
+        border-color: color-mix(in srgb, var(--chip) 28%, white);
+        background: color-mix(in srgb, var(--chip) 7%, white);
+        color: color-mix(in srgb, var(--chip) 80%, black);
+      }
+
+      #filter-bar .filter-chip.active {
+        background: var(--chip);
+        border-color: var(--chip);
+        color: #ffffff;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        #filter-bar .filter-chip:not(.active):hover {
+          border-color: var(--chip);
+          color: color-mix(in srgb, var(--chip) 80%, black);
+        }
+      }
+
+      /* --- ฟอร์มสร้างโหวต --- */
+      .form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+
+      /* หัวฟอร์มเป็นปุ่มย่อ/ขยาย (มีหัวข้อโหวตแล้วจะย่อไว้ก่อน) */
+      .form-heading {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text-main);
+        font-size: 1.05rem;
+        font-weight: 700;
+        text-align: left;
+        margin-bottom: 18px;
+        cursor: pointer;
+      }
+
+      .form-heading .heading-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .form-heading .heading-sub {
+        display: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .form-heading .chevron {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        transition: transform 0.2s;
+      }
+
+      .form-card.collapsed {
+        padding-block: 14px;
+      }
+
+      .form-card.collapsed .form-heading {
+        margin-bottom: 0;
+      }
+
+      .form-card.collapsed .heading-sub {
+        display: block;
+      }
+
+      .form-card.collapsed .chevron {
+        transform: rotate(-90deg);
+      }
+
+      .form-card.collapsed .create-body {
+        display: none;
+      }
+
+      .form-heading .avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .input-group {
+        margin-bottom: 16px;
+      }
+
+      .input-group > label,
+      .input-group > .label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .text-input {
+        width: 100%;
+        height: 46px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .text-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      }
+
+      .input-group.invalid .text-input {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+      }
+
+      .field-error {
+        display: none;
+        font-size: 0.75rem;
+        color: var(--danger);
+        margin-top: 6px;
+      }
+
+      .input-group.invalid .field-error {
+        display: block;
+      }
+
+      /* คำถามสำเร็จรูป */
+      .suggest-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .suggest-chip {
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px dashed var(--border-strong);
+        background: none;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      /* แถวตัวเลือกในฟอร์ม: [1] [ช่องกรอก] [x] */
+      .option-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .option-no {
+        width: 26px;
+        flex-shrink: 0;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+
+      .icon-btn {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .icon-btn:disabled {
+        visibility: hidden;
+      }
+
+      .text-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 0;
+        border: none;
+        background: none;
+        color: var(--primary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .text-btn:disabled {
+        color: var(--text-muted);
+        cursor: not-allowed;
+      }
+
+      .submit-btn {
+        width: 100%;
+        height: 50px;
+        border-radius: 12px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffffff;
+        background: var(--secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 6px;
+        transition: background-color 0.15s;
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
+      }
+
+      /* ระยะเวลาเปิดโหวต: ปุ่มเม็ดยาเลือกได้ข้อเดียว */
+      .duration-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .duration-chip {
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-main);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .duration-chip[aria-checked="true"] {
+        background: var(--text-main);
+        border-color: var(--text-main);
+        color: #ffffff;
+      }
+
+      /* กำหนดเอง: [ ตัวเลข ] [นาที|ชั่วโมง|วัน] */
+      .custom-duration {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .custom-duration .text-input {
+        width: 96px;
+        flex-shrink: 0;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-weight: 600;
+      }
+
+      .unit-switch {
+        flex: 1;
+        display: flex;
+        padding: 3px;
+        border-radius: 12px;
+        background: var(--surface-muted);
+      }
+
+      .unit-switch button {
+        flex: 1;
+        border: none;
+        border-radius: 9px;
+        background: none;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .unit-switch button[aria-checked="true"] {
+        background: var(--surface);
+        color: var(--text-main);
+        box-shadow: var(--shadow-sm), 0 0 0 1px var(--border);
+      }
+
+      .input-group.invalid .custom-duration .text-input {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+      }
+
+      .duration-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .input-group.invalid .duration-hint {
+        display: none;
+      }
+
+      /* เวลาที่เหลือบนการ์ด */
+      .deadline {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: var(--surface-muted);
+        color: var(--text-main);
+        font-size: 0.74rem;
+        font-weight: 600;
+      }
+
+      .deadline .money {
+        font-weight: 700;
+      }
+
+      /* เหลือไม่ถึง 5 นาที */
+      .deadline.urgent {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--danger);
+      }
+
+      .deadline.ended {
+        background: none;
+        padding: 0;
+        color: var(--text-muted);
+      }
+
+      /* --- การ์ดโหวต: ใบลงคะแนน (.receipt ใน all.css) --- */
+      .ballot-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ballot-question {
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1.35;
+        margin: 10px 0 2px;
+        overflow-wrap: anywhere;
+      }
+
+      .ballot-meta {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .status-open {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .status-todo {
+        background: rgba(217, 119, 6, 0.12);
+        color: #d97706;
+      }
+
+      .status-closed {
+        background: var(--surface-muted);
+        color: var(--text-muted);
+      }
+
+      .ballot-options {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* ตัวเลือก 1 ข้อ = ปุ่มเต็มแถว มีแถบคะแนนเป็นพื้นหลัง */
+      .ballot-option {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-main);
+        font-size: 0.9rem;
+        text-align: left;
+        overflow: hidden;
+        isolation: isolate;
+        transition:
+          border-color 0.15s,
+          transform 0.1s;
+      }
+
+      button.ballot-option {
+        cursor: pointer;
+      }
+
+      button.ballot-option:active {
+        transform: scale(0.99);
+      }
+
+      button.ballot-option:disabled {
+        cursor: wait;
+      }
+
+      .ballot-option .bar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        z-index: -1;
+        background: var(--surface-muted);
+        transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      /* ช่องกากบาทแบบบัตรเลือกตั้ง */
+      .tick-box {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+        border-radius: 6px;
+        border: 1.5px solid var(--border-strong);
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: #ffffff;
+      }
+
+      .option-text {
+        flex: 1;
+        min-width: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+
+      .option-count {
+        flex-shrink: 0;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: right;
+      }
+
+      .ballot-option.mine {
+        border-color: var(--primary);
+      }
+
+      .ballot-option.mine .bar {
+        background: var(--primary-soft);
+      }
+
+      .ballot-option.mine .tick-box {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+
+      .ballot-option.mine .option-count {
+        color: var(--primary);
+      }
+
+      /* โหวตปิดแล้ว: ข้อที่ชนะเป็นสีเขียว */
+      .ballot-option.winner {
+        border-color: var(--success);
+      }
+
+      .ballot-option.winner .bar {
+        background: rgba(22, 163, 74, 0.12);
+      }
+
+      .ballot-option.winner .option-text i {
+        color: #ca8a04;
+        margin-right: 4px;
+      }
+
+      /* วงกลมชื่อคนที่เลือกข้อนี้ (ซ้อนกันเล็กน้อย) */
+      .voters {
+        display: flex;
+        flex-shrink: 0;
+      }
+
+      .voters .avatar {
+        width: 22px;
+        height: 22px;
+        font-size: 0.62rem;
+        border: 2px solid var(--surface);
+        margin-left: -7px;
+      }
+
+      .voters .avatar:first-child {
+        margin-left: 0;
+      }
+
+      .voters .more {
+        background: var(--surface-muted);
+        color: var(--text-muted);
+      }
+
+      .ballot-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .ballot-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .small-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-main);
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .small-btn.danger {
+        color: var(--danger);
+      }
+
+      .small-btn.confirming {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: #ffffff;
+      }
+
+      /* เสนอตัวเลือกเพิ่มในการ์ด */
+      .add-option-form {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .add-option-form .text-input {
+        height: 40px;
+        font-size: 0.85rem;
+      }
+
+      .add-option-form .small-btn {
+        flex-shrink: 0;
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: #ffffff;
+      }
+
+      /* ตราประทับปิดหีบ (ใช้ .paid-stamp ใน all.css แต่เป็นสีน้ำเงิน) */
+      .paid-stamp.closed-stamp {
+        color: var(--primary);
+        /* มุมขวาข้างคำถาม ไม่ทับชื่อตัวเลือก */
+        top: 76px;
+        left: auto;
+        right: -34px;
+        font-size: 1.1rem;
+      }
+
+      .receipt.is-closed {
+        opacity: 0.96;
+      }
+
+      /* โหวตที่ปิดแล้ว: แถวสรุปบรรทัดเดียว คำถาม + ผลที่ชนะ */
+      .closed-card {
+        margin-bottom: 10px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        transition: border-color 0.15s;
+      }
+
+      .closed-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-right: 10px;
+      }
+
+      /* แถวสรุปทั้งแถวเป็นปุ่ม กดเพื่อดู/ซ่อนรายละเอียด */
+      .closed-toggle {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 4px 12px 14px;
+        border: none;
+        background: none;
+        color: var(--text-main);
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .closed-toggle .chevron {
+        flex-shrink: 0;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        transition: transform 0.2s;
+      }
+
+      .closed-card.expanded .closed-toggle .chevron {
+        transform: rotate(180deg);
+      }
+
+      .closed-detail {
+        display: none;
+        padding: 0 14px 14px;
+      }
+
+      .closed-card.expanded .closed-detail {
+        display: block;
+      }
+
+      .closed-detail .receipt-divider {
+        margin-top: 0;
+      }
+
+      .closed-detail .ballot-meta {
+        margin-bottom: 10px;
+      }
+
+      .closed-detail .ballot-option {
+        min-height: 42px;
+      }
+
+      .closed-card .closed-icon {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(202, 138, 4, 0.12);
+        color: #ca8a04;
+        font-size: 0.85rem;
+      }
+
+      .closed-card.no-votes .closed-icon {
+        background: var(--surface-muted);
+        color: var(--text-muted);
+      }
+
+      .closed-main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .closed-question {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .closed-result {
+        font-size: 0.95rem;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .closed-votes {
+        flex-shrink: 0;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      .readonly-notice {
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        border-radius: var(--radius-md);
+        background: rgba(217, 119, 6, 0.1);
+        color: #92400e;
+        font-size: 0.85rem;
+      }
+
+      .empty-box {
+        text-align: center;
+        padding: 28px 20px;
+        background: var(--surface);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-size: 0.88rem;
+      }
+
+      /* แท็บเล็ต: ปุ่มใหญ่ขึ้นให้กดด้วยนิ้วง่าย */
+      @media (min-width: 768px) and (max-width: 1023px) {
+        .ballot-option {
+          min-height: 54px;
+        }
+
+        .small-btn {
+          padding: 9px 14px;
+        }
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .submit-btn:not(:disabled):hover {
+          background: var(--secondary-hover);
+        }
+
+        button.ballot-option:not(:disabled):hover {
+          border-color: var(--primary);
+        }
+
+        .closed-card:hover {
+          border-color: var(--border-strong);
+        }
+
+        .form-card.collapsed:hover {
+          border-color: var(--border-strong);
+        }
+
+        .duration-chip[aria-checked="false"]:hover {
+          border-color: var(--border-strong);
+        }
+
+        .suggest-chip:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+        }
+
+        .icon-btn:hover {
+          background: var(--surface-muted);
+          color: var(--danger);
+        }
+
+        .small-btn:hover {
+          border-color: var(--border-strong);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ballot-option .bar {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container container--wide">
+      <header class="poll-header page-header">
+        <h2>โหวตในทริป</h2>
+        <a id="back-dashboard-btn" class="back-link" href="dashboard.html">
+          <i class="fa-solid fa-arrow-left"></i> ภาพรวมทริป
+        </a>
+      </header>
+
+      <!-- แถบสรุป -->
+      <div class="stat-summary" aria-live="polite">
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-square-poll-vertical tone-primary"></i>
+            โหวตทั้งหมด
+          </div>
+          <div class="stat-value" id="stat-total">
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-box-open tone-success"></i>
+            เปิดอยู่
+          </div>
+          <div class="stat-value" id="stat-open">
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+        <div class="stat-tile highlight">
+          <div class="stat-label">
+            <i class="fa-solid fa-hand-pointer tone-amber"></i>
+            รอคุณโหวต
+          </div>
+          <div class="stat-value" id="stat-todo">
+            <div class="skeleton-line"></div>
+          </div>
+          <div class="stat-sub" id="stat-todo-sub"></div>
+        </div>
+      </div>
+
+      <!-- จอคอม: ฟอร์มซ้าย / รายการโหวตขวา, มือถือ: เรียงลงมา -->
+      <div class="two-col">
+        <form class="form-card sticky-col" id="create-form" novalidate>
+          <button
+            type="button"
+            class="form-heading"
+            id="form-toggle"
+            aria-expanded="true"
+            aria-controls="create-body"
+          >
+            <div class="avatar icon"><i class="fa-solid fa-plus"></i></div>
+            <span class="heading-text">
+              สร้างโหวตใหม่
+              <span class="heading-sub">แตะเพื่อตั้งคำถามให้เพื่อนโหวต</span>
+            </span>
+            <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
+          </button>
+
+          <div class="create-body" id="create-body">
+
+          <div class="input-group" id="group-question">
+            <label for="poll-question">คำถาม</label>
+            <input
+              type="text"
+              id="poll-question"
+              class="text-input"
+              placeholder="เช่น มื้อเย็นนี้กินอะไรดี?"
+              maxlength="150"
+              autocomplete="off"
+            />
+            <div class="field-error">กรุณาตั้งคำถาม</div>
+            <div class="suggest-row" id="suggest-row"></div>
+          </div>
+
+          <div class="input-group" id="group-options">
+            <span class="label">
+              ตัวเลือก
+              <span id="option-counter"></span>
+            </span>
+            <div id="option-list"></div>
+            <button type="button" class="text-btn" id="add-option-btn">
+              <i class="fa-solid fa-plus"></i> เพิ่มตัวเลือก
+            </button>
+            <div class="field-error" id="options-error">
+              ต้องมีตัวเลือกที่ไม่ซ้ำกันอย่างน้อย 2 ข้อ
+            </div>
+          </div>
+
+          <div class="input-group" id="group-duration">
+            <span class="label">ระยะเวลาเปิดโหวต</span>
+            <div
+              class="duration-grid"
+              id="duration-grid"
+              role="radiogroup"
+              aria-label="ระยะเวลาเปิดโหวต"
+            ></div>
+            <div class="custom-duration hidden" id="custom-duration">
+              <input
+                type="number"
+                id="duration-amount"
+                class="text-input"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                aria-label="จำนวน"
+              />
+              <div
+                class="unit-switch"
+                id="unit-switch"
+                role="radiogroup"
+                aria-label="หน่วยเวลา"
+              ></div>
+            </div>
+            <div class="duration-hint" id="duration-hint"></div>
+            <div class="field-error">
+              กรอกเป็นจำนวนเต็ม ตั้งแต่ 1 นาที ถึง 30 วัน
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="create-btn">
+            <i class="fa-solid fa-box-archive"></i> เปิดโหวต
+          </button>
+          </div>
+        </form>
+
+        <section>
+          <div class="section-title">
+            <span>หัวข้อโหวต</span>
+          </div>
+          <div
+            class="filter-bar hidden"
+            id="filter-bar"
+            role="group"
+            aria-label="กรองหัวข้อโหวต"
+          ></div>
+          <div id="poll-list">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const tripId = urlParams.get("tripId") || 1;
+      const API_BASE_URL = "http://localhost:8090/api";
+
+      const MIN_OPTIONS = 2;
+      const MAX_OPTIONS = 10;
+      const MAX_VOTER_AVATARS = 4;
+      const SUGGESTIONS = [
+        "มื้อนี้กินอะไรดี?",
+        "ไปเที่ยวที่ไหนต่อดี?",
+        "ออกเดินทางกี่โมงดี?",
+        "พักที่ไหนดี?",
+      ];
+
+      // ระยะเวลาเปิดโหวต (นาที) null = ไม่จำกัดเวลา, "CUSTOM" = เลือกวันเวลาเอง
+      const MAX_DURATION_MINUTES = 30 * 24 * 60;
+      const URGENT_MS = 5 * 60 * 1000;
+      const DURATIONS = [
+        { value: null, label: "ไม่จำกัด" },
+        { value: 30, label: "30 นาที" },
+        { value: 60, label: "1 ชั่วโมง" },
+        { value: 180, label: "3 ชั่วโมง" },
+        { value: 1440, label: "1 วัน" },
+        { value: "CUSTOM", label: "กำหนดเอง" },
+      ];
+
+      // สีของตัวกรองตรงกับความหมาย และตรงกับป้ายสถานะบนการ์ด
+      const FILTERS = [
+        { value: "ALL", label: "ทั้งหมด", icon: "fa-solid fa-layer-group", color: "#18181b" },
+        { value: "TODO", label: "รอคุณโหวต", icon: "fa-solid fa-hand-pointer", color: "#d97706" },
+        { value: "OPEN", label: "เปิดอยู่", icon: "fa-solid fa-box-open", color: "#16a34a" },
+        { value: "CLOSED", label: "ปิดแล้ว", icon: "fa-solid fa-lock", color: "#71717a" },
+        { value: "MINE", label: "ที่คุณสร้าง", icon: "fa-solid fa-user-pen", color: "#4f46e5" },
+      ];
+
+      let myMemberId = null;
+      let polls = [];
+      let activeFilter = "ALL";
+      let selectedDuration = null;
+      // โหวตที่ปิดแล้วที่ผู้ใช้กางรายละเอียดไว้ (คงไว้หลังโหลดข้อมูลใหม่)
+      const expandedPolls = new Set();
+
+      document.getElementById("back-dashboard-btn").href =
+        `dashboard.html?tripId=${tripId}`;
+
+      // ข้อความ error จากหลังบ้านเป็นภาษาไทยอยู่แล้ว (PollController ส่ง reason กลับมา)
+      async function request(url, options) {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        if (!res.ok) {
+          let message = text;
+          try {
+            const body = JSON.parse(text);
+            message = body.message || body.error || text;
+          } catch {}
+          throw new Error(message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
+        }
+        try {
+          return JSON.parse(text);
+        } catch {
+          return text;
+        }
+      }
+
+      const canAct = () => myMemberId != null;
+
+      // หมดเวลาแล้วนับเป็นปิดทันที ไม่ต้องรอโหลดใหม่
+      const isExpired = (poll) =>
+        poll.deadlineMs != null && poll.deadlineMs <= Date.now();
+      const isOpen = (poll) => poll.status !== "CLOSED" && !isExpired(poll);
+      const isTodo = (poll) => isOpen(poll) && poll.myOptionId == null;
+      const isMine = (poll) =>
+        String(poll.createdByMemberId) === String(myMemberId);
+
+      function matchesFilterFor(value, poll) {
+        if (value === "TODO") return isTodo(poll);
+        if (value === "OPEN") return isOpen(poll);
+        if (value === "CLOSED") return !isOpen(poll);
+        if (value === "MINE") return isMine(poll);
+        return true;
+      }
+
+      const matchesFilter = (poll) => matchesFilterFor(activeFilter, poll);
+
+      function formatDate(value) {
+        if (!value) return "";
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "";
+        return d.toLocaleDateString("th-TH", {
+          day: "numeric",
+          month: "short",
+        });
+      }
+
+      function formatDateTime(value) {
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "";
+        return d.toLocaleString("th-TH", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      // เวลาที่เหลือ: เกิน 1 ชม. แสดงเป็น วัน/ชม./นาที, ไม่ถึง 1 ชม. นับถอยหลัง mm:ss
+      function formatRemaining(ms) {
+        const total = Math.max(0, Math.ceil(ms / 1000));
+        const days = Math.floor(total / 86400);
+        const hours = Math.floor((total % 86400) / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const seconds = total % 60;
+        if (days > 0) return `${days} วัน ${hours} ชม.`;
+        if (hours > 0) return `${hours} ชม. ${minutes} นาที`;
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function deadlineHtml(poll) {
+        if (poll.deadlineMs == null) return "";
+        if (!isOpen(poll)) {
+          // คนสร้างกดปิดก่อนหมดเวลา -> ไม่ต้องแสดงเวลาปิดที่ตั้งไว้
+          if (!isExpired(poll)) return "";
+          return `<div class="deadline ended"><i class="fa-regular fa-clock"></i> ปิดเมื่อ ${esc(formatDateTime(poll.closesAt))}</div>`;
+        }
+        const left = poll.deadlineMs - Date.now();
+        return `
+          <div class="deadline${left <= URGENT_MS ? " urgent" : ""}" data-deadline="${poll.deadlineMs}"
+               title="ปิดอัตโนมัติ ${esc(formatDateTime(poll.closesAt))}">
+            <i class="fa-regular fa-clock"></i> เหลือ <span class="money">${formatRemaining(left)}</span>
+          </div>`;
+      }
+
+      // ---------- แถบสรุป + ตัวกรอง ----------
+      function renderSummary() {
+        const open = polls.filter(isOpen).length;
+        const todo = polls.filter(isTodo).length;
+        document.getElementById("stat-total").textContent = polls.length;
+        document.getElementById("stat-open").textContent = open;
+        document.getElementById("stat-todo").textContent = canAct() ? todo : "-";
+        document.getElementById("stat-todo-sub").textContent =
+          polls.length === 0 || !canAct()
+            ? ""
+            : todo === 0
+              ? "โหวตครบทุกหัวข้อแล้ว"
+              : "หัวข้อที่ยังไม่ได้เลือก";
+      }
+
+      function renderFilters() {
+        const bar = document.getElementById("filter-bar");
+        bar.classList.toggle("hidden", polls.length === 0);
+        // คนนอกทริปไม่มีหัวข้อ "รอคุณโหวต" / "ที่คุณสร้าง"
+        bar.innerHTML = FILTERS.filter(
+          (f) => canAct() || (f.value !== "TODO" && f.value !== "MINE"),
+        ).map((f) => {
+          const count = polls.filter((p) =>
+            matchesFilterFor(f.value, p),
+          ).length;
+          const active = f.value === activeFilter;
+          return `
+            <button type="button" class="filter-chip${active ? " active" : ""}" style="--chip: ${f.color}"
+                    data-filter="${f.value}" aria-pressed="${active}">
+              <i class="${f.icon}"></i> ${f.label} <span class="chip-count">${count}</span>
+            </button>`;
+        }).join("");
+      }
+
+      document.getElementById("filter-bar").addEventListener("click", (e) => {
+        const chip = e.target.closest("[data-filter]");
+        if (!chip) return;
+        activeFilter = chip.dataset.filter;
+        renderFilters();
+        renderList();
+      });
+
+      // ---------- การ์ดโหวต ----------
+      function votersHtml(voters) {
+        if (!voters || voters.length === 0) return "";
+        const shown = voters
+          .slice(0, MAX_VOTER_AVATARS)
+          .map((n) => avatar(n))
+          .join("");
+        const extra = voters.length - MAX_VOTER_AVATARS;
+        return `
+          <span class="voters" title="${esc(voters.join(", "))}">
+            ${shown}${extra > 0 ? `<div class="avatar more">+${extra}</div>` : ""}
+          </span>`;
+      }
+
+      // โหวตที่ปิดแล้ว: เหลือแค่คำถาม + ข้อที่ชนะ (เสมอกันแสดงทุกข้อที่เสมอ)
+      function renderClosedCard(poll) {
+        const options = poll.options || [];
+        const top = Math.max(0, ...options.map((o) => o.voteCount));
+        const winners = top > 0 ? options.filter((o) => o.voteCount === top) : [];
+        const result =
+          winners.length === 0
+            ? "ไม่มีใครโหวต"
+            : winners.map((o) => esc(o.optionText)).join(" · ") +
+              (winners.length > 1 ? " (เสมอ)" : "");
+        const canManage = canAct() && (poll.createdByMemberId == null || isMine(poll));
+        const expanded = expandedPolls.has(String(poll.id));
+        const total = poll.totalVotes || 0;
+
+        // รายละเอียด: ทุกตัวเลือก เรียงจากคะแนนมากไปน้อย พร้อมคนที่โหวต
+        const rows = [...options]
+          .sort((a, b) => b.voteCount - a.voteCount)
+          .map((o) => {
+            const percent = total > 0 ? Math.round((o.voteCount / total) * 100) : 0;
+            const mine = String(o.optionId) === String(poll.myOptionId);
+            const isWinner = winners.includes(o);
+            return `
+              <li>
+                <div class="ballot-option${mine ? " mine" : ""}${isWinner ? " winner" : ""}">
+                  <span class="bar" style="width: ${percent}%"></span>
+                  <span class="tick-box">${mine ? '<i class="fa-solid fa-check"></i>' : ""}</span>
+                  <span class="option-text">${isWinner ? '<i class="fa-solid fa-trophy"></i>' : ""}${esc(o.optionText)}</span>
+                  ${votersHtml(o.voters)}
+                  <span class="option-count">${o.voteCount} · ${percent}%</span>
+                </div>
+              </li>`;
+          })
+          .join("");
+
+        const meta = [
+          poll.createdByName ? `สร้างโดย ${esc(poll.createdByName)}` : "",
+          esc(formatDate(poll.createdAt)),
+          isExpired(poll) ? `ปิดเมื่อ ${esc(formatDateTime(poll.closesAt))}` : "",
+          poll.myOptionId == null ? "คุณไม่ได้โหวต" : "",
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
+        const detailId = `poll-detail-${esc(poll.id)}`;
+        return `
+          <article class="closed-card${winners.length === 0 ? " no-votes" : ""}${expanded ? " expanded" : ""}" data-poll-id="${esc(poll.id)}">
+            <div class="closed-row">
+              <button type="button" class="closed-toggle" data-action="toggle-detail"
+                      aria-expanded="${expanded}" aria-controls="${detailId}">
+                <div class="closed-icon"><i class="fa-solid ${winners.length ? "fa-trophy" : "fa-lock"}"></i></div>
+                <div class="closed-main">
+                  <div class="closed-question">${esc(poll.question)}</div>
+                  <div class="closed-result">${result}</div>
+                </div>
+                ${winners.length ? `<span class="closed-votes">${top}/${total} เสียง</span>` : ""}
+                <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
+              </button>
+              ${canManage ? `<button type="button" class="small-btn danger" data-action="delete" aria-label="ลบโหวต"><i class="fa-solid fa-trash-can"></i></button>` : ""}
+            </div>
+            <div class="closed-detail" id="${detailId}">
+              <hr class="receipt-divider" />
+              <div class="ballot-meta">${meta}</div>
+              <ul class="ballot-options">${rows}</ul>
+            </div>
+          </article>`;
+      }
+
+      function renderPollCard(poll) {
+        if (!isOpen(poll)) return renderClosedCard(poll);
+        const open = true;
+        const total = poll.totalVotes || 0;
+        const options = poll.options || [];
+        const top = Math.max(0, ...options.map((o) => o.voteCount));
+        const winners =
+          !open && top > 0 ? options.filter((o) => o.voteCount === top) : [];
+
+        const optionRows = options
+          .map((o) => {
+            const percent =
+              total > 0 ? Math.round((o.voteCount / total) * 100) : 0;
+            const mine = String(o.optionId) === String(poll.myOptionId);
+            const isWinner = winners.includes(o);
+            const cls = `ballot-option${mine ? " mine" : ""}${isWinner ? " winner" : ""}`;
+            const inner = `
+              <span class="bar" style="width: ${percent}%"></span>
+              <span class="tick-box">${mine ? '<i class="fa-solid fa-check"></i>' : ""}</span>
+              <span class="option-text">${isWinner ? '<i class="fa-solid fa-trophy"></i>' : ""}${esc(o.optionText)}</span>
+              ${votersHtml(o.voters)}
+              <span class="option-count">${o.voteCount} · ${percent}%</span>`;
+
+            return open && canAct()
+              ? `<li><button type="button" class="${cls}" data-action="vote" data-option-id="${esc(o.optionId)}"
+                    aria-pressed="${mine}" title="${mine ? "กดอีกครั้งเพื่อยกเลิกโหวต" : "เลือกข้อนี้"}">${inner}</button></li>`
+              : `<li><div class="${cls}" data-option-id="${esc(o.optionId)}">${inner}</div></li>`;
+          })
+          .join("");
+
+        const badge = !open
+          ? `<span class="badge-status status-closed"><i class="fa-solid fa-lock"></i> ปิดแล้ว</span>`
+          : !canAct()
+            ? `<span class="badge-status status-open"><i class="fa-solid fa-box-open"></i> เปิดอยู่</span>`
+            : poll.myOptionId == null
+            ? `<span class="badge-status status-todo"><i class="fa-solid fa-hand-pointer"></i> รอคุณโหวต</span>`
+            : `<span class="badge-status status-open"><i class="fa-solid fa-check"></i> โหวตแล้ว</span>`;
+
+        const owner = poll.createdByName
+          ? `โดย ${esc(poll.createdByName)}`
+          : "";
+        const meta = [owner, esc(formatDate(poll.createdAt))]
+          .filter(Boolean)
+          .join(" · ");
+
+        const resultText = !open
+          ? winners.length === 0
+            ? "ปิดโหวตแล้ว"
+            : winners.length > 1
+              ? `ผลเสมอ ${winners.length} ข้อ`
+              : "ตัวเลือกที่ได้คะแนนสูงสุด"
+          : !canAct()
+            ? "กำลังเปิดรับโหวต"
+            : poll.myOptionId == null
+            ? "แตะตัวเลือกเพื่อโหวต"
+            : "แตะข้ออื่นเพื่อเปลี่ยน หรือแตะข้อเดิมเพื่อยกเลิก";
+
+        // คนสร้างปิด/ลบได้ (โหวตเก่าที่ไม่มีคนสร้าง ทุกคนจัดการได้)
+        const canManage = canAct() && (poll.createdByMemberId == null || isMine(poll));
+        const actions = `
+          ${open && canAct() && options.length < MAX_OPTIONS ? `<button type="button" class="small-btn" data-action="show-add"><i class="fa-solid fa-plus"></i> เสนอตัวเลือก</button>` : ""}
+          ${canManage && open ? `<button type="button" class="small-btn" data-action="close"><i class="fa-solid fa-lock"></i> ปิดโหวต</button>` : ""}
+          ${canManage ? `<button type="button" class="small-btn danger" data-action="delete" aria-label="ลบโหวต"><i class="fa-solid fa-trash-can"></i></button>` : ""}`;
+
+        return `
+          <article class="receipt${open ? "" : " is-closed"}" data-poll-id="${esc(poll.id)}">
+            <div class="ballot-head">
+              <span class="receipt-no">Ballot #${String(poll.id).padStart(5, "0")}</span>
+              ${badge}
+            </div>
+            <h3 class="ballot-question">${esc(poll.question)}</h3>
+            <div class="ballot-meta">${meta}</div>
+            ${deadlineHtml(poll)}
+            <hr class="receipt-divider" />
+            <ul class="ballot-options">${optionRows}</ul>
+            ${
+              open
+                ? `<form class="add-option-form hidden" data-role="add-form">
+                     <input type="text" class="text-input" maxlength="100" placeholder="ตัวเลือกใหม่" aria-label="ตัวเลือกใหม่" />
+                     <button type="submit" class="small-btn">เพิ่ม</button>
+                   </form>`
+                : ""
+            }
+            <hr class="receipt-divider" />
+            <div class="ballot-foot">
+              <span><strong class="money">${total}</strong> เสียง · ${resultText}</span>
+              <span class="ballot-actions">${actions}</span>
+            </div>
+            ${!open ? `<div class="paid-stamp closed-stamp" aria-hidden="true">CLOSED<small>ปิดหีบแล้ว</small></div>` : ""}
+          </article>`;
+      }
+
+      function renderList() {
+        const list = document.getElementById("poll-list");
+        if (polls.length === 0) {
+          list.innerHTML = emptyBox(
+            "fa-solid fa-box-archive",
+            "ยังไม่มีหัวข้อโหวต ลองสร้างหัวข้อแรกเลย",
+          );
+          return;
+        }
+        const visible = polls.filter(matchesFilter);
+        list.innerHTML =
+          visible.length === 0
+            ? emptyBox("fa-solid fa-filter", "ไม่มีหัวข้อในหมวดนี้")
+            : visible.map(renderPollCard).join("");
+      }
+
+      // ย่อ/ขยายฟอร์มสร้างโหวต
+      const createForm = document.getElementById("create-form");
+      const formToggle = document.getElementById("form-toggle");
+
+      function setFormCollapsed(collapsed) {
+        createForm.classList.toggle("collapsed", collapsed);
+        formToggle.setAttribute("aria-expanded", String(!collapsed));
+      }
+
+      // มีหัวข้อโหวตแล้ว -> ย่อฟอร์มไว้ ให้รายการโหวตเด่นกว่า, ยังไม่มี -> เปิดรอให้สร้าง
+      const syncFormCollapse = () => setFormCollapsed(polls.length > 0);
+
+      formToggle.addEventListener("click", () => {
+        const willExpand = createForm.classList.contains("collapsed");
+        setFormCollapsed(!willExpand);
+        if (willExpand) document.getElementById("poll-question").focus();
+      });
+
+      function renderAll() {
+        renderSummary();
+        renderFilters();
+        renderList();
+      }
+
+      // เปลี่ยนการ์ดใบเดียว โดยให้แถบคะแนนค่อย ๆ ยืด/หดจากความกว้างเดิม
+      function replaceCard(card, poll, extraClass = "") {
+        const oldWidths = new Map(
+          [...card.querySelectorAll("[data-option-id]")].map((el) => [
+            el.dataset.optionId,
+            el.querySelector(".bar").style.width,
+          ]),
+        );
+        const tmp = document.createElement("div");
+        tmp.innerHTML = renderPollCard(poll).trim();
+        const next = tmp.firstElementChild;
+        if (extraClass) next.classList.add(extraClass);
+
+        const targets = [];
+        next.querySelectorAll("[data-option-id]").forEach((el) => {
+          const bar = el.querySelector(".bar");
+          const from = oldWidths.get(el.dataset.optionId);
+          if (bar && from != null) {
+            targets.push([bar, bar.style.width]);
+            bar.style.width = from;
+          }
+        });
+        card.replaceWith(next);
+        void next.offsetWidth; // บังคับวาดความกว้างเดิมก่อน แล้วค่อยเปลี่ยน -> เกิดอนิเมชัน
+        targets.forEach(([bar, to]) => (bar.style.width = to));
+        return next;
+      }
+
+      async function fetchPolls() {
+        const data = await request(
+          `${API_BASE_URL}/polls/trip/${tripId}?memberId=${myMemberId ?? ""}`,
+        );
+        // ใช้ remainingSeconds จากเซิร์ฟเวอร์ ไม่ใช้ closesAt ตรง ๆ กันนาฬิกาเครื่องผู้ใช้ไม่ตรง
+        const now = Date.now();
+        polls = data.map((p) => ({
+          ...p,
+          deadlineMs:
+            p.remainingSeconds == null ? null : now + p.remainingSeconds * 1000,
+        }));
+      }
+
+      // นับถอยหลังทุกวินาที เมื่อมีหัวข้อหมดเวลา โหลดใหม่ครั้งเดียวเพื่อแสดงผลโหวต
+      let expiryReloading = false;
+      let expiryRetryAt = 0;
+      let pendingActions = 0; // คำขอโหวต/ปิด/เสนอ/ลบ ที่ยังรอเซิร์ฟเวอร์
+      setInterval(async () => {
+        const now = Date.now();
+        document.querySelectorAll("[data-deadline]").forEach((el) => {
+          const left = Number(el.dataset.deadline) - now;
+          el.classList.toggle("urgent", left <= URGENT_MS);
+          el.querySelector(".money").textContent = formatRemaining(left);
+        });
+
+        // หัวข้อที่หมดเวลาแต่ข้อมูลยังเป็น ACTIVE (รวมที่ถูกตัวกรองซ่อนอยู่)
+        const expiredNow = polls.some((p) => p.status !== "CLOSED" && isExpired(p));
+        if (!expiredNow || expiryReloading || pendingActions > 0 || now < expiryRetryAt) return;
+        expiryReloading = true;
+        try {
+          await fetchPolls();
+          showToast("หมดเวลาโหวตแล้ว ดูผลได้เลย");
+        } catch (error) {
+          console.error("Reload after expiry failed:", error);
+          // ยังวาดหน้าใหม่ได้ (ฝั่งหน้าเว็บนับว่าหมดเวลาแล้ว) แต่เว้นช่วงก่อนลองโหลดใหม่
+          polls = polls.map((p) => (isExpired(p) ? { ...p, status: "CLOSED" } : p));
+          expiryRetryAt = Date.now() + 15000;
+        } finally {
+          expiryReloading = false;
+        }
+        if (pendingActions === 0) renderAll();
+      }, 1000);
+
+      // โหลดข้อมูลใหม่ แล้วอัปเดตเฉพาะการ์ดใบที่เปลี่ยน (ถ้ายังอยู่ในตัวกรองเดิม)
+      async function refreshPoll(pollId, card, extraClass) {
+        await fetchPolls();
+        renderSummary();
+        renderFilters();
+        const poll = polls.find((p) => String(p.id) === String(pollId));
+        if (poll && card && card.isConnected && matchesFilter(poll))
+          replaceCard(card, poll, extraClass);
+        else renderList();
+      }
+
+      // ---------- การกระทำในการ์ด ----------
+      document
+        .getElementById("poll-list")
+        .addEventListener("click", async (e) => {
+          const btn = e.target.closest("[data-action]");
+          if (!btn) return;
+          const card = btn.closest("[data-poll-id]");
+          const pollId = card.dataset.pollId;
+          const action = btn.dataset.action;
+
+          if (action === "toggle-detail") {
+            const expanded = card.classList.toggle("expanded");
+            btn.setAttribute("aria-expanded", String(expanded));
+            if (expanded) expandedPolls.add(pollId);
+            else expandedPolls.delete(pollId);
+            return;
+          }
+
+          if (action === "show-add") {
+            const form = card.querySelector("[data-role='add-form']");
+            form.classList.toggle("hidden");
+            if (!form.classList.contains("hidden"))
+              form.querySelector("input").focus();
+            return;
+          }
+
+          if (action === "delete" && !btn.classList.contains("confirming")) {
+            // กดครั้งแรกให้ยืนยันก่อน กันลบพลาด
+            btn.classList.add("confirming");
+            btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> ยืนยันลบ';
+            btn.dataset.timer = setTimeout(() => {
+              if (!btn.isConnected || btn.disabled) return;
+              btn.classList.remove("confirming");
+              btn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+            }, 3000);
+            return;
+          }
+
+          if (btn.dataset.timer) clearTimeout(Number(btn.dataset.timer));
+          card.querySelectorAll("button").forEach((b) => (b.disabled = true));
+          pendingActions++;
+          try {
+            if (action === "vote") {
+              const message = await request(
+                `${API_BASE_URL}/polls/${pollId}/vote?optionId=${btn.dataset.optionId}&memberId=${myMemberId}`,
+                { method: "POST" },
+              );
+              await refreshPoll(pollId, card);
+              showToast(message);
+            } else if (action === "close") {
+              await request(
+                `${API_BASE_URL}/polls/${pollId}/close?memberId=${myMemberId}`,
+                { method: "PUT" },
+              );
+              await refreshPoll(pollId, card, "stamp-shake");
+              const stamp = document.querySelector(
+                `[data-poll-id="${pollId}"] .closed-stamp`,
+              );
+              if (stamp) stamp.classList.add("slam");
+              const poll = polls.find((p) => String(p.id) === String(pollId));
+              if (poll && poll.totalVotes > 0) launchConfetti(60);
+              showToast("ปิดโหวตแล้ว ประกาศผลได้เลย");
+            } else if (action === "delete") {
+              await request(
+                `${API_BASE_URL}/polls/${pollId}?memberId=${myMemberId}`,
+                { method: "DELETE" },
+              );
+              await fetchPolls();
+              renderAll();
+              if (polls.length === 0) setFormCollapsed(false);
+              showToast("ลบโหวตแล้ว");
+            }
+          } catch (error) {
+            console.error("Poll action failed:", error);
+            showToast(error.message, "error");
+            card
+              .querySelectorAll("button")
+              .forEach((b) => (b.disabled = false));
+          } finally {
+            pendingActions--;
+          }
+        });
+
+      // เสนอตัวเลือกเพิ่มในการ์ด
+      document
+        .getElementById("poll-list")
+        .addEventListener("submit", async (e) => {
+          const form = e.target.closest("[data-role='add-form']");
+          if (!form) return;
+          e.preventDefault();
+          const card = form.closest("[data-poll-id]");
+          const input = form.querySelector("input");
+          const text = input.value.trim();
+          if (!text) {
+            input.focus();
+            return;
+          }
+          form.querySelector("button").disabled = true;
+          try {
+            await request(
+              `${API_BASE_URL}/polls/${card.dataset.pollId}/options?optionText=${encodeURIComponent(text)}&memberId=${myMemberId}`,
+              { method: "POST" },
+            );
+            await refreshPoll(card.dataset.pollId, card);
+            showToast(`เพิ่มตัวเลือก "${text}" แล้ว`);
+          } catch (error) {
+            showToast(error.message, "error");
+            form.querySelector("button").disabled = false;
+            input.focus();
+          }
+        });
+
+      // ---------- ฟอร์มสร้างโหวต ----------
+      const optionList = document.getElementById("option-list");
+      const addOptionBtn = document.getElementById("add-option-btn");
+
+      function optionInputs() {
+        return [...optionList.querySelectorAll("input")];
+      }
+
+      function syncOptionRows() {
+        const rows = [...optionList.querySelectorAll(".option-row")];
+        rows.forEach((row, i) => {
+          row.querySelector(".option-no").textContent = i + 1;
+          row
+            .querySelector("input")
+            .setAttribute("aria-label", `ตัวเลือกที่ ${i + 1}`);
+          row.querySelector(".icon-btn").disabled = rows.length <= MIN_OPTIONS;
+        });
+        addOptionBtn.disabled = rows.length >= MAX_OPTIONS;
+        document.getElementById("option-counter").textContent =
+          `${rows.length}/${MAX_OPTIONS}`;
+      }
+
+      function addOptionRow(value = "", focus = false) {
+        if (optionInputs().length >= MAX_OPTIONS) return;
+        const row = document.createElement("div");
+        row.className = "option-row";
+        row.innerHTML = `
+          <span class="option-no"></span>
+          <input type="text" class="text-input" maxlength="100" placeholder="พิมพ์ตัวเลือก" autocomplete="off" />
+          <button type="button" class="icon-btn" aria-label="ลบตัวเลือกนี้"><i class="fa-solid fa-xmark"></i></button>`;
+        row.querySelector("input").value = value;
+        optionList.appendChild(row);
+        syncOptionRows();
+        if (focus) row.querySelector("input").focus();
+      }
+
+      const durationGrid = document.getElementById("duration-grid");
+      const amountInput = document.getElementById("duration-amount");
+      const unitSwitch = document.getElementById("unit-switch");
+
+      // หน่วยของ "กำหนดเอง" (factor = จำนวนนาทีต่อ 1 หน่วย)
+      const UNITS = [
+        { value: "MINUTE", label: "นาที", factor: 1 },
+        { value: "HOUR", label: "ชั่วโมง", factor: 60 },
+        { value: "DAY", label: "วัน", factor: 1440 },
+      ];
+      let selectedUnit = "HOUR";
+
+      function selectUnit(value) {
+        selectedUnit = value;
+        const unit = UNITS.find((u) => u.value === value);
+        unitSwitch.querySelectorAll("button").forEach((b) => {
+          b.setAttribute("aria-checked", String(b.dataset.unit === value));
+        });
+        amountInput.max = Math.floor(MAX_DURATION_MINUTES / unit.factor);
+        document.getElementById("group-duration").classList.remove("invalid");
+        renderDurationHint();
+      }
+
+      // คืนค่าจำนวนนาที / null (ไม่จำกัด) / NaN (กำหนดเองแต่ไม่ถูกต้อง)
+      function durationMinutes() {
+        if (selectedDuration !== "CUSTOM") return selectedDuration;
+        const amount = Number(amountInput.value);
+        if (!amountInput.value || !Number.isInteger(amount)) return NaN;
+        const minutes = amount * UNITS.find((u) => u.value === selectedUnit).factor;
+        return minutes >= 1 && minutes <= MAX_DURATION_MINUTES ? minutes : NaN;
+      }
+
+      function renderDurationHint() {
+        const hint = document.getElementById("duration-hint");
+        const minutes = durationMinutes();
+        if (minutes == null) {
+          hint.innerHTML =
+            '<i class="fa-solid fa-infinity"></i> เปิดจนกว่าคุณจะกดปิดโหวตเอง';
+        } else if (Number.isNaN(minutes)) {
+          hint.innerHTML =
+            '<i class="fa-regular fa-clock"></i> กรอกจำนวน แล้วเลือกหน่วยเวลา';
+        } else {
+          hint.innerHTML = `<i class="fa-regular fa-clock"></i> ปิดอัตโนมัติ ${esc(formatDateTime(Date.now() + minutes * 60000))}`;
+        }
+      }
+
+      function selectDuration(value) {
+        selectedDuration = value;
+        durationGrid.querySelectorAll(".duration-chip").forEach((chip) => {
+          chip.setAttribute(
+            "aria-checked",
+            String(chip.dataset.value === String(value)),
+          );
+        });
+        const custom = value === "CUSTOM";
+        document
+          .getElementById("custom-duration")
+          .classList.toggle("hidden", !custom);
+        // ค่าเริ่มต้นของกำหนดเอง: 2 ชั่วโมง
+        if (custom && !amountInput.value) amountInput.value = 2;
+        document.getElementById("group-duration").classList.remove("invalid");
+        renderDurationHint();
+      }
+
+      durationGrid.innerHTML = DURATIONS.map(
+        (d) => `
+          <button type="button" class="duration-chip" role="radio" aria-checked="false"
+                  data-value="${d.value}">${d.label}</button>`,
+      ).join("");
+      durationGrid.addEventListener("click", (e) => {
+        const chip = e.target.closest(".duration-chip");
+        if (!chip) return;
+        const raw = chip.dataset.value;
+        selectDuration(
+          raw === "null" ? null : raw === "CUSTOM" ? "CUSTOM" : Number(raw),
+        );
+        if (raw === "CUSTOM") amountInput.select();
+      });
+
+      unitSwitch.innerHTML = UNITS.map(
+        (u) => `
+          <button type="button" role="radio" aria-checked="false"
+                  data-unit="${u.value}">${u.label}</button>`,
+      ).join("");
+      unitSwitch.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-unit]");
+        if (btn) selectUnit(btn.dataset.unit);
+      });
+      amountInput.addEventListener("input", () => {
+        document.getElementById("group-duration").classList.remove("invalid");
+        renderDurationHint();
+      });
+
+      function resetForm() {
+        amountInput.value = "";
+        selectUnit("HOUR");
+        selectDuration(null);
+        document.getElementById("poll-question").value = "";
+        optionList.innerHTML = "";
+        for (let i = 0; i < MIN_OPTIONS; i++) addOptionRow();
+        document
+          .querySelectorAll("#create-form .invalid")
+          .forEach((g) => g.classList.remove("invalid"));
+      }
+
+      addOptionBtn.addEventListener("click", () => addOptionRow("", true));
+
+      optionList.addEventListener("click", (e) => {
+        const remove = e.target.closest(".icon-btn");
+        if (!remove || remove.disabled) return;
+        remove.closest(".option-row").remove();
+        syncOptionRows();
+      });
+
+      // Enter ในช่องตัวเลือกสุดท้าย = เพิ่มช่องใหม่ (แทนการส่งฟอร์ม)
+      optionList.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" || e.isComposing) return;
+        const inputs = optionInputs();
+        const index = inputs.indexOf(e.target);
+        if (index === -1) return;
+        e.preventDefault();
+        if (index < inputs.length - 1) inputs[index + 1].focus();
+        else if (inputs.length < MAX_OPTIONS && e.target.value.trim())
+          addOptionRow("", true);
+      });
+
+      document.getElementById("suggest-row").innerHTML = SUGGESTIONS.map(
+        (s) => `<button type="button" class="suggest-chip">${esc(s)}</button>`,
+      ).join("");
+      document.getElementById("suggest-row").addEventListener("click", (e) => {
+        const chip = e.target.closest(".suggest-chip");
+        if (!chip) return;
+        const input = document.getElementById("poll-question");
+        input.value = chip.textContent;
+        document.getElementById("group-question").classList.remove("invalid");
+        (optionInputs().find((i) => !i.value.trim()) || input).focus();
+      });
+
+      document.getElementById("poll-question").addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" || e.isComposing) return;
+        const empty = optionInputs().find((i) => !i.value.trim());
+        if (empty) {
+          e.preventDefault();
+          empty.focus();
+        }
+      });
+
+      document
+        .getElementById("poll-question")
+        .addEventListener("input", () =>
+          document.getElementById("group-question").classList.remove("invalid"),
+        );
+      optionList.addEventListener("input", () =>
+        document.getElementById("group-options").classList.remove("invalid"),
+      );
+
+      document
+        .getElementById("create-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const question = document
+            .getElementById("poll-question")
+            .value.trim();
+          const seen = new Set();
+          const options = optionInputs()
+            .map((i) => i.value.trim())
+            .filter(
+              (v) =>
+                v && !seen.has(v.toLowerCase()) && seen.add(v.toLowerCase()),
+            );
+
+          document
+            .getElementById("group-question")
+            .classList.toggle("invalid", !question);
+          document
+            .getElementById("group-options")
+            .classList.toggle("invalid", options.length < MIN_OPTIONS);
+          const minutes = durationMinutes();
+          document
+            .getElementById("group-duration")
+            .classList.toggle("invalid", Number.isNaN(minutes));
+          if (!question)
+            return document.getElementById("poll-question").focus();
+          if (options.length < MIN_OPTIONS) return;
+          if (Number.isNaN(minutes)) return amountInput.focus();
+
+          const btn = document.getElementById("create-btn");
+          btn.disabled = true;
+          try {
+            await request(`${API_BASE_URL}/polls`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                tripId: Number(tripId),
+                memberId: myMemberId,
+                question,
+                options,
+                durationMinutes: minutes,
+              }),
+            });
+            resetForm();
+            activeFilter = "ALL";
+            showToast("เปิดหีบโหวตแล้ว ชวนเพื่อนมาโหวตได้เลย");
+            try {
+              await fetchPolls();
+              renderAll();
+              syncFormCollapse();
+              document
+                .querySelector("#poll-list .receipt")
+                ?.classList.add("print-in");
+            } catch (reloadError) {
+              console.error("Reload after create failed:", reloadError);
+              showToast("สร้างโหวตแล้ว แต่โหลดรายการใหม่ไม่สำเร็จ ลองรีเฟรชหน้า", "error");
+            }
+          } catch (error) {
+            showToast(error.message, "error");
+          } finally {
+            btn.disabled = !canAct();
+          }
+        });
+
+      // ---------- เริ่มต้น ----------
+      async function init() {
+        resetForm();
+        try {
+          // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) ไม่ใช่ ID
+          const members = await request(
+            `${API_BASE_URL}/trips/${tripId}/members`,
+          ).catch(() => []);
+          const me = findMyMember(members);
+          myMemberId = me ? me.id : null;
+          if (!me) {
+            document.getElementById("create-btn").disabled = true;
+            document.getElementById("create-form").classList.add("hidden");
+            document.querySelector(".two-col").classList.add("single");
+            document.getElementById("poll-list").insertAdjacentHTML(
+              "beforebegin",
+              `<div class="readonly-notice" role="status"><i class="fa-solid fa-circle-info"></i> ${esc(NOT_MEMBER_TEXT)} (ดูผลโหวตได้อย่างเดียว)</div>`,
+            );
+          }
+
+          await fetchPolls();
+          renderAll();
+          syncFormCollapse();
+        } catch (error) {
+          console.error("Error loading polls:", error);
+          document.getElementById("poll-list").innerHTML = emptyBox(
+            "fa-solid fa-triangle-exclamation",
+            "โหลดหัวข้อโหวตไม่สำเร็จ กรุณาลองใหม่",
+            true,
+          );
+          ["stat-total", "stat-open", "stat-todo"].forEach(
+            (id) => (document.getElementById(id).textContent = "-"),
+          );
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

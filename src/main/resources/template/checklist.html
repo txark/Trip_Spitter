@@ -1,0 +1,2000 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checklist - Party & Trip Expense Splitter Pro</title>
+
+    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <!-- Sidebar สำหรับจอคอม (≥1024px) -->
+    <script defer src="/src/main/resources/js/sidebar.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://kit.fontawesome.com/01502edf06.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- ตัวช่วย UI ร่วม: esc, avatar, emptyBox, showToast, launchConfetti -->
+    <script src="/src/main/resources/js/ui.js"></script>
+    <style>
+      /* หัวหน้า: ลิงก์ย้อนกลับอยู่บน ชื่อหน้าอยู่ล่าง (สไตล์หลักอยู่ที่ .page-header ใน all.css) */
+      .checklist-header {
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 6px;
+        padding-top: 12px;
+      }
+
+      .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 16px 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      /* แจ้งเตือนเมื่อหาชื่อผู้ใช้ในทริปไม่เจอ (ดูได้อย่างเดียว) */
+      .notice {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px 14px;
+        margin-bottom: 16px;
+        border-radius: var(--radius-md);
+        background: rgba(217, 119, 6, 0.1);
+        color: #92400e;
+        font-size: 0.85rem;
+      }
+
+      .notice i {
+        margin-top: 3px;
+      }
+
+      /* --- ฟอร์มเพิ่มของ (ย่อได้เมื่อมีรายการแล้ว) --- */
+      .form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+
+      .form-heading {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text-main);
+        font-size: 1.05rem;
+        font-weight: 700;
+        text-align: left;
+        margin-bottom: 18px;
+        cursor: pointer;
+      }
+
+      .form-heading .avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .form-heading .heading-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .form-heading .heading-sub {
+        display: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .form-heading .chevron {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        transition: transform 0.2s;
+      }
+
+      .form-card.collapsed {
+        padding-block: 14px;
+      }
+
+      .form-card.collapsed .form-heading {
+        margin-bottom: 0;
+      }
+
+      .form-card.collapsed .heading-sub {
+        display: block;
+      }
+
+      .form-card.collapsed .chevron {
+        transform: rotate(-90deg);
+      }
+
+      .form-card.collapsed .create-body {
+        display: none;
+      }
+
+      .input-group {
+        margin-bottom: 16px;
+      }
+
+      .input-group > label,
+      .input-group > .label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .text-input {
+        width: 100%;
+        height: 46px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      /* ชื่อของ: 1 แถว = 1 ชิ้น [ลำดับ] [ช่องกรอก] [x] */
+      .name-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .name-no {
+        width: 22px;
+        flex-shrink: 0;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+
+      .name-row {
+        align-items: flex-start;
+      }
+
+      .name-row .name-no,
+      .name-row .row-remove {
+        margin-top: 5px;
+      }
+
+      .row-body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .name-field {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* จำนวน / หน่วย / โน้ต ของแต่ละชิ้น */
+      .row-extra {
+        display: grid;
+        grid-template-columns: 76px 92px minmax(0, 1fr);
+        gap: 6px;
+      }
+
+      .row-extra .text-input {
+        height: 38px;
+        padding: 0 10px;
+        font-size: 0.85rem;
+      }
+
+      .row-extra .qty-input {
+        font-family: var(--font-mono);
+      }
+
+      /* จอแคบ: โน้ตลงบรรทัดใหม่เต็มความกว้าง */
+      @media (max-width: 420px) {
+        .row-extra {
+          grid-template-columns: 76px minmax(0, 1fr);
+        }
+
+        .row-extra .note-input {
+          grid-column: 1 / -1;
+        }
+      }
+
+      .name-list-sep {
+        border: 0;
+        border-top: 1px dashed var(--border);
+        margin: 4px 0 10px 30px;
+      }
+
+      /* ชื่อซ้ำกับแถวก่อนหน้า: จะไม่ถูกเพิ่ม */
+      .name-row.dup .text-input {
+        color: var(--text-muted);
+        text-decoration: line-through;
+        padding-right: 52px;
+      }
+
+      .name-row .dup-tag {
+        display: none;
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: var(--surface-muted);
+        color: var(--text-muted);
+        font-size: 0.68rem;
+        font-weight: 700;
+      }
+
+      .name-row.dup .dup-tag {
+        display: block;
+      }
+
+      .name-row .row-remove {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .name-row .row-remove:disabled {
+        visibility: hidden;
+      }
+
+      .add-row-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 0;
+        border: none;
+        background: none;
+        color: var(--primary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .add-row-btn:disabled {
+        color: var(--text-muted);
+        cursor: not-allowed;
+      }
+
+      .field-hint {
+        margin-top: 4px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      /* เลือกผู้รับผิดชอบ: ชิปมีรูปย่อ เลือกได้หลายคน (อย่างน้อย 1 คน) */
+      .assignee-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .assignee-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 100%;
+        min-height: 36px;
+        padding: 3px 12px 3px 4px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-main);
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .assignee-chip .avatar {
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+      }
+
+      .assignee-chip .chip-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .assignee-chip[aria-checked="true"] {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #ffffff;
+      }
+
+      .assignee-chip[aria-checked="true"] .avatar {
+        box-shadow: 0 0 0 2px #ffffff;
+      }
+
+      .assignee-chip .check-mark {
+        display: none;
+        font-size: 0.7rem;
+      }
+
+      .assignee-chip[aria-checked="true"] .check-mark {
+        display: inline;
+      }
+
+      select.text-input {
+        cursor: pointer;
+      }
+
+      .text-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      }
+
+      .input-group.invalid .text-input {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+      }
+
+      .field-error {
+        display: none;
+        font-size: 0.75rem;
+        color: var(--danger);
+        margin-top: 6px;
+      }
+
+      .input-group.invalid .field-error {
+        display: block;
+      }
+
+      /* หมวดหมู่: ปุ่มเลือกได้ข้อเดียว สีตาม --cat */
+      .cat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .cat-option {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 40px;
+        padding: 6px 8px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-main);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .cat-option i {
+        color: var(--cat);
+      }
+
+      .cat-option[aria-checked="true"] {
+        border-color: var(--cat);
+        background: color-mix(in srgb, var(--cat) 10%, white);
+        color: color-mix(in srgb, var(--cat) 80%, black);
+      }
+
+      .submit-btn {
+        width: 100%;
+        height: 50px;
+        border-radius: 12px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffffff;
+        background: var(--secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background-color 0.15s;
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* --- ป้ายกระเป๋า: ความคืบหน้าการเตรียมของ --- */
+      .progress-tag {
+        margin-bottom: 14px;
+      }
+
+      .progress-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .progress-title {
+        font-size: 1rem;
+        font-weight: 800;
+      }
+
+      .progress-percent {
+        font-family: var(--font-mono);
+        font-size: 1.4rem;
+        font-weight: 700;
+      }
+
+      .progress-track {
+        height: 10px;
+        margin-top: 10px;
+        border-radius: 999px;
+        background: var(--surface-muted);
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--success);
+        transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .progress-sub {
+        margin-top: 8px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      /* ตัวกรอง: ขึ้นบรรทัดใหม่เมื่อจอแคบ สีตาม --chip */
+      #filter-bar {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        padding-bottom: 0;
+      }
+
+      #filter-bar .filter-chip {
+        --tone: var(--chip);
+        border-color: color-mix(in srgb, var(--chip) 28%, white);
+        background: color-mix(in srgb, var(--chip) 7%, white);
+        color: color-mix(in srgb, var(--chip) 80%, black);
+      }
+
+      #filter-bar .filter-chip.active {
+        background: var(--chip);
+        border-color: var(--chip);
+        color: #ffffff;
+      }
+
+      .search-box {
+        position: relative;
+        margin-bottom: 14px;
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .search-box .text-input {
+        height: 42px;
+        padding-left: 38px;
+        background: var(--surface);
+      }
+
+      /* --- กลุ่มตามหมวด --- */
+      .cat-group {
+        margin-bottom: 14px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        /* ไม่ใช้ overflow: hidden เพราะเมนู ⋯ ต้องล้นออกนอกกล่องได้ */
+      }
+
+      .cat-group-head {
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        background: color-mix(in srgb, var(--cat) 6%, white);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .cat-group-head i {
+        color: var(--cat);
+      }
+
+      .cat-group-head .count {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .item-list {
+        list-style: none;
+      }
+
+      .item-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 10px 11px 14px;
+      }
+
+      /* แถวที่มีช่องแก้ไข: จัดชิดบนแทนกึ่งกลาง */
+      .item-row.editing {
+        align-items: flex-start;
+      }
+
+      /* รูปย่อผู้รับผิดชอบซ้อนกัน (ชิดขวา) */
+      .avatar-stack {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+      }
+
+      .avatar-stack .avatar {
+        width: 26px;
+        height: 26px;
+        font-size: 0.68rem;
+        border: 2px solid var(--surface);
+        margin-left: -8px;
+      }
+
+      .avatar-stack .avatar:first-child {
+        margin-left: 0;
+      }
+
+      /* คุณ: วงแหวนสีหลัก */
+      .avatar-stack .avatar.me {
+        box-shadow: 0 0 0 1.5px var(--primary);
+      }
+
+      .avatar-stack .avatar.more {
+        background: var(--surface-muted);
+        color: var(--text-muted);
+      }
+
+      .avatar-stack .avatar.none {
+        border: 1.5px dashed var(--border-strong);
+        background: var(--surface);
+        color: var(--text-muted);
+      }
+
+      /* ปุ่ม ⋯ และเมนู */
+      .menu-btn {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .menu-btn[aria-expanded="true"] {
+        background: var(--surface-muted);
+        color: var(--text-main);
+      }
+
+      .row-menu {
+        position: absolute;
+        right: 10px;
+        top: calc(100% - 6px);
+        z-index: 20;
+        min-width: 200px;
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .row-menu button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border: none;
+        border-radius: 8px;
+        background: none;
+        color: var(--text-main);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .row-menu button i {
+        width: 16px;
+        text-align: center;
+        color: var(--text-muted);
+      }
+
+      .row-menu .menu-assignees {
+        padding: 6px 10px 8px;
+        margin-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .row-menu button.danger,
+      .row-menu button.danger i {
+        color: var(--danger);
+      }
+
+      .row-menu button.danger.confirming {
+        background: var(--danger);
+        color: #ffffff;
+      }
+
+      .row-menu button.danger.confirming i {
+        color: #ffffff;
+      }
+
+      .row-menu button:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+
+      /* ตัวกรอง + สวิตช์ "เฉพาะของคุณ" อยู่บรรทัดเดียวกัน */
+      .filter-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .filter-row .filter-bar {
+        margin-bottom: 0;
+      }
+
+      .mine-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 4px 4px 10px;
+        border: none;
+        background: none;
+        color: var(--text-main);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .mine-toggle .switch {
+        position: relative;
+        width: 34px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--border-strong);
+        transition: background-color 0.15s;
+      }
+
+      .mine-toggle .switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.15s;
+      }
+
+      .mine-toggle[aria-checked="true"] .switch {
+        background: var(--primary);
+      }
+
+      .mine-toggle[aria-checked="true"] .switch::after {
+        transform: translateX(14px);
+      }
+
+      .item-row + .item-row {
+        border-top: 1px dashed var(--border-strong);
+      }
+
+      /* ช่องติ๊กใหญ่ กดง่ายด้วยนิ้ว */
+      .check-btn {
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
+        margin-top: 1px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-strong);
+        background: var(--surface);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition:
+          background-color 0.15s,
+          border-color 0.15s,
+          transform 0.1s;
+      }
+
+      .check-btn:active {
+        transform: scale(0.92);
+      }
+
+      .check-btn:disabled {
+        cursor: default;
+      }
+
+      .item-row.checked .check-btn {
+        background: var(--success);
+        border-color: var(--success);
+      }
+
+      .item-main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .item-name {
+        font-size: 0.92rem;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+
+      .qty-badge {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 1px 8px;
+        border-radius: 999px;
+        background: var(--surface-muted);
+        color: var(--text-main);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
+        vertical-align: 1px;
+        text-decoration: none;
+      }
+
+      .item-row.checked .item-name {
+        color: var(--text-muted);
+        text-decoration: line-through;
+      }
+
+      .item-notes {
+        margin-top: 2px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        overflow-wrap: anywhere;
+      }
+
+      .item-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .menu-btn:hover,
+        .row-menu button:not(:disabled):not(.confirming):hover {
+          background: var(--surface-muted);
+        }
+      }
+
+      .assignee {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 9px 2px 3px;
+        border-radius: 999px;
+        background: var(--surface-muted);
+        font-size: 0.74rem;
+        font-weight: 600;
+      }
+
+      .assignee .avatar {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem;
+      }
+
+      .assignee.none {
+        padding-left: 9px;
+        color: var(--text-muted);
+      }
+
+      .assignee.me {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .link-btn {
+        padding: 3px 4px;
+        border: none;
+        background: none;
+        color: var(--primary);
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .link-btn.muted {
+        color: var(--text-muted);
+      }
+
+      .link-btn:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+
+      .icon-btn {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .icon-btn.confirming {
+        width: auto;
+        padding: 0 10px;
+        background: var(--danger);
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      /* แก้โน้ตในแถว */
+      .note-form {
+        display: grid;
+        grid-template-columns: 76px 92px minmax(0, 1fr) auto;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      @media (max-width: 420px) {
+        .note-form {
+          grid-template-columns: 76px minmax(0, 1fr) auto;
+        }
+
+        .note-form .note-input {
+          grid-column: 1 / -1;
+          grid-row: 2;
+        }
+      }
+
+      .note-form .text-input {
+        height: 38px;
+        font-size: 0.85rem;
+      }
+
+      .note-form button {
+        flex-shrink: 0;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: none;
+        background: var(--secondary);
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .empty-box {
+        text-align: center;
+        padding: 28px 20px;
+        background: var(--surface);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-size: 0.88rem;
+      }
+
+      /* แท็บเล็ต: ปุ่มใหญ่ขึ้นให้กดด้วยนิ้วง่าย */
+      @media (min-width: 768px) and (max-width: 1023px) {
+        .check-btn {
+          width: 30px;
+          height: 30px;
+        }
+
+        .link-btn {
+          padding: 6px 8px;
+        }
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .submit-btn:not(:disabled):hover {
+          background: var(--secondary-hover);
+        }
+
+        .form-card.collapsed:hover {
+          border-color: var(--border-strong);
+        }
+
+        .cat-option[aria-checked="false"]:hover {
+          border-color: var(--cat);
+        }
+
+        .check-btn:not(:disabled):hover {
+          border-color: var(--success);
+        }
+
+        .name-row .row-remove:hover {
+          background: var(--surface-muted);
+          color: var(--danger);
+        }
+
+        .assignee-chip[aria-checked="false"]:hover {
+          border-color: var(--primary);
+        }
+
+        .icon-btn:not(.confirming):hover {
+          background: var(--surface-muted);
+          color: var(--danger);
+        }
+
+        #filter-bar .filter-chip:not(.active):hover {
+          border-color: var(--chip);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .progress-bar {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container container--wide">
+      <header class="checklist-header page-header">
+        <h2>เช็คลิสต์ของที่ต้องเตรียม</h2>
+        <a id="back-dashboard-btn" class="back-link" href="dashboard.html">
+          <i class="fa-solid fa-arrow-left"></i> ภาพรวมทริป
+        </a>
+      </header>
+
+      <div class="notice hidden" id="readonly-notice" role="status">
+        <i class="fa-solid fa-circle-info"></i>
+        <span
+          >ไม่พบชื่อของคุณในทริปนี้ จึงดูรายการได้อย่างเดียว
+          เข้าร่วมทริปด้วยรหัสเชิญที่หน้าแรกก่อน เพื่อเพิ่มหรือติ๊กของ</span
+        >
+      </div>
+
+      <!-- แถบสรุป -->
+      <div class="stat-summary" aria-live="polite">
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-list-check tone-primary"></i>
+            ของทั้งหมด
+          </div>
+          <div class="stat-value" id="stat-total"><div class="skeleton-line"></div></div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">
+            <i class="fa-solid fa-circle-check tone-success"></i>
+            เตรียมแล้ว
+          </div>
+          <div class="stat-value" id="stat-done"><div class="skeleton-line"></div></div>
+          <div class="stat-sub" id="stat-done-sub"></div>
+        </div>
+        <div class="stat-tile highlight">
+          <div class="stat-label">
+            <i class="fa-solid fa-suitcase tone-amber"></i>
+            คุณต้องเอาไป
+          </div>
+          <div class="stat-value" id="stat-mine"><div class="skeleton-line"></div></div>
+          <div class="stat-sub" id="stat-mine-sub"></div>
+        </div>
+      </div>
+
+      <!-- จอคอม: ฟอร์มซ้าย / รายการขวา, มือถือ: เรียงลงมา -->
+      <div class="two-col">
+        <form class="form-card sticky-col" id="add-form" novalidate>
+          <button
+            type="button"
+            class="form-heading"
+            id="form-toggle"
+            aria-expanded="true"
+            aria-controls="create-body"
+          >
+            <div class="avatar icon"><i class="fa-solid fa-plus"></i></div>
+            <span class="heading-text">
+              เพิ่มของที่ต้องเตรียม
+              <span class="heading-sub">แตะเพื่อเพิ่มของลงเช็คลิสต์</span>
+            </span>
+            <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
+          </button>
+
+          <div class="create-body" id="create-body">
+            <div class="input-group" id="group-name">
+              <span class="label">
+                ชื่อสิ่งของ <span id="name-counter"></span>
+              </span>
+              <div id="name-list"></div>
+              <datalist id="unit-options">
+                <option value="ชิ้น"></option>
+                <option value="อัน"></option>
+                <option value="คู่"></option>
+                <option value="ชุด"></option>
+                <option value="ขวด"></option>
+                <option value="แพ็ค"></option>
+                <option value="กล่อง"></option>
+                <option value="ถุง"></option>
+                <option value="กก."></option>
+                <option value="กรัม"></option>
+                <option value="ลิตร"></option>
+                <option value="มล."></option>
+              </datalist>
+              <button type="button" class="add-row-btn" id="add-row-btn">
+                <i class="fa-solid fa-plus"></i> เพิ่มอีกชิ้น
+              </button>
+              <div class="field-error" id="name-error">กรุณากรอกชื่อสิ่งของ</div>
+            </div>
+
+            <div class="input-group">
+              <span class="label">หมวดหมู่</span>
+              <div class="cat-grid" id="cat-grid" role="radiogroup" aria-label="หมวดหมู่"></div>
+            </div>
+
+            <div class="input-group">
+              <span class="label" id="assignee-label">
+                ผู้รับผิดชอบ <span>เลือกได้หลายคน</span>
+              </span>
+              <div
+                class="assignee-grid"
+                id="assignee-grid"
+                role="group"
+                aria-labelledby="assignee-label"
+              ></div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="add-btn">
+              <i class="fa-solid fa-plus"></i> เพิ่มลงเช็คลิสต์
+            </button>
+          </div>
+        </form>
+
+        <section>
+          <!-- ป้ายกระเป๋า: ความคืบหน้า -->
+          <article class="receipt progress-tag hidden" id="progress-tag">
+            <span class="receipt-no">Packing list</span>
+            <div class="progress-head">
+              <span class="progress-title" id="progress-title"></span>
+              <span class="progress-percent" id="progress-percent"></span>
+            </div>
+            <div
+              class="progress-track"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              id="progress-track"
+            >
+              <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="progress-sub" id="progress-sub"></div>
+          </article>
+
+          <div class="section-title">
+            <span>รายการของ</span>
+          </div>
+          <div class="filter-row hidden" id="filter-row">
+            <div
+              class="filter-bar"
+              id="filter-bar"
+              role="group"
+              aria-label="กรองรายการของ"
+            ></div>
+            <button type="button" class="mine-toggle hidden" id="mine-toggle" role="switch" aria-checked="false">
+              เฉพาะของคุณ <span class="switch" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="search-box hidden" id="search-box">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input
+              type="search"
+              id="search-input"
+              class="text-input"
+              placeholder="ค้นหาชื่อของหรือโน้ต"
+              aria-label="ค้นหาของ"
+              autocomplete="off"
+            />
+          </div>
+          <div id="item-groups">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const tripId = urlParams.get("tripId") || 1;
+      const API_BASE_URL = "http://localhost:8090/api";
+
+      // หมวดหมู่ (เก็บรหัสภาษาอังกฤษในฐานข้อมูล แสดงชื่อไทย)
+      const CATEGORIES = [
+        { value: "GEAR", label: "อุปกรณ์", icon: "fa-solid fa-campground", color: "#0284c7" },
+        { value: "CLOTHES", label: "เสื้อผ้า", icon: "fa-solid fa-shirt", color: "#db2777" },
+        { value: "MEDICINE", label: "ยา", icon: "fa-solid fa-kit-medical", color: "#dc2626" },
+        { value: "FOOD", label: "อาหาร/ขนม", icon: "fa-solid fa-utensils", color: "#ea580c" },
+        { value: "DOCUMENT", label: "เอกสาร", icon: "fa-solid fa-passport", color: "#4f46e5" },
+        { value: "OTHER", label: "อื่นๆ", icon: "fa-solid fa-box", color: "#71717a" },
+      ];
+      const DEFAULT_CATEGORY = "OTHER";
+
+      // หมวดที่ไม่รู้จัก (ข้อมูลเก่า) ใช้หน้าตาแบบ "อื่นๆ" แต่คงชื่อเดิมไว้
+      function categoryOf(value) {
+        return (
+          CATEGORIES.find((c) => c.value === value) || {
+            ...CATEGORIES.find((c) => c.value === DEFAULT_CATEGORY),
+            value,
+            label: value || "อื่นๆ",
+          }
+        );
+      }
+
+      const FILTERS = [
+        { value: "ALL", label: "ทั้งหมด", icon: "fa-solid fa-layer-group", color: "#18181b" },
+        { value: "TODO", label: "ยังไม่ได้เตรียม", icon: "fa-regular fa-square", color: "#d97706" },
+        { value: "DONE", label: "เตรียมแล้ว", icon: "fa-solid fa-square-check", color: "#16a34a" },
+      ];
+      let mineOnly = false; // สวิตช์ "เฉพาะของคุณ" (ใช้ร่วมกับตัวกรองสถานะ)
+      let openMenuId = null; // แถวที่เปิดเมนู ⋯ อยู่
+
+      let members = [];
+      let myMemberId = null; // null = หาชื่อในทริปไม่เจอ ดูได้อย่างเดียว
+      let items = [];
+      let activeFilter = "ALL";
+      let searchText = "";
+      let selectedCategory = DEFAULT_CATEGORY;
+      const busyItems = new Set(); // รายการที่กำลังรอเซิร์ฟเวอร์ (กันกดซ้ำ)
+      let editingNoteId = null;
+
+      document.getElementById("back-dashboard-btn").href = `dashboard.html?tripId=${tripId}`;
+
+      // ข้อความ error จากหลังบ้านเป็นภาษาไทย (ChecklistController ส่ง reason กลับมา)
+      async function request(url, options) {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        if (!res.ok) {
+          let message = text;
+          try {
+            message = JSON.parse(text).message || JSON.parse(text).error || text;
+          } catch {}
+          throw new Error(message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
+        }
+        try {
+          return JSON.parse(text);
+        } catch {
+          return text;
+        }
+      }
+
+      const canEdit = () => myMemberId != null;
+      // ผู้รับผิดชอบทั้งหมดของชิ้นนี้ (ข้อมูลเก่ามีแค่ assignedToMemberId)
+      const assigneesOf = (item) =>
+        (item.assigneeIds && item.assigneeIds.length
+          ? item.assigneeIds
+          : item.assignedToMemberId != null
+            ? [item.assignedToMemberId]
+            : []
+        ).map(String);
+      const isMine = (item) => myMemberId != null && assigneesOf(item).includes(String(myMemberId));
+
+      // 2.00 -> "2", 1.50 -> "1.5"
+      const formatQty = (q) => Number(q).toLocaleString("th-TH", { maximumFractionDigits: 2 });
+      const qtyText = (item) =>
+        item.quantity == null ? "" : `${formatQty(item.quantity)}${item.unit ? ` ${item.unit}` : ""}`;
+      const memberName = (id) => members.find((m) => String(m.id) === String(id))?.guestName;
+
+      function matchesFilter(item) {
+        if (activeFilter === "TODO" && item.checked) return false;
+        if (activeFilter === "DONE" && !item.checked) return false;
+        if (mineOnly && !isMine(item)) return false;
+        if (searchText) {
+          const haystack = `${item.itemName || ""} ${item.notes || ""} ${item.unit || ""}`.toLowerCase();
+          if (!haystack.includes(searchText)) return false;
+        }
+        return true;
+      }
+
+      function countFor(value) {
+        const saved = activeFilter;
+        const savedSearch = searchText;
+        activeFilter = value;
+        searchText = "";
+        const n = items.filter(matchesFilter).length; // รวมเงื่อนไข "เฉพาะของคุณ" 
+        activeFilter = saved;
+        searchText = savedSearch;
+        return n;
+      }
+
+      // ---------- แถบสรุป + ความคืบหน้า ----------
+      function renderSummary() {
+        const total = items.length;
+        const done = items.filter((i) => i.checked).length;
+        const mine = items.filter(isMine);
+        const minePending = mine.filter((i) => !i.checked).length;
+        const percent = total ? Math.round((done / total) * 100) : 0;
+
+        document.getElementById("stat-total").textContent = total;
+        document.getElementById("stat-done").textContent = `${done}/${total}`;
+        document.getElementById("stat-done-sub").textContent = total ? `${percent}%` : "";
+        document.getElementById("stat-mine").textContent = canEdit() ? minePending : "-";
+        document.getElementById("stat-mine-sub").textContent = !canEdit()
+          ? ""
+          : mine.length === 0
+            ? ""
+            : minePending === 0
+              ? "เตรียมของคุณครบแล้ว"
+              : "";
+
+        const tag = document.getElementById("progress-tag");
+        tag.classList.toggle("hidden", total === 0);
+        document.getElementById("progress-title").textContent =
+          done === total && total > 0 ? "เตรียมของครบแล้ว พร้อมออกเดินทาง!" : "ความคืบหน้าการเตรียมของ";
+        document.getElementById("progress-percent").textContent = `${percent}%`;
+        document.getElementById("progress-bar").style.width = `${percent}%`;
+        document.getElementById("progress-track").setAttribute("aria-valuenow", String(percent));
+        const unassigned = items.filter((i) => assigneesOf(i).length === 0 && !i.checked).length;
+        document.getElementById("progress-sub").textContent =
+          `เหลืออีก ${total - done} ชิ้น` + (unassigned ? ` · ${unassigned} ชิ้นยังไม่มีคนรับ` : "");
+      }
+
+      function renderFilters() {
+        const bar = document.getElementById("filter-bar");
+        const hasItems = items.length > 0;
+        document.getElementById("filter-row").classList.toggle("hidden", !hasItems);
+        document.getElementById("search-box").classList.toggle("hidden", !hasItems);
+        const toggle = document.getElementById("mine-toggle");
+        toggle.classList.toggle("hidden", !canEdit());
+        toggle.setAttribute("aria-checked", String(mineOnly));
+        bar.innerHTML = FILTERS.map((f) => {
+            const active = f.value === activeFilter;
+            return `
+              <button type="button" class="filter-chip${active ? " active" : ""}" style="--chip: ${f.color}"
+                      data-filter="${f.value}" aria-pressed="${active}">
+                <i class="${f.icon}"></i> ${f.label} <span class="chip-count">${countFor(f.value)}</span>
+              </button>`;
+          })
+          .join("");
+      }
+
+      document.getElementById("filter-bar").addEventListener("click", (e) => {
+        const chip = e.target.closest("[data-filter]");
+        if (!chip) return;
+        activeFilter = chip.dataset.filter;
+        renderFilters();
+        renderList();
+      });
+
+      document.getElementById("mine-toggle").addEventListener("click", () => {
+        mineOnly = !mineOnly;
+        renderFilters();
+        renderList();
+      });
+
+      document.getElementById("search-input").addEventListener("input", (e) => {
+        searchText = e.target.value.trim().toLowerCase();
+        renderList();
+      });
+
+      // ---------- รายการ (จัดกลุ่มตามหมวด) ----------
+      const MAX_STACK = 3;
+
+      // ชื่อผู้รับผิดชอบเรียงคุณขึ้นก่อน
+      function assigneeNames(item) {
+        const me = String(myMemberId);
+        return [...assigneesOf(item)]
+          .sort((a, b) => Number(b === me) - Number(a === me))
+          .map((id) => ({ id, mine: id === me, name: memberName(id) || `สมาชิก #${id}` }));
+      }
+
+      // รูปย่อซ้อนกันชิดขวา (ไม่เกิน 3 รูป เกินแสดง +n) ชี้ค้างดูชื่อทั้งหมด
+      function avatarStackHtml(item) {
+        const people = assigneeNames(item);
+        if (people.length === 0) {
+          return `<span class="avatar-stack" title="ยังไม่มีคนรับ"><span class="avatar none"><i class="fa-regular fa-user"></i></span></span>`;
+        }
+        const title = people.map((p) => (p.mine ? "คุณ" : p.name)).join(", ");
+        const shown = people
+          .slice(0, MAX_STACK)
+          .map((p) => avatar(p.name).replace('class="avatar ', `class="avatar ${p.mine ? "me " : ""}`))
+          .join("");
+        const extra = people.length - MAX_STACK;
+        return `<span class="avatar-stack" title="${esc(title)}" aria-label="ผู้รับผิดชอบ: ${esc(title)}">
+                  ${shown}${extra > 0 ? `<span class="avatar more">+${extra}</span>` : ""}
+                </span>`;
+      }
+
+      function menuHtml(item, busy) {
+        const people = assigneeNames(item);
+        const claim = isMine(item)
+          ? `<button type="button" role="menuitem" data-action="unclaim" ${busy ? "disabled" : ""}><i class="fa-solid fa-user-minus"></i> ไม่เอาแล้ว</button>`
+          : `<button type="button" role="menuitem" data-action="claim" ${busy ? "disabled" : ""}><i class="fa-solid fa-hand"></i> ${people.length ? "ฉันช่วยเอาไปด้วย" : "ฉันเอาไปเอง"}</button>`;
+        return `
+          <div class="row-menu" role="menu" aria-label="ตัวเลือกของ ${esc(item.itemName)}">
+            <div class="menu-assignees">ผู้รับผิดชอบ: ${
+              people.length ? people.map((p) => (p.mine ? "คุณ" : esc(p.name))).join(", ") : "ยังไม่มีคนรับ"
+            }</div>
+            ${claim}
+            <button type="button" role="menuitem" data-action="edit-note"><i class="fa-solid fa-pen"></i> แก้ไขจำนวน / โน้ต</button>
+            <button type="button" role="menuitem" class="danger" data-action="delete" ${busy ? "disabled" : ""}><i class="fa-solid fa-trash-can"></i> ลบ</button>
+          </div>`;
+      }
+
+      function renderItem(item) {
+        const busy = busyItems.has(String(item.id));
+        const editable = canEdit();
+        const editing = String(editingNoteId) === String(item.id);
+        const menuOpen = editable && String(openMenuId) === String(item.id);
+        const editForm = editing
+          ? `<form class="note-form" data-role="note-form">
+               <input type="number" class="text-input qty-input" min="0" step="any" inputmode="decimal"
+                      value="${item.quantity == null ? "" : esc(Number(item.quantity))}" placeholder="จำนวน" aria-label="จำนวน" />
+               <input type="text" class="text-input unit-input" list="unit-options" maxlength="20"
+                      value="${esc(item.unit || "")}" placeholder="หน่วย" aria-label="หน่วย" />
+               <input type="text" class="text-input note-input" maxlength="255" value="${esc(item.notes || "")}"
+                      placeholder="โน้ต เช่น ยี่ห้อ ขนาด" aria-label="โน้ตของ ${esc(item.itemName)}" />
+               <button type="submit">บันทึก</button>
+             </form>`
+          : "";
+        const qty = qtyText(item);
+
+        return `
+          <li class="item-row${item.checked ? " checked" : ""}${editing ? " editing" : ""}" data-item-id="${esc(item.id)}">
+            <button type="button" class="check-btn" data-action="toggle" ${!editable || busy ? "disabled" : ""}
+                    role="checkbox" aria-checked="${item.checked}"
+                    aria-label="${item.checked ? "ยกเลิกเตรียมแล้ว" : "ติ๊กว่าเตรียมแล้ว"}: ${esc(item.itemName)}">
+              ${item.checked ? '<i class="fa-solid fa-check"></i>' : ""}
+            </button>
+            <div class="item-main">
+              <div class="item-name">${esc(item.itemName)}${qty ? `<span class="qty-badge">× ${esc(qty)}</span>` : ""}</div>
+              ${item.notes ? `<div class="item-notes">${esc(item.notes)}</div>` : ""}
+              ${editForm}
+            </div>
+            ${avatarStackHtml(item)}
+            ${
+              editable
+                ? `<button type="button" class="menu-btn" data-action="menu" aria-haspopup="menu"
+                           aria-expanded="${menuOpen}" aria-label="ตัวเลือกของ ${esc(item.itemName)}">
+                     <i class="fa-solid fa-ellipsis-vertical"></i>
+                   </button>`
+                : ""
+            }
+            ${menuOpen ? menuHtml(item, busy) : ""}
+          </li>`;
+      }
+
+      function renderList() {
+        const container = document.getElementById("item-groups");
+        if (items.length === 0) {
+          container.innerHTML = emptyBox(
+            "fa-solid fa-suitcase-rolling",
+            canEdit() ? "ยังไม่มีของในเช็คลิสต์ เริ่มเพิ่มชิ้นแรกได้เลย" : "ยังไม่มีของในเช็คลิสต์",
+          );
+          return;
+        }
+        const visible = items.filter(matchesFilter);
+        if (visible.length === 0) {
+          container.innerHTML = emptyBox("fa-solid fa-filter", "ไม่มีของที่ตรงกับตัวกรองนี้");
+          return;
+        }
+
+        // เรียงหมวดตาม CATEGORIES (หมวดที่ไม่รู้จักไว้ท้าย), ในหมวด: ยังไม่เตรียมขึ้นก่อน
+        const order = (v) => {
+          const i = CATEGORIES.findIndex((c) => c.value === v);
+          return i === -1 ? CATEGORIES.length : i;
+        };
+        const groups = new Map();
+        visible.forEach((item) => {
+          const key = item.category || DEFAULT_CATEGORY;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(item);
+        });
+
+        container.innerHTML = [...groups.entries()]
+          .sort(([a], [b]) => order(a) - order(b))
+          .map(([key, list]) => {
+            const cat = categoryOf(key);
+            const all = items.filter((i) => (i.category || DEFAULT_CATEGORY) === key);
+            const done = all.filter((i) => i.checked).length;
+            const rows = [...list]
+              .sort((a, b) => Number(a.checked) - Number(b.checked) || a.id - b.id)
+              .map(renderItem)
+              .join("");
+            return `
+              <section class="cat-group" style="--cat: ${cat.color}">
+                <div class="cat-group-head">
+                  <i class="${cat.icon}"></i> ${esc(cat.label)}
+                  <span class="count">${done}/${all.length}</span>
+                </div>
+                <ul class="item-list">${rows}</ul>
+              </section>`;
+          })
+          .join("");
+
+        const editInput = container.querySelector("[data-role='note-form'] input");
+        if (editInput) editInput.focus();
+      }
+
+      function renderAll() {
+        renderSummary();
+        renderFilters();
+        renderList();
+      }
+
+      function replaceItem(updated) {
+        items = items.map((i) => (String(i.id) === String(updated.id) ? updated : i));
+      }
+
+      // ---------- การกระทำในแถว ----------
+      // รันคำสั่งกับรายการหนึ่งชิ้น: กันกดซ้ำระหว่างรอ และวาดใหม่เมื่อเสร็จ
+      async function withItem(id, task) {
+        if (busyItems.has(id)) return;
+        busyItems.add(id);
+        renderList();
+        try {
+          await task();
+        } catch (error) {
+          console.error("Checklist action failed:", error);
+          showToast(error.message, "error");
+        } finally {
+          busyItems.delete(id);
+          renderAll();
+        }
+      }
+
+      document.getElementById("item-groups").addEventListener("click", async (e) => {
+        const btn = e.target.closest("[data-action]");
+        if (!btn || btn.disabled || !canEdit()) return;
+        const row = btn.closest("[data-item-id]");
+        const id = row.dataset.itemId;
+        const item = items.find((i) => String(i.id) === id);
+        if (!item) return;
+        const action = btn.dataset.action;
+
+        if (action === "menu") {
+          openMenuId = String(openMenuId) === id ? null : id;
+          renderList();
+          if (openMenuId) document.querySelector(".row-menu button:not(:disabled)")?.focus();
+          return;
+        }
+
+        // เลือกคำสั่งจากเมนูแล้วปิดเมนู (ยกเว้นลบที่ต้องกดยืนยันอีกครั้ง)
+        if (action !== "delete") openMenuId = null;
+
+        if (action === "edit-note") {
+          editingNoteId = String(editingNoteId) === id ? null : id;
+          renderList();
+          return;
+        }
+
+        if (action === "delete" && !btn.classList.contains("confirming")) {
+          // กดครั้งแรกให้ยืนยันก่อน กันลบพลาด
+          btn.classList.add("confirming");
+          btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> กดอีกครั้งเพื่อยืนยันลบ';
+          btn.dataset.timer = setTimeout(() => {
+            if (!btn.isConnected) return;
+            btn.classList.remove("confirming");
+            btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> ลบ';
+          }, 3000);
+          return;
+        }
+
+        if (action === "toggle") {
+          const wasDoneAll = items.length > 0 && items.every((i) => i.checked);
+          await withItem(id, async () => {
+            // อัปเดตทันที (ไม่ต้องรอเซิร์ฟเวอร์) ถ้าล้มเหลวค่อยย้อนกลับ
+            replaceItem({ ...item, checked: !item.checked });
+            renderAll();
+            try {
+              const updated = await request(
+                `${API_BASE_URL}/checklist/${id}/toggle?memberId=${myMemberId}`,
+                { method: "PATCH" },
+              );
+              replaceItem(updated);
+            } catch (error) {
+              replaceItem(item);
+              throw error;
+            }
+          });
+          const allDone = items.length > 0 && items.every((i) => i.checked);
+          if (allDone && !wasDoneAll) {
+            launchConfetti();
+            showToast("เตรียมของครบทุกชิ้นแล้ว พร้อมออกเดินทาง!");
+          }
+          return;
+        }
+
+        if (action === "claim" || action === "unclaim") {
+          await withItem(id, async () => {
+            const me = String(myMemberId);
+            const current = assigneesOf(item);
+            const next =
+              action === "claim" ? [...current.filter((x) => x !== me), me] : current.filter((x) => x !== me);
+            const updated = await request(`${API_BASE_URL}/checklist/${id}/assignees`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(next.map(Number)),
+            });
+            replaceItem(updated);
+            showToast(
+              action === "claim"
+                ? `คุณรับผิดชอบ "${item.itemName}" แล้ว`
+                : `เอาชื่อคุณออกจาก "${item.itemName}" แล้ว`,
+            );
+          });
+          return;
+        }
+
+        if (action === "delete") {
+          clearTimeout(Number(btn.dataset.timer));
+          openMenuId = null;
+          await withItem(id, async () => {
+            await request(`${API_BASE_URL}/checklist/${id}`, { method: "DELETE" });
+            items = items.filter((i) => String(i.id) !== id);
+            if (String(editingNoteId) === id) editingNoteId = null;
+            if (items.length === 0) setFormCollapsed(false);
+            showToast(`ลบ "${item.itemName}" แล้ว`);
+          });
+        }
+      });
+
+      // บันทึกโน้ต
+      document.getElementById("item-groups").addEventListener("submit", async (e) => {
+        const form = e.target.closest("[data-role='note-form']");
+        if (!form) return;
+        e.preventDefault();
+        const id = form.closest("[data-item-id]").dataset.itemId;
+        const qtyRaw = form.querySelector(".qty-input").value.trim();
+        const quantity = qtyRaw === "" ? null : Number(qtyRaw);
+        if (quantity !== null && !(quantity > 0)) {
+          showToast("จำนวนต้องมากกว่า 0", "error");
+          form.querySelector(".qty-input").focus();
+          return;
+        }
+        await withItem(id, async () => {
+          const updated = await request(`${API_BASE_URL}/checklist/${id}/details`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              quantity,
+              unit: form.querySelector(".unit-input").value.trim() || null,
+              notes: form.querySelector(".note-input").value.trim() || null,
+              memberId: myMemberId,
+            }),
+          });
+          replaceItem(updated);
+          editingNoteId = null;
+          showToast("บันทึกแล้ว");
+        });
+      });
+
+      document.addEventListener("click", (e) => {
+        if (openMenuId == null || e.target.closest(".row-menu, .menu-btn")) return;
+        openMenuId = null;
+        renderList();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape" || openMenuId == null) return;
+        const id = openMenuId;
+        openMenuId = null;
+        renderList();
+        document.querySelector(`[data-item-id="${id}"] .menu-btn`)?.focus();
+      });
+
+      // Esc ปิดช่องแก้โน้ต
+      document.getElementById("item-groups").addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && e.target.closest("[data-role='note-form']")) {
+          editingNoteId = null;
+          renderList();
+        }
+      });
+
+      // ---------- ฟอร์มเพิ่มของ ----------
+      const addForm = document.getElementById("add-form");
+      const formToggle = document.getElementById("form-toggle");
+      const catGrid = document.getElementById("cat-grid");
+      const nameList = document.getElementById("name-list");
+      const addRowBtn = document.getElementById("add-row-btn");
+      const nameInputs = () => [...nameList.querySelectorAll(".name-input")];
+
+      function setFormCollapsed(collapsed) {
+        addForm.classList.toggle("collapsed", collapsed);
+        formToggle.setAttribute("aria-expanded", String(!collapsed));
+      }
+
+      formToggle.addEventListener("click", () => {
+        const willExpand = addForm.classList.contains("collapsed");
+        setFormCollapsed(!willExpand);
+        if (willExpand) nameInputs()[0]?.focus();
+      });
+
+      function selectCategory(value) {
+        selectedCategory = value;
+        catGrid.querySelectorAll(".cat-option").forEach((b) => {
+          b.setAttribute("aria-checked", String(b.dataset.value === value));
+        });
+      }
+
+      catGrid.innerHTML = CATEGORIES.map(
+        (c) => `
+          <button type="button" class="cat-option" role="radio" aria-checked="false"
+                  data-value="${c.value}" style="--cat: ${c.color}">
+            <i class="${c.icon}"></i> ${c.label}
+          </button>`,
+      ).join("");
+      catGrid.addEventListener("click", (e) => {
+        const btn = e.target.closest(".cat-option");
+        if (btn) selectCategory(btn.dataset.value);
+      });
+
+      // ผู้รับผิดชอบที่เลือกในฟอร์ม (เลือกได้หลายคน อย่างน้อย 1 คน)
+      // เริ่มต้นเป็นตัวเอง (ตั้งใน init) และคงค่าไว้หลังเพิ่มของ
+      const selectedAssignees = new Set();
+      const assigneeGrid = document.getElementById("assignee-grid");
+
+      // ลำดับ: คุณ แล้วเพื่อน ๆ
+      function renderAssigneeOptions() {
+        const me = members.find((m) => String(m.id) === String(myMemberId));
+        const others = members.filter((m) => m !== me);
+        const chip = (m, label) => `
+          <button type="button" class="assignee-chip" role="checkbox" aria-checked="false"
+                  data-value="${esc(m.id)}" title="${esc(m.guestName)}">
+            ${avatar(m.guestName)}<span class="chip-name">${esc(label)}</span>
+            <i class="fa-solid fa-check check-mark" aria-hidden="true"></i>
+          </button>`;
+        assigneeGrid.innerHTML =
+          (me ? chip(me, "คุณ") : "") + others.map((m) => chip(m, m.guestName)).join("");
+        syncAssigneeChips();
+      }
+
+      function syncAssigneeChips() {
+        assigneeGrid.querySelectorAll(".assignee-chip").forEach((chip) => {
+          chip.setAttribute("aria-checked", String(selectedAssignees.has(chip.dataset.value)));
+        });
+      }
+
+      assigneeGrid.addEventListener("click", (e) => {
+        const chip = e.target.closest(".assignee-chip");
+        if (!chip) return;
+        const id = chip.dataset.value;
+        if (selectedAssignees.has(id)) {
+          if (selectedAssignees.size === 1) {
+            showToast("ต้องมีผู้รับผิดชอบอย่างน้อย 1 คน", "error");
+            return;
+          }
+          selectedAssignees.delete(id);
+        } else {
+          selectedAssignees.add(id);
+        }
+        syncAssigneeChips();
+      });
+
+      const MAX_BULK_ITEMS = 50;
+      const MAX_NAME_LENGTH = 100;
+
+      // อ่านชื่อจากทุกแถว: ตัดแถวว่าง, ชื่อซ้ำ (ไม่สนตัวพิมพ์) ใช้แถวแรก
+      function parseNames() {
+        const seen = new Set();
+        return nameInputs().map((input) => {
+          const name = input.value.trim();
+          const key = name.toLowerCase();
+          const duplicate = Boolean(name) && seen.has(key);
+          if (name) seen.add(key);
+          return { input, name, duplicate };
+        });
+      }
+
+      function uniqueNames() {
+        return parseNames()
+          .filter((n) => n.name && !n.duplicate)
+          .map((n) => n.name);
+      }
+
+      // อัปเดตลำดับ, ป้าย "ซ้ำ", ปุ่มลบ/เพิ่มแถว, ตัวนับ และข้อความปุ่มบันทึก
+      function syncNameRows() {
+        const parsed = parseNames();
+        const rows = [...nameList.querySelectorAll(".name-row")];
+        rows.forEach((row, i) => {
+          row.querySelector(".name-no").textContent = i + 1;
+          row.querySelector(".name-input").setAttribute("aria-label", `ชื่อสิ่งของชิ้นที่ ${i + 1}`);
+          row.querySelector(".qty-input").setAttribute("aria-label", `จำนวนของชิ้นที่ ${i + 1}`);
+          row.querySelector(".unit-input").setAttribute("aria-label", `หน่วยของชิ้นที่ ${i + 1}`);
+          row.querySelector(".note-input").setAttribute("aria-label", `โน้ตของชิ้นที่ ${i + 1}`);
+          row.querySelector(".row-remove").disabled = rows.length <= 1;
+          row.classList.toggle("dup", parsed[i].duplicate);
+        });
+        addRowBtn.disabled = rows.length >= MAX_BULK_ITEMS;
+
+        const count = uniqueNames().length;
+        document.getElementById("name-counter").textContent =
+          rows.length > 1 ? `${count}/${MAX_BULK_ITEMS} ชิ้น` : "";
+        document.getElementById("add-btn").innerHTML =
+          count > 1
+            ? `<i class="fa-solid fa-plus"></i> เพิ่ม ${count} ชิ้นลงเช็คลิสต์`
+            : '<i class="fa-solid fa-plus"></i> เพิ่มลงเช็คลิสต์';
+      }
+
+      // เพิ่มแถวใหม่ต่อจาก afterRow (ไม่ระบุ = ท้ายสุด) คืนค่าช่องกรอกของแถวนั้น
+      function addNameRow(value = "", afterRow = null) {
+        if (nameInputs().length >= MAX_BULK_ITEMS) return null;
+        const row = document.createElement("div");
+        row.className = "name-row";
+        row.innerHTML = `
+          <span class="name-no"></span>
+          <div class="row-body">
+            <div class="name-field">
+              <input type="text" class="text-input name-input" maxlength="${MAX_NAME_LENGTH}" autocomplete="off"
+                     placeholder="${nameInputs().length === 0 ? "ชื่อสิ่งของ เช่น ครีมกันแดด" : "ชื่อสิ่งของชิ้นถัดไป"}" />
+              <span class="dup-tag">ซ้ำ</span>
+            </div>
+            <div class="row-extra">
+              <input type="number" class="text-input qty-input" min="0" step="any" inputmode="decimal" placeholder="จำนวน" />
+              <input type="text" class="text-input unit-input" list="unit-options" maxlength="20" placeholder="หน่วย" />
+              <input type="text" class="text-input note-input" maxlength="255" placeholder="โน้ต (ไม่บังคับ)" />
+            </div>
+          </div>
+          <button type="button" class="row-remove" aria-label="ลบแถวนี้"><i class="fa-solid fa-xmark"></i></button>`;
+        row.querySelector(".name-input").value = value;
+        if (afterRow) afterRow.after(row);
+        else nameList.appendChild(row);
+        syncNameRows();
+        return row.querySelector(".name-input");
+      }
+
+      function resetForm() {
+        nameList.innerHTML = "";
+        addNameRow();
+        document.getElementById("group-name").classList.remove("invalid");
+        // คงหมวดและคนรับผิดชอบเดิมไว้ เพิ่มของหมวดเดียวกันต่อได้เร็ว
+      }
+
+      addRowBtn.addEventListener("click", () => addNameRow()?.focus());
+
+      nameList.addEventListener("click", (e) => {
+        const remove = e.target.closest(".row-remove");
+        if (!remove || remove.disabled) return;
+        const row = remove.closest(".name-row");
+        const next = row.nextElementSibling || row.previousElementSibling;
+        row.remove();
+        syncNameRows();
+        next?.querySelector(".name-input").focus();
+      });
+
+      nameList.addEventListener("input", () => {
+        document.getElementById("group-name").classList.remove("invalid");
+        syncNameRows();
+      });
+
+      // Enter: ไปแถวถัดไป / สร้างแถวใหม่ — กด Enter ในแถวว่างสุดท้าย = เพิ่มทั้งหมด
+      // Backspace ในแถวว่าง = ลบแถวนั้นแล้วกลับไปแถวก่อนหน้า
+      nameList.addEventListener("keydown", (e) => {
+        const field = e.target.closest("input");
+        if (!field || e.isComposing) return;
+        if (!field.classList.contains("name-input")) {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          if (e.ctrlKey || e.metaKey) return addForm.requestSubmit();
+          const row = field.closest(".name-row");
+          const nextName = row.nextElementSibling?.querySelector(".name-input");
+          if (nextName) return nextName.focus();
+          if (row.querySelector(".name-input").value.trim()) addNameRow("", row)?.focus();
+          return;
+        }
+        const input = field;
+        const inputs = nameInputs();
+        const index = inputs.indexOf(input);
+        const row = input.closest(".name-row");
+
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (e.ctrlKey || e.metaKey) return addForm.requestSubmit();
+          if (index < inputs.length - 1) return inputs[index + 1].focus();
+          if (input.value.trim()) return addNameRow("", row)?.focus();
+          if (uniqueNames().length > 0) addForm.requestSubmit();
+          return;
+        }
+
+        if (e.key === "Backspace" && !input.value && inputs.length > 1) {
+          e.preventDefault();
+          const prev = inputs[index - 1] || inputs[index + 1];
+          row.remove();
+          syncNameRows();
+          prev.focus();
+        }
+      });
+
+      // วางข้อความหลายบรรทัด = แยกเป็นหลายแถวให้เอง
+      nameList.addEventListener("paste", (e) => {
+        const input = e.target.closest(".name-input");
+        const text = e.clipboardData?.getData("text") || "";
+        const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (!input || lines.length < 2) return;
+        e.preventDefault();
+        const before = input.value.slice(0, input.selectionStart);
+        const after = input.value.slice(input.selectionEnd);
+        input.value = before + lines[0];
+        let row = input.closest(".name-row");
+        let last = input;
+        lines.slice(1).forEach((line, i) => {
+          const isLast = i === lines.length - 2;
+          const created = addNameRow(isLast ? line + after : line, row);
+          if (!created) return;
+          row = created.closest(".name-row");
+          last = created;
+        });
+        syncNameRows();
+        last.focus();
+      });
+
+      addForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!canEdit()) return;
+        const names = uniqueNames();
+        const tooLong = names.find((n) => n.length > MAX_NAME_LENGTH);
+        // จำนวนที่กรอกต้องมากกว่า 0 (เว้นว่างได้)
+        const badQty = parseNames().find((n) => {
+          if (!n.name || n.duplicate) return false;
+          const raw = n.input.closest(".name-row").querySelector(".qty-input").value.trim();
+          return raw !== "" && !(Number(raw) > 0);
+        });
+        const error =
+          names.length === 0
+            ? "กรุณากรอกชื่อสิ่งของ"
+            : names.length > MAX_BULK_ITEMS
+              ? `เพิ่มได้ครั้งละไม่เกิน ${MAX_BULK_ITEMS} ชิ้น (ตอนนี้ ${names.length} ชิ้น)`
+              : tooLong
+                ? `ชื่อยาวเกิน ${MAX_NAME_LENGTH} ตัวอักษร: "${tooLong.slice(0, 20)}…"`
+                : badQty
+                  ? `จำนวนของ "${badQty.name}" ต้องมากกว่า 0`
+                  : "";
+        document.getElementById("name-error").textContent = error;
+        document.getElementById("group-name").classList.toggle("invalid", Boolean(error));
+        if (error) {
+          const target = badQty
+            ? badQty.input.closest(".name-row").querySelector(".qty-input")
+            : parseNames().find((n) => n.name.length > MAX_NAME_LENGTH)?.input || nameInputs()[0];
+          return target?.focus();
+        }
+
+        const btn = document.getElementById("add-btn");
+        if (btn.disabled) return;
+        btn.disabled = true;
+        try {
+          // แต่ละชิ้น: ชื่อ + จำนวน/หน่วย/โน้ตของตัวเอง (ข้ามแถวว่างและชื่อซ้ำ)
+          const rows = parseNames()
+            .filter((n) => n.name && !n.duplicate)
+            .map((n) => {
+              const row = n.input.closest(".name-row");
+              const qtyRaw = row.querySelector(".qty-input").value.trim();
+              return {
+                itemName: n.name,
+                quantity: qtyRaw === "" ? null : Number(qtyRaw),
+                unit: row.querySelector(".unit-input").value.trim() || null,
+                notes: row.querySelector(".note-input").value.trim() || null,
+              };
+            });
+          // เพิ่มทุกชิ้นในคำขอเดียว (หลังบ้านบันทึกทั้งหมดหรือไม่บันทึกเลย)
+          const created = await request(`${API_BASE_URL}/checklist/bulk`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tripId: Number(tripId),
+              category: selectedCategory,
+              assigneeIds: [...selectedAssignees].map(Number),
+              items: rows,
+            }),
+          });
+          items.push(...created);
+          activeFilter = "ALL";
+          searchText = "";
+          document.getElementById("search-input").value = "";
+          resetForm();
+          renderAll();
+          showToast(
+            created.length === 1 ? `เพิ่ม "${created[0].itemName}" แล้ว` : `เพิ่มของ ${created.length} ชิ้นแล้ว`,
+          );
+          nameInputs()[0]?.focus(); // เพิ่มชิ้นต่อไปได้ทันที
+        } catch (error) {
+          showToast(error.message, "error");
+        } finally {
+          btn.disabled = !canEdit();
+        }
+      });
+
+      // ---------- เริ่มต้น ----------
+      async function init() {
+        selectCategory(DEFAULT_CATEGORY);
+        resetForm();
+        try {
+          // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) ไม่ใช่ ID
+          // หาไม่เจอ = ดูอย่างเดียว (ไม่สวมรอยเป็นสมาชิกคนแรก)
+          members = await request(`${API_BASE_URL}/trips/${tripId}/members`).catch(() => []);
+          const currentUsername = localStorage.getItem("username");
+          const me = members.find((m) => currentUsername && m.guestName === currentUsername);
+          myMemberId = me ? me.id : null;
+
+          // ผู้รับผิดชอบเริ่มต้น = ตัวเอง (ส่วนใหญ่คนเพิ่มของคือคนที่จะเอาไปเอง)
+          selectedAssignees.clear();
+          if (me) selectedAssignees.add(String(me.id));
+          renderAssigneeOptions();
+          if (!canEdit()) {
+            document.getElementById("readonly-notice").classList.remove("hidden");
+            addForm.classList.add("hidden");
+            document.querySelector(".two-col").classList.add("single");
+          }
+
+          items = await request(`${API_BASE_URL}/checklist/${tripId}`);
+          renderAll();
+          setFormCollapsed(items.length > 0);
+        } catch (error) {
+          console.error("Error loading checklist:", error);
+          document.getElementById("item-groups").innerHTML = emptyBox(
+            "fa-solid fa-triangle-exclamation",
+            "โหลดเช็คลิสต์ไม่สำเร็จ กรุณาลองใหม่",
+            true,
+          );
+          ["stat-total", "stat-done", "stat-mine"].forEach(
+            (id) => (document.getElementById(id).textContent = "-"),
+          );
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

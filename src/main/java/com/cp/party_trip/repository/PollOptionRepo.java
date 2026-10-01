@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface PollOptionRepo extends JpaRepository<PollOption, Long> {
     List<PollOption> findByPollId(Long pollId);
+
+    List<PollOption> findByPollIdOrderByIdAsc(Long pollId);
 }

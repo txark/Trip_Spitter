@@ -31,6 +31,20 @@ function avatar(name, size = "") {
   return `<div class="avatar ${size}" style="--av:${color}">${initial}</div>`;
 }
 
+// หาสมาชิกทริปที่เป็นผู้ใช้คนปัจจุบัน (TripMember.guestName = username ใน localStorage)
+// หาไม่เจอคืน null — ห้ามเดาเป็นสมาชิกคนแรก ไม่งั้นจะบันทึกบิล/ยืนยันรับเงิน/โหวตแทนคนอื่น
+function findMyMember(members) {
+  const username = localStorage.getItem("username");
+  return (members || []).find((m) => username && m.guestName === username) || null;
+}
+
+const NOT_MEMBER_TEXT = "ไม่พบชื่อของคุณในทริปนี้ เข้าร่วมทริปด้วยรหัสเชิญที่หน้าแรกก่อน";
+
+// ยอดเงินจากการบวกลบทศนิยม (เช่น 0.1 + 0.2 - 0.3) ให้ปัดเป็นสตางค์ก่อนเทียบ > 0 / < 0
+function roundMoney(n) {
+  return Math.round((Number(n) || 0) * 100) / 100;
+}
+
 // กล่องข้อความว่าง/ผิดพลาด พร้อมไอคอน
 function emptyBox(icon, text, isError = false) {
   return `<div class="empty-box${isError ? " error" : ""}"><i class="${icon}"></i>${esc(text)}</div>`;
@@ -85,3 +99,55 @@ function launchConfetti(count = 90) {
   document.body.append(...pieces);
   setTimeout(() => pieces.forEach((p) => p.remove()), 4000);
 }
+
+// ย่อขนาดตัวเลขในแถบสรุป (.stat-value) ให้พอดีช่อง แสดงจำนวนเงินครบทุกหลัก แทนการตัดเป็น "..."
+// ทำงานเองทุกหน้าที่มี .stat-summary: ตอนค่าเปลี่ยน และตอนขนาดจอเปลี่ยน
+const STAT_MIN_FONT_PX = 11;
+
+function fitStatValues(root = document) {
+  root.querySelectorAll(".stat-value").forEach((el) => {
+    el.style.fontSize = ""; // เริ่มจากขนาดปกติใน CSS ทุกครั้ง (กรณีตัวเลขสั้นลง/จอกว้างขึ้น)
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth && size > STAT_MIN_FONT_PX) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const summaries = document.querySelectorAll(".stat-summary");
+  if (summaries.length === 0) return;
+
+  let queued = false;
+  const refit = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      summaries.forEach((s) => fitStatValues(s));
+    });
+  };
+
+  // ค่าในช่องสรุปถูกเติมด้วย JS หลังโหลดข้อมูล -> ปรับขนาดเมื่อเนื้อหาเปลี่ยน
+  const observer = new MutationObserver(refit);
+  summaries.forEach((s) =>
+    observer.observe(s, { childList: true, characterData: true, subtree: true }),
+  );
+  window.addEventListener("resize", refit);
+  window.addEventListener("load", refit);
+
+  // ช่องเปลี่ยนขนาด (เช่น sidebar โผล่, grid จัดใหม่) -> ปรับใหม่
+  if ("ResizeObserver" in window) {
+    const ro = new ResizeObserver(refit);
+    summaries.forEach((s) => ro.observe(s));
+  }
+
+  // ฟอนต์เว็บ (Plus Jakarta Sans / Sarabun ของ ฿) โหลดเสร็จทีหลัง ตัวเลขจะกว้างขึ้นกว่าตอนวัดครั้งแรก
+  // fonts.ready อาจจบไปก่อนฟอนต์ที่โหลดทีหลัง จึงฟัง loadingdone ทุกครั้งที่มีฟอนต์โหลดเสร็จด้วย
+  if (document.fonts) {
+    document.fonts.ready.then(refit);
+    document.fonts.addEventListener("loadingdone", refit);
+  }
+  refit();
+});
