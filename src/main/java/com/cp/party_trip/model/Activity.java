@@ -1,5 +1,6 @@
 package com.cp.party_trip.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ public class Activity {
 
     @ManyToOne
     @JoinColumn(name = "trip_id")
+    @JsonIgnore // ป้องกัน Infinite Recursion (Trip -> activities -> trip -> ...)
     private Trip trip;
 
     private String title;

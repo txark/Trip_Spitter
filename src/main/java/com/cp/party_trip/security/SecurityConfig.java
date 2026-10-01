@@ -21,30 +21,13 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    // @Bean
-    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
-    // Exception {
-    // http
-    // .csrf(AbstractHttpConfigurer::disable)
-    // .authorizeHttpRequests(auth -> auth
-    // .requestMatchers("/api/auth/**", "/api/history/**").permitAll() //
-    // เพิ่มเส้นทาง /api/history/**
-    // // ให้เข้าถึงได้อิสระ
-    // .anyRequest().authenticated())
-    // .sessionManagement(sess ->
-    // sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-    // .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-    // return http.build();
-    // }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // ปิด CSRF ชั่วคราวเพื่อให้เทส API ง่ายขึ้น
+                .csrf(csrf -> csrf.disable()) // ปิด CSRF เพื่อให้หน้าบ้านยิง POST API ได้
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**").permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().permitAll() // อนุญาตทุกเส้นทางชั่วคราวเพื่อทดสอบระบบ
+                );
         return http.build();
     }
 

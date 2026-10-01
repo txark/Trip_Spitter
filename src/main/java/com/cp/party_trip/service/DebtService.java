@@ -30,10 +30,21 @@ public class DebtService {
         // คำนวณยอดเงินของสมาชิกทุกคน
         for (Expense expense : expenses) {
             TripMember paidBy = expense.getUser();
+            if (paidBy == null || expense.getTotalAmount() == null)
+                continue;
             balances.put(paidBy, balances.getOrDefault(paidBy, BigDecimal.ZERO).add(expense.getTotalAmount()));
 
+            if (expense.getExpenseSplits() == null)
+                continue;
             for (ExpenseSplit split : expense.getExpenseSplits()) {
                 TripMember owedby = split.getTripMember();
+                if (owedby == null || split.getAmountOwed() == null)
+                    continue;
+                // ส่วนที่ผู้จ่ายยืนยันแล้วว่าได้รับเงิน ถือว่าชำระแล้ว ไม่นับเป็นหนี้
+                if (split.isPaid() && !owedby.equals(paidBy)) {
+                    balances.put(paidBy, balances.get(paidBy).subtract(split.getAmountOwed()));
+                    continue;
+                }
                 balances.put(owedby, balances.getOrDefault(owedby, BigDecimal.ZERO).subtract(split.getAmountOwed()));
             }
         }
