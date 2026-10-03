@@ -77,22 +77,25 @@ public class ExpenseController {
             @RequestParam Long memberId,
             @RequestBody ExpenseRequest expense,
             @RequestParam(required = false) List<Long> participantIds,
-            @RequestParam(required = false) Long paidByMemberId) {
+            @RequestParam(required = false) Long paidByMemberId,
+            @RequestParam(required = false) Integer revision) {
         guard.self(guard.tripOfExpense(expenseId), memberId);
         return ResponseEntity.ok(expenseService.updateExpense(expenseId, memberId, paidByMemberId, expense,
-                participantIds));
+                participantIds, revision));
     }
 
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam Long memberId) {
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam Long memberId,
+            @RequestParam(required = false) Integer revision) {
         guard.self(guard.tripOfExpense(expenseId), memberId);
-        expenseService.deleteExpense(expenseId, memberId);
+        expenseService.deleteExpense(expenseId, memberId, revision);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/trip/{tripId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<Map<String, Object>>> getExpensesByTrip(@PathVariable Long tripId) {
+        guard.me(tripId);
         List<Expense> expenses = expenseRepo.findByTripId(tripId);
         List<Map<String, Object>> result = new ArrayList<>();
 
@@ -107,6 +110,7 @@ public class ExpenseController {
                 expMap.put("expenseDate", exp.getExpenseDate());
                 expMap.put("activityId", exp.getActivityId());
                 expMap.put("recordedById", exp.getRecordedById());
+                expMap.put("revision", exp.getRevision());
                 expMap.put("currency", exp.getCurrency());
                 expMap.put("originalAmount", exp.getOriginalAmount());
                 expMap.put("exchangeRate", exp.getExchangeRate());

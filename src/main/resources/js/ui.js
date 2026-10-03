@@ -75,7 +75,34 @@ const authReady = (async () => {
   await loginAs(name);
 })();
 
+// เก็บชื่อใหม่ในเครื่องหลังเปลี่ยนชื่อ (token เดิมย้ายไปอยู่กับชื่อใหม่)
+function saveRenamed(oldName, user, token) {
+  try {
+    const tokens = readTokens();
+    if (oldName && oldName !== user.username) delete tokens[oldName];
+    localStorage.setItem("authTokens", JSON.stringify(tokens));
+  } catch {}
+  saveAuth(user, token);
+}
+
+// เปลี่ยนชื่อจากเครื่องอื่นของเรา: ชื่อในเครื่องนี้ยังเป็นชื่อเก่า -> อัปเดตแล้วโหลดหน้าใหม่ (หน้าเว็บหา "ฉัน" ในทริปจากชื่อ)
+(async () => {
+  const name = localStorage.getItem("username");
+  const token = authToken(name);
+  if (!name || !token) return;
+  try {
+    const res = await nativeFetch(`${API_BASE}/users/me`, { headers: { [AUTH_HEADER]: token } });
+    if (!res.ok) return;
+    const me = await res.json();
+    if (me.username && me.username !== name) {
+      saveRenamed(name, me, token);
+      location.reload();
+    }
+  } catch {}
+})();
+
 let authWarned = false;
+let notMemberWarned = false;
 window.fetch = async (input, init = {}) => {
   const url = typeof input === "string" ? input : input?.url || "";
   if (!url.startsWith(API_BASE)) return nativeFetch(input, init);
@@ -89,6 +116,19 @@ window.fetch = async (input, init = {}) => {
     authWarned = true;
     setTimeout(() => showToast("ยืนยันตัวตนไม่ผ่าน กรุณากลับไปเข้าสู่ระบบที่หน้าแรก", "error"), 0);
   }
+  // เปิดลิงก์ทริปที่ตัวเองไม่ได้เป็นสมาชิก: ข้อมูลทริปดูได้เฉพาะสมาชิก -> พากลับหน้าแรกไปเข้าร่วมด้วยรหัสเชิญ
+  if (res.status === 403 && !notMemberWarned && !/home\.html$/.test(location.pathname)) {
+    res
+      .clone()
+      .text() // บางคอนโทรลเลอร์ตอบเป็นข้อความล้วน บางอันเป็น {"message": ...}
+      .then((body) => {
+        if (notMemberWarned || !body.includes("คุณไม่ได้เป็นสมาชิกในทริปนี้")) return;
+        notMemberWarned = true;
+        showToast("คุณยังไม่ได้เป็นสมาชิกทริปนี้ ขอรหัสเชิญจากเพื่อนแล้วกดเข้าร่วมที่หน้าแรก", "error");
+        setTimeout(() => location.replace("home.html"), 2500);
+      })
+      .catch(() => {});
+  }
   return res;
 };
 
@@ -98,6 +138,55 @@ function fmt(n) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}`;
+}
+
+// ---------- หมวดหมู่ค่าใช้จ่าย (ตรงกับประเภทในแพลน เทียบแผนกับจ่ายจริงได้) ----------
+const EXPENSE_CATEGORIES = [
+  { value: "FOOD", label: "อาหาร", icon: "fa-solid fa-utensils" },
+  { value: "ACCOMMODATION", label: "ที่พัก", icon: "fa-solid fa-hotel" },
+  { value: "TRANSPORT", label: "เดินทาง", icon: "fa-solid fa-car" },
+  { value: "SIGHTSEEING", label: "เที่ยวชม", icon: "fa-solid fa-camera" },
+  { value: "ACTIVITY", label: "กิจกรรม", icon: "fa-solid fa-person-hiking" },
+  { value: "SHOPPING", label: "ช้อปปิ้ง", icon: "fa-solid fa-shopping-bag" },
+  { value: "OTHER", label: "อื่นๆ", icon: "fa-solid fa-star" },
+];
+const expenseCategoryOf = (value) =>
+  EXPENSE_CATEGORIES.find((c) => c.value === value) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
+// ประเภทในแพลน -> หมวดบิล
+const PLAN_TO_EXPENSE_CATEGORY = {
+  FOOD: "FOOD",
+  STAY: "ACCOMMODATION",
+  TRAVEL: "TRANSPORT",
+  SIGHTSEEING: "SIGHTSEEING",
+  ACTIVITY: "ACTIVITY",
+  OTHER: "OTHER",
+};
+
+// ยอดประมาณการทั้งรายการในแพลน เป็นบาท (สูตรเดียวกับหน้าแพลน)
+// ที่พัก = ราคา/ห้อง/คืน × ห้อง × คืน, เดินทาง/กิจกรรมที่ระบุคน = × คนที่ไป, อื่น ๆ = × ทุกคน
+// กิน/รถส่วนตัว ไม่มีงบในแพลน
+function planEstimateBaht(act, trip, memberCount) {
+  const noCost = act.category === "FOOD" || (act.category === "TRAVEL" && act.transportMode === "CAR");
+  const cost = noCost ? 0 : Number(act.cost) || 0;
+  if (cost <= 0) return 0;
+  let rate = 1;
+  if (isForeign(act.costCurrency)) {
+    rate =
+      trip?.currency === act.costCurrency && Number(trip.exchangeRate) > 0
+        ? Number(trip.exchangeRate)
+        : Number(act.costRate) || 0;
+  }
+  const unit = cost * rate;
+  if (act.category === "STAY") {
+    const day = (v) => new Date(`${String(v).slice(0, 10)}T00:00:00`);
+    const nights = act.endDate ? Math.max(Math.round((day(act.endDate) - day(act.activityDate)) / 86400000), 0) : 0;
+    return unit * (act.rooms || 1) * Math.max(nights, 1);
+  }
+  const people =
+    ["ACTIVITY", "TRAVEL"].includes(act.category) && act.participantIds?.length
+      ? act.participantIds.length
+      : memberCount;
+  return unit * Math.max(people, 1);
 }
 
 // ---------- สกุลเงิน ----------
@@ -434,3 +523,148 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   refit();
 });
+
+// ---------- สรุปจบทริป: ข้อความเดียวไว้แชร์ลงกลุ่ม (ใครโอนให้ใคร + ยอดรวม) ----------
+// ใช้ได้ทุกหน้า: openTripSummary(tripId)
+async function buildTripSummary(tripId) {
+  const get = async (path) => {
+    const res = await fetch(`${API_BASE}${path}`);
+    if (!res.ok) throw new Error("โหลดข้อมูลไม่สำเร็จ");
+    return res.json();
+  };
+  const [trip, members, expenses, transfers] = await Promise.all([
+    get(`/trips/${tripId}`),
+    get(`/trips/${tripId}/members`),
+    get(`/expenses/trip/${tripId}`),
+    get(`/debts/simplify/${tripId}`),
+  ]);
+  const name = (m) => m?.guestName || `สมาชิก #${m?.id}`;
+  const total = expenses.reduce((s, e) => s + Number(e.totalAmount || 0), 0);
+  const paid = {};
+  const share = {};
+  const byCat = {};
+  expenses.forEach((e) => {
+    if (e.user) paid[e.user.id] = (paid[e.user.id] || 0) + Number(e.totalAmount || 0);
+    (e.splits || []).forEach((sp) => {
+      if (sp.tripMember) share[sp.tripMember.id] = (share[sp.tripMember.id] || 0) + Number(sp.amountOwed || 0);
+    });
+    const cat = expenseCategoryOf(e.category).value;
+    byCat[cat] = (byCat[cat] || 0) + Number(e.totalAmount || 0);
+  });
+
+  const day = (v) => new Date(`${String(v).slice(0, 10)}T00:00:00`);
+  const range =
+    trip.startDate && trip.endDate
+      ? `${day(trip.startDate).toLocaleDateString("th-TH", { day: "numeric", month: "short" })} – ${day(
+          trip.endDate,
+        ).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}`
+      : "";
+
+  const lines = [];
+  lines.push(`🧳 สรุปทริป "${trip.title || `ทริป #${tripId}`}"`);
+  lines.push([range && `📅 ${range}`, `👥 ${members.length} คน`].filter(Boolean).join(" · "));
+  lines.push("");
+  lines.push(`💰 ค่าใช้จ่ายทั้งทริป ${fmt(Math.round(total * 100) / 100)} (${expenses.length} บิล)`);
+  if (members.length > 0) lines.push(`เฉลี่ยคนละ ${fmt(Math.round(total / members.length))}`);
+  lines.push("");
+
+  const owing = (transfers || []).filter((t) => Number(t.amount) > 0.004);
+  if (owing.length === 0) {
+    lines.push("✅ เคลียร์ครบทุกคนแล้ว ไม่มีใครค้างใคร");
+  } else {
+    lines.push("💸 ใครต้องโอนให้ใคร");
+    owing
+      .sort((a, b) => Number(b.amount) - Number(a.amount))
+      .forEach((t, i) => lines.push(`${i + 1}. ${name(t.from)} → ${name(t.to)} ${fmt(Number(t.amount))}`));
+  }
+  lines.push("");
+
+  if (members.length > 0 && expenses.length > 0) {
+    lines.push("👤 แต่ละคน (จ่ายไป · ส่วนของตัวเอง)");
+    [...members]
+      .sort((a, b) => (paid[b.id] || 0) - (paid[a.id] || 0))
+      .forEach((m) => lines.push(`• ${name(m)}: ${fmt(paid[m.id] || 0)} · ${fmt(share[m.id] || 0)}`));
+    lines.push("");
+  }
+
+  const cats = EXPENSE_CATEGORIES.filter((c) => byCat[c.value] > 0);
+  if (cats.length > 0) {
+    lines.push("📊 แยกตามหมวด");
+    lines.push(cats.map((c) => `${c.label} ${fmt(byCat[c.value])}`).join(" · "));
+    lines.push("");
+  }
+  lines.push("ส่งจาก Trip Splitter");
+  return lines.join("\n");
+}
+
+// คัดลอกข้อความ (clipboard API อาจค้าง/ไม่ได้รับอนุญาต -> สำรองด้วย textarea)
+async function copyText(text) {
+  try {
+    await Promise.race([
+      navigator.clipboard.writeText(text),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 1500)),
+    ]);
+    return true;
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+    document.body.appendChild(area);
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {}
+    area.remove();
+    return ok;
+  }
+}
+
+async function openTripSummary(tripId) {
+  let dialog = document.getElementById("trip-summary-dialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "trip-summary-dialog";
+    dialog.className = "summary-dialog";
+    dialog.setAttribute("aria-labelledby", "trip-summary-title");
+    dialog.innerHTML = `
+      <div class="summary-head">
+        <span id="trip-summary-title">สรุปทริปไว้แชร์</span>
+        <button type="button" class="summary-close" aria-label="ปิด">&times;</button>
+      </div>
+      <pre class="summary-text" id="trip-summary-text">กำลังสรุป...</pre>
+      <div class="summary-actions">
+        <button type="button" class="summary-btn" data-act="copy"><i class="fa-regular fa-copy"></i> คัดลอก</button>
+        <a class="summary-btn line" data-act="line" target="_blank" rel="noopener"><i class="fa-brands fa-line"></i> ส่งเข้า LINE</a>
+        <button type="button" class="summary-btn" data-act="share" hidden><i class="fa-solid fa-share-nodes"></i> แชร์</button>
+      </div>`;
+    document.body.appendChild(dialog);
+    dialog.querySelector(".summary-close").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.querySelector('[data-act="copy"]').addEventListener("click", async () => {
+      const ok = await copyText(dialog.dataset.text || "");
+      showToast(ok ? "คัดลอกสรุปแล้ว วางในแชทได้เลย" : "คัดลอกไม่สำเร็จ ลองกดค้างที่ข้อความแล้วคัดลอกเอง", ok ? "success" : "error");
+    });
+    dialog.querySelector('[data-act="share"]').addEventListener("click", () => {
+      navigator.share({ text: dialog.dataset.text || "" }).catch(() => {});
+    });
+  }
+  const pre = dialog.querySelector("#trip-summary-text");
+  const line = dialog.querySelector('[data-act="line"]');
+  pre.textContent = "กำลังสรุป...";
+  dialog.dataset.text = "";
+  line.removeAttribute("href");
+  dialog.querySelector('[data-act="share"]').hidden = !navigator.share;
+  if (!dialog.open) dialog.showModal();
+  try {
+    const text = await buildTripSummary(tripId);
+    pre.textContent = text;
+    dialog.dataset.text = text;
+    line.href = `https://line.me/R/share?text=${encodeURIComponent(text)}`;
+  } catch (error) {
+    pre.textContent = error.message || "สรุปไม่สำเร็จ ลองใหม่อีกครั้ง";
+  }
+}
