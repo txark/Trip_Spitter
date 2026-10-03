@@ -75,6 +75,7 @@ public class SettlementController {
 
     @GetMapping("/history/{tripId}")
     public ResponseEntity<List<SettlementDTO>> getSettlementHistory(@PathVariable Long tripId) {
+        guard.me(tripId);
         List<Settlement> settlements = settlementRepo.findByTripId(tripId);
         List<SettlementDTO> response = new ArrayList<>();
 

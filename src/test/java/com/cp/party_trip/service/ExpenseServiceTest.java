@@ -251,7 +251,7 @@ class ExpenseServiceTest {
         friend.setAmountOwed(new BigDecimal("50.00"));
         friend.setPaid(paidFriend);
         e.setExpenseSplits(new java.util.ArrayList<>(List.of(mine, friend)));
-        when(expenseRepo.findById(40L)).thenReturn(Optional.of(e));
+        when(expenseRepo.lockById(40L)).thenReturn(Optional.of(e));
         return e;
     }
 
@@ -315,7 +315,7 @@ class ExpenseServiceTest {
         assertEquals(10L, e.getRecordedById());
 
         e.setId(40L);
-        when(expenseRepo.findById(40L)).thenReturn(Optional.of(e));
+        when(expenseRepo.lockById(40L)).thenReturn(Optional.of(e));
         service.updateExpense(40L, 10L, request("60", "EQUAL"), List.of(11L, 10L)); // คนบันทึกแก้ได้
         service.updateExpense(40L, 11L, request("80", "EQUAL"), List.of(11L, 10L)); // คนจ่ายแก้ได้
         assertStatus(HttpStatus.FORBIDDEN, () -> service.updateExpense(40L, 12L, request("10", "EQUAL"), null));
@@ -368,6 +368,21 @@ class ExpenseServiceTest {
         tomorrow.setExpenseDate(java.time.LocalDate.now().plusDays(1)); // เผื่อเขตเวลาต่างกัน
         assertEquals(java.time.LocalDate.now().plusDays(1),
                 service.createExpense(1L, 10L, tomorrow, null).getExpenseDate().toLocalDate());
+    }
+
+    @Test
+    void editFromStaleFormIsRejectedAndRevisionGoesUp() {
+        Expense e = existingBill(false, false);
+        assertEquals(0, e.getRevision());
+        service.updateExpense(40L, 10L, null, request("100", "EQUAL"), List.of(10L, 11L), 0);
+        assertEquals(1, e.getRevision());
+        // อีกเครื่องเปิดฟอร์มไว้ตอนรุ่น 0 แล้วกดบันทึกทีหลัง
+        assertStatus(HttpStatus.CONFLICT,
+                () -> service.updateExpense(40L, 10L, null, request("200", "EQUAL"), List.of(10L, 11L), 0));
+        assertEquals(new java.math.BigDecimal("100.00"), e.getTotalAmount());
+        assertStatus(HttpStatus.CONFLICT, () -> service.deleteExpense(40L, 10L, 0));
+        service.deleteExpense(40L, 10L, 1);
+        verify(expenseRepo).delete(e);
     }
 
     @Test

@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 // อ่าน token จาก header X-Auth-Token แล้วแนบผู้ใช้ไว้กับ request (AuthGuard ใช้ต่อ)
 // คำสั่งที่แก้ข้อมูล (POST/PUT/PATCH/DELETE) ต้องมี token ที่ถูกต้อง ยกเว้นการเข้าสู่ระบบ
-// การอ่านข้อมูล (GET) ยังเปิดอยู่: ทุกคนที่มีลิงก์/รหัสทริปดูได้เหมือนเดิม
+// การอ่านข้อมูล (GET) ผ่านได้ แต่คอนโทรลเลอร์เช็กเองว่าเป็นสมาชิกทริปนั้น (guard.me) ไม่ใช่สมาชิก = 403
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
     private final UserService userService;

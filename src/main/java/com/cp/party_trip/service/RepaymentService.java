@@ -47,6 +47,8 @@ public class RepaymentService {
     public Repayment receive(Long tripId, Long receiverId, Long senderId, RepaymentRequest request) {
         TripMember receiver = member(tripId, receiverId);
         TripMember sender = member(tripId, senderId);
+        // ต่อคิวการรับเงินจากผู้โอนคนนี้ (ยอดค้างต้องอ่านหลังจากรายการก่อนหน้าบันทึกเสร็จ)
+        tripMemberRepo.lockById(sender.getId());
         if (receiver.getId().equals(sender.getId())) {
             throw badRequest("ผู้โอนกับผู้รับต้องเป็นคนละคนกัน");
         }
