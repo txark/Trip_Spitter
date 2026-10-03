@@ -194,6 +194,193 @@ class ExpenseServiceTest {
         assertBadRequest(r);
     }
 
+    @Test
+    void foreignCurrencyBillKeepsReceiptAmountAndRate() {
+        ExpenseRequest r = request("690", "EQUAL");
+        r.setCurrency("jpy");
+        r.setOriginalAmount(new BigDecimal("3000"));
+        r.setExchangeRate(new BigDecimal("0.23"));
+        Expense e = service.createExpense(1L, 10L, r, List.of(10L, 11L));
+        assertEquals("JPY", e.getCurrency());
+        assertEquals(new BigDecimal("3000.00"), e.getOriginalAmount());
+        assertEquals(new BigDecimal("0.230000"), e.getExchangeRate());
+        assertEquals(List.of(new BigDecimal("345.00"), new BigDecimal("345.00")), amounts(e)); // หารเป็นบาท
+    }
+
+    @Test
+    void foreignBillMustMatchRateAndHaveReceiptAmount() {
+        ExpenseRequest wrong = request("700", "EQUAL");
+        wrong.setCurrency("JPY");
+        wrong.setOriginalAmount(new BigDecimal("3000"));
+        wrong.setExchangeRate(new BigDecimal("0.23"));
+        assertBadRequest(wrong);
+
+        ExpenseRequest noRate = request("690", "EQUAL");
+        noRate.setCurrency("JPY");
+        noRate.setOriginalAmount(new BigDecimal("3000"));
+        assertBadRequest(noRate);
+    }
+
+    @Test
+    void bahtBillHasNoForeignFields() {
+        ExpenseRequest r = request("100", "EQUAL");
+        r.setCurrency("THB");
+        r.setOriginalAmount(new BigDecimal("5"));
+        r.setExchangeRate(new BigDecimal("20"));
+        Expense e = service.createExpense(1L, 10L, r, List.of(10L));
+        assertEquals("THB", e.getCurrency());
+        assertNull(e.getOriginalAmount());
+        assertNull(e.getExchangeRate());
+    }
+
+    // บิลที่บันทึกไว้แล้ว: คนจ่าย 10 หารกับ 11 คนละ 50 (paidFriend = 11 จ่ายคืนแล้ว)
+    private Expense existingBill(boolean paidFriend, boolean paidPayer) {
+        Expense e = new Expense();
+        e.setId(40L);
+        e.setTrip(trip);
+        e.setTitle("old");
+        e.setTotalAmount(new BigDecimal("100.00"));
+        e.setActivityId(5L);
+        e.setUser(tripMemberRepo.findById(10L).orElseThrow());
+        ExpenseSplit mine = new ExpenseSplit();
+        mine.setTripMember(e.getUser());
+        mine.setAmountOwed(new BigDecimal("50.00"));
+        mine.setPaid(paidPayer);
+        ExpenseSplit friend = new ExpenseSplit();
+        friend.setTripMember(tripMemberRepo.findById(11L).orElseThrow());
+        friend.setAmountOwed(new BigDecimal("50.00"));
+        friend.setPaid(paidFriend);
+        e.setExpenseSplits(new java.util.ArrayList<>(List.of(mine, friend)));
+        when(expenseRepo.findById(40L)).thenReturn(Optional.of(e));
+        return e;
+    }
+
+    @Test
+    void payerCanEditBillAndSplitsAreRebuilt() {
+        Expense e = existingBill(false, true); // ส่วนของคนจ่ายเองไม่นับว่า "จ่ายคืน"
+        List<ExpenseSplit> sameList = e.getExpenseSplits();
+
+        ExpenseRequest r = request("300", "EQUAL");
+        r.setTitle(" new ");
+        Expense saved = service.updateExpense(40L, 10L, r, List.of(10L, 11L, 12L));
+
+        assertEquals("new", saved.getTitle());
+        assertEquals(new BigDecimal("300.00"), saved.getTotalAmount());
+        assertEquals(List.of(new BigDecimal("100.00"), new BigDecimal("100.00"), new BigDecimal("100.00")),
+                amounts(saved));
+        assertSame(sameList, saved.getExpenseSplits()); // ลิสต์เดิม ให้ orphanRemoval ลบแถวเก่า
+        assertNull(saved.getActivityId()); // ไม่ส่ง activityId มา = เลิกผูกกับแพลน
+        assertEquals(10L, saved.getUser().getId());
+    }
+
+    @Test
+    void onlyPayerCanEditOrDelete() {
+        existingBill(false, false);
+        assertStatus(HttpStatus.FORBIDDEN, () -> service.updateExpense(40L, 11L, request("10", "EQUAL"), null));
+        assertStatus(HttpStatus.FORBIDDEN, () -> service.deleteExpense(40L, null));
+        verify(expenseRepo, never()).save(any());
+        verify(expenseRepo, never()).delete(any());
+    }
+
+    @Test
+    void billIsLockedOnceAFriendHasPaidBack() {
+        Expense e = existingBill(true, false);
+        assertStatus(HttpStatus.CONFLICT, () -> service.updateExpense(40L, 10L, request("10", "EQUAL"), null));
+        assertStatus(HttpStatus.CONFLICT, () -> service.deleteExpense(40L, 10L));
+        assertEquals(2, e.getExpenseSplits().size());
+        verify(expenseRepo, never()).save(any());
+        verify(expenseRepo, never()).delete(any());
+    }
+
+    @Test
+    void editValidatesLikeCreate() {
+        existingBill(false, false);
+        assertStatus(HttpStatus.BAD_REQUEST, () -> service.updateExpense(40L, 10L, request("0", "EQUAL"), null));
+        assertStatus(HttpStatus.BAD_REQUEST,
+                () -> service.updateExpense(40L, 10L, request("100", "EQUAL"), List.of(10L, 99L)));
+        verify(expenseRepo, never()).save(any());
+    }
+
+    @Test
+    void payerCanDeleteBill() {
+        Expense e = existingBill(false, false);
+        service.deleteExpense(40L, 10L);
+        verify(expenseRepo).delete(e);
+    }
+
+    @Test
+    void canRecordBillPaidByFriendAndRecorderCanEditIt() {
+        Expense e = service.createExpense(1L, 11L, 10L, request("100", "EQUAL"), List.of(11L, 10L));
+        assertEquals(11L, e.getUser().getId());
+        assertEquals(10L, e.getRecordedById());
+
+        e.setId(40L);
+        when(expenseRepo.findById(40L)).thenReturn(Optional.of(e));
+        service.updateExpense(40L, 10L, request("60", "EQUAL"), List.of(11L, 10L)); // คนบันทึกแก้ได้
+        service.updateExpense(40L, 11L, request("80", "EQUAL"), List.of(11L, 10L)); // คนจ่ายแก้ได้
+        assertStatus(HttpStatus.FORBIDDEN, () -> service.updateExpense(40L, 12L, request("10", "EQUAL"), null));
+        assertStatus(HttpStatus.FORBIDDEN, () -> service.deleteExpense(40L, 12L));
+    }
+
+    @Test
+    void ownBillIsRecordedByPayer() {
+        assertEquals(10L, service.createExpense(1L, 10L, request("50", "EQUAL"), null).getRecordedById());
+        assertStatus(HttpStatus.BAD_REQUEST,
+                () -> service.createExpense(1L, 10L, 99L, request("50", "EQUAL"), null)); // คนบันทึกอยู่ทริปอื่น
+    }
+
+    @Test
+    void editCanChangePayerAndEditorKeepsAccess() {
+        existingBill(false, false);
+        Expense saved = service.updateExpense(40L, 10L, 12L, request("100", "EQUAL"), List.of(12L, 10L));
+        assertEquals(12L, saved.getUser().getId());
+        assertEquals(10L, saved.getRecordedById());
+        assertStatus(HttpStatus.BAD_REQUEST,
+                () -> service.updateExpense(40L, 10L, 99L, request("100", "EQUAL"), null));
+    }
+
+    @Test
+    void billDateCanBeChosenAndEditedKeepingTime() {
+        ExpenseRequest r = request("100", "EQUAL");
+        r.setExpenseDate(java.time.LocalDate.of(2026, 10, 1));
+        Expense e = service.createExpense(1L, 10L, r, null);
+        assertEquals(java.time.LocalDate.of(2026, 10, 1), e.getExpenseDate().toLocalDate());
+
+        Expense old = existingBill(false, false);
+        old.setExpenseDate(java.time.LocalDateTime.of(2026, 10, 3, 14, 30));
+        ExpenseRequest edit = request("100", "EQUAL");
+        edit.setExpenseDate(java.time.LocalDate.of(2026, 10, 2));
+        assertEquals(java.time.LocalDateTime.of(2026, 10, 2, 14, 30),
+                service.updateExpense(40L, 10L, edit, null).getExpenseDate());
+
+        ExpenseRequest noDate = request("100", "EQUAL");
+        assertEquals(java.time.LocalDate.of(2026, 10, 2),
+                service.updateExpense(40L, 10L, noDate, null).getExpenseDate().toLocalDate()); // ไม่ส่ง = วันเดิม
+
+        ExpenseRequest bad = request("100", "EQUAL");
+        bad.setExpenseDate(java.time.LocalDate.of(1900, 1, 1));
+        assertStatus(HttpStatus.BAD_REQUEST, () -> service.updateExpense(40L, 10L, bad, null));
+
+        ExpenseRequest future = request("100", "EQUAL");
+        future.setExpenseDate(java.time.LocalDate.now().plusDays(2));
+        assertStatus(HttpStatus.BAD_REQUEST, () -> service.createExpense(1L, 10L, future, null));
+        ExpenseRequest tomorrow = request("100", "EQUAL");
+        tomorrow.setExpenseDate(java.time.LocalDate.now().plusDays(1)); // เผื่อเขตเวลาต่างกัน
+        assertEquals(java.time.LocalDate.now().plusDays(1),
+                service.createExpense(1L, 10L, tomorrow, null).getExpenseDate().toLocalDate());
+    }
+
+    @Test
+    void editingMissingBillIsNotFound() {
+        assertStatus(HttpStatus.NOT_FOUND, () -> service.updateExpense(41L, 10L, request("10", "EQUAL"), null));
+        assertStatus(HttpStatus.NOT_FOUND, () -> service.deleteExpense(41L, 10L));
+    }
+
+    private void assertStatus(HttpStatus status, org.junit.jupiter.api.function.Executable call) {
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, call);
+        assertEquals(status, ex.getStatusCode());
+    }
+
     private void assertBadRequest(ExpenseRequest r) {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.createExpense(1L, 10L, r, List.of(10L)));

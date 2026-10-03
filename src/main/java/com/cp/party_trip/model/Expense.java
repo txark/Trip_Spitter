@@ -33,11 +33,22 @@ public class Expense {
     private String currency; // Currency of the expense
     private String splitType; // Type of split (e.g., equal, percentage, custom)
 
-    @Column(name = "expense_date", updatable = false)
-    private LocalDateTime expenseDate = LocalDateTime.now(); // Date of the expense
+    @Column(name = "expense_date")
+    private LocalDateTime expenseDate = LocalDateTime.now(); // Date of the expense (เลือกวันได้ตอนบันทึก/แก้)
+
+    // คนที่บันทึกบิล (อาจบันทึกแทนเพื่อนที่จ่าย) — แก้/ลบได้ทั้งคนจ่ายและคนบันทึก
+    @Column(name = "recorded_by_member_id")
+    private Long recordedById;
 
     @Column(name = "category")
     private String category; // FOOD, TRANSPORT, ACCOMMODATION, SHOPPING
+
+    // บิลเงินต่างประเทศ: ยอดตามใบเสร็จ + เรท (totalAmount = ยอดเงินบาทที่ใช้หาร/คิดหนี้)
+    @Column(name = "original_amount", precision = 12, scale = 2)
+    private BigDecimal originalAmount;
+
+    @Column(name = "exchange_rate", precision = 14, scale = 6)
+    private BigDecimal exchangeRate;
 
     // บิลนี้บันทึกจากรายการไหนในแพลนเที่ยว (null = บิลทั่วไป)
     @Column(name = "activity_id")
@@ -100,6 +111,14 @@ public class Expense {
         this.splitType = splitType;
     }
 
+    public Long getRecordedById() {
+        return recordedById;
+    }
+
+    public void setRecordedById(Long recordedById) {
+        this.recordedById = recordedById;
+    }
+
     public LocalDateTime getExpenseDate() {
         return expenseDate;
     }
@@ -114,6 +133,22 @@ public class Expense {
 
     public void setExpenseSplits(List<ExpenseSplit> expenseSplits) {
         this.expenseSplits = expenseSplits;
+    }
+
+    public BigDecimal getOriginalAmount() {
+        return originalAmount;
+    }
+
+    public void setOriginalAmount(BigDecimal originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
+    public BigDecimal getExchangeRate() {
+        return exchangeRate;
+    }
+
+    public void setExchangeRate(BigDecimal exchangeRate) {
+        this.exchangeRate = exchangeRate;
     }
 
     public Long getActivityId() {

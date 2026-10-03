@@ -13,6 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +48,11 @@ public class TripService {
         trip.setId(null);
         trip.setTripMembers(null);
         trip.setActivities(null);
+        // สกุลเงิน/เขตเวลาที่เลือกตอนสร้าง: ตรวจแบบเดียวกับตอนแก้ทีหลัง
+        String code = Money.currency(trip.getCurrency());
+        trip.setCurrency(code);
+        trip.setExchangeRate(code == null ? null : Money.rate(trip.getExchangeRate()));
+        trip.setTimeZone(validZoneOrNull(trip.getTimeZone()));
 
         User creator = userRepo.findByUsername(creatorName)
                 .orElseGet(() -> {
@@ -111,6 +120,80 @@ public class TripService {
                         + trip.getId() + " =====");
 
         return savedMember;
+    }
+
+    static final BigDecimal MAX_BUDGET = new BigDecimal("9999999");
+
+    // ตั้งงบต่อคน: ไม่ส่ง / 0 = ยกเลิกงบ
+    @Transactional
+    public Trip updateBudget(Long tripId, Long memberId, BigDecimal amount) {
+        Trip trip = getTripById(tripId);
+        requireMember(tripId, memberId, "เฉพาะสมาชิกในทริปเท่านั้นที่ตั้งงบได้");
+        if (amount == null || amount.signum() == 0) {
+            trip.setBudgetPerPerson(null);
+        } else if (amount.signum() < 0 || amount.compareTo(MAX_BUDGET) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "งบต้องอยู่ระหว่าง 1 ถึง 9,999,999 บาท");
+        } else if (amount.stripTrailingZeros().scale() > 2) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "งบใส่ทศนิยมได้ไม่เกิน 2 ตำแหน่ง");
+        } else {
+            trip.setBudgetPerPerson(amount.setScale(2, RoundingMode.UNNECESSARY));
+        }
+        return tripRepo.save(trip);
+    }
+
+    // ตั้งสกุลเงินท้องถิ่นของทริป: ไม่ส่ง / THB = ใช้บาทอย่างเดียว
+    @Transactional
+    public Trip updateCurrency(Long tripId, Long memberId, String currency, BigDecimal rate) {
+        Trip trip = getTripById(tripId);
+        requireMember(tripId, memberId, "เฉพาะสมาชิกในทริปเท่านั้นที่ตั้งสกุลเงินได้");
+        String code = Money.currency(currency);
+        if (code == null) {
+            trip.setCurrency(null);
+            trip.setExchangeRate(null);
+        } else {
+            trip.setCurrency(code);
+            trip.setExchangeRate(Money.rate(rate));
+        }
+        return tripRepo.save(trip);
+    }
+
+    private void requireMember(Long tripId, Long memberId, String message) {
+        boolean member = memberId != null && tripMemberRepo.findById(memberId)
+                .map(m -> m.getTrip() != null && tripId.equals(m.getTrip().getId()))
+                .orElse(false);
+        if (!member) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
+        }
+    }
+
+    // เปลี่ยนเขตเวลาของทริป: สมาชิกคนไหนก็เปลี่ยนได้ (เหมือนแก้แพลน)
+    @Transactional
+    public Trip updateTimeZone(Long tripId, Long memberId, String timeZone) {
+        Trip trip = getTripById(tripId);
+        requireMember(tripId, memberId, "เฉพาะสมาชิกในทริปเท่านั้นที่เปลี่ยนเขตเวลาได้");
+        String zone = timeZone == null ? "" : timeZone.trim();
+        // รับเฉพาะชื่อเขตเวลาแบบ ทวีป/เมือง (ไม่รับ +07:00 หรือ UTC เฉย ๆ ที่ไม่ปรับเวลาออมแสง)
+        try {
+            if (!zone.contains("/") || zone.length() > 50) {
+                throw new DateTimeException(zone);
+            }
+            trip.setTimeZone(ZoneId.of(zone).getId());
+        } catch (DateTimeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "เขตเวลาไม่ถูกต้อง");
+        }
+        return tripRepo.save(trip);
+    }
+
+    // เขตเวลาที่ส่งมาตอนสร้างทริป: ไม่ถูกต้อง = ใช้ค่าเริ่มต้น (กรุงเทพ) แทนที่จะสร้างไม่ได้
+    private String validZoneOrNull(String zone) {
+        if (zone == null || !zone.contains("/") || zone.length() > 50) {
+            return null;
+        }
+        try {
+            return ZoneId.of(zone.trim()).getId();
+        } catch (DateTimeException e) {
+            return null;
+        }
     }
 
     public Trip getTripById(Long id) {

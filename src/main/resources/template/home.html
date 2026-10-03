@@ -555,6 +555,69 @@
         margin-bottom: 16px;
       }
 
+      /* PIN: ไว้เข้าชื่อเดิมจากเครื่องอื่น */
+      .pin-field {
+        margin-top: 4px;
+      }
+
+      .pin-field label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .pin-field input {
+        letter-spacing: 0.3em;
+        font-family: var(--font-mono);
+      }
+
+      /* ช่อง PIN + ปุ่มดู/ซ่อน */
+      .pin-wrap {
+        position: relative;
+      }
+
+      .pin-wrap input {
+        padding-right: 44px;
+      }
+
+      .pin-eye {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .pin-eye:hover {
+        background: var(--surface-muted);
+      }
+
+      .pin-status {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .pin-status.ok {
+        color: var(--success, #16a34a);
+      }
+
+      .pin-error {
+        min-height: 1.1em;
+        margin: -6px 0 12px;
+        font-size: 0.8rem;
+        color: var(--danger);
+      }
+
       .modal-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -848,6 +911,23 @@
             autocomplete="off"
           />
         </div>
+        <div class="input-group pin-field">
+          <label for="pin-input">PIN ไว้เข้าชื่อนี้จากเครื่องอื่น (ตัวเลข 4–6 หลัก)</label>
+          <div class="pin-wrap">
+            <input
+              type="password"
+              id="pin-input"
+              inputmode="numeric"
+              maxlength="6"
+              autocomplete="new-password"
+              placeholder="••••"
+            />
+            <button type="button" class="pin-eye" data-target="pin-input" aria-label="แสดง PIN">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <small class="pin-status" id="pin-status"></small>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn-ghost" onclick="closeUsernameModal()">
             ยกเลิก
@@ -859,8 +939,29 @@
       </div>
     </div>
 
+    <!-- Modal ใส่ PIN: ชื่อนี้มีเจ้าของในเครื่องอื่นแล้ว -->
+    <div class="modal-overlay" id="pin-modal" role="dialog" aria-modal="true" aria-labelledby="pin-modal-title">
+      <div class="modal-box">
+        <h3 id="pin-modal-title">ใส่ PIN ของชื่อนี้</h3>
+        <p id="pin-modal-text"></p>
+        <div class="input-group pin-field">
+          <div class="pin-wrap">
+            <input type="password" id="pin-login-input" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="••••" aria-label="PIN" />
+            <button type="button" class="pin-eye" data-target="pin-login-input" aria-label="แสดง PIN">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="pin-error" id="pin-modal-error" role="alert"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" id="pin-cancel-btn">ใช้ชื่ออื่น</button>
+          <button type="button" class="btn-solid" id="pin-ok-btn">เข้าสู่ระบบ</button>
+        </div>
+      </div>
+    </div>
+
     <script>
-      const API_BASE_URL = "http://localhost:8090/api"; // เชื่อมต่อพอร์ต Backend จริง
+      const API_BASE_URL = API_BASE; // ตั้งที่ ui.js
       let currentUserId = localStorage.getItem("userId");
 
       // --- สลับวิวปุ่มใหญ่ <-> ฟอร์ม ---
@@ -913,35 +1014,101 @@
         let savedUsername = localStorage.getItem("username");
         if (!savedUsername) {
           savedUsername = "TripGuest_" + Math.floor(Math.random() * 900 + 100);
-          localStorage.setItem("username", savedUsername);
         }
         renderProfile(savedUsername);
-
-        // ส่งชื่อไปบันทึก/ตรวจสอบในตาราง users ที่ Backend (ได้ userId กลับมา)
-        await registerOrUpdateUser(savedUsername);
-      }
-
-      async function registerOrUpdateUser(username) {
-        try {
-          const response = await fetch(
-            `${API_BASE_URL}/users/login?username=${encodeURIComponent(username)}`,
-            { method: "POST" },
-          );
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const user = await response.json();
-          localStorage.setItem("userId", user.id);
-          currentUserId = user.id;
-        } catch (error) {
-          // ล้าง userId เดิม ไม่งั้นชื่อใหม่จะไปแสดงประวัติทริปของบัญชีเก่า
-          console.error("ไม่สามารถบันทึกข้อมูลผู้ใช้ได้:", error);
+        const ok = await signIn(savedUsername);
+        if (!ok) {
+          // ชื่อเดิมถูกเครื่องอื่นใช้ไปแล้ว: ให้ตั้งชื่อใหม่
           localStorage.removeItem("userId");
           currentUserId = null;
+          openUsernameModal();
         }
       }
 
+      // เข้าสู่ระบบด้วยชื่อเล่น: ชื่อที่มีเจ้าของในเครื่องอื่นต้องใส่ PIN
+      async function signIn(username) {
+        let result = await loginAs(username);
+        let error = "";
+        while (!result.ok && (result.needPin || result.message === "PIN ไม่ถูกต้อง")) {
+          const pin = await askPin(username, error);
+          if (pin == null) return false;
+          result = await loginAs(username, pin);
+          error = result.message === "PIN ไม่ถูกต้อง" ? "PIN ไม่ถูกต้อง ลองอีกครั้ง" : "";
+        }
+        if (!result.ok) {
+          showToast(result.message || "เข้าสู่ระบบไม่สำเร็จ", "error");
+          return false;
+        }
+        currentUserId = result.user.id;
+        renderProfile(result.user.username);
+        return true;
+      }
+
+      // ถาม PIN (คืนค่า PIN หรือ null ถ้ากดใช้ชื่ออื่น)
+      function askPin(username, error = "") {
+        const modal = document.getElementById("pin-modal");
+        const input = document.getElementById("pin-login-input");
+        document.getElementById("pin-modal-text").textContent =
+          `ชื่อ "${username}" ใช้อยู่ในเครื่องอื่นแล้ว ถ้าเป็นชื่อของคุณ ใส่ PIN ที่ตั้งไว้`;
+        document.getElementById("pin-modal-error").textContent = error;
+        input.value = "";
+        hideAllPins();
+        modal.classList.add("active");
+        setTimeout(() => input.focus(), 50);
+        return new Promise((resolve) => {
+          const done = (value) => {
+            modal.classList.remove("active");
+            ok.removeEventListener("click", onOk);
+            cancel.removeEventListener("click", onCancel);
+            input.removeEventListener("keydown", onKey);
+            resolve(value);
+          };
+          const ok = document.getElementById("pin-ok-btn");
+          const cancel = document.getElementById("pin-cancel-btn");
+          const onOk = () => {
+            const pin = input.value.trim();
+            if (!/^\d{4,6}$/.test(pin)) {
+              document.getElementById("pin-modal-error").textContent = "PIN เป็นตัวเลข 4–6 หลัก";
+              return;
+            }
+            done(pin);
+          };
+          const onCancel = () => done(null);
+          const onKey = (e) => {
+            if (e.key === "Enter" && !e.isComposing) onOk();
+            if (e.key === "Escape") onCancel();
+          };
+          ok.addEventListener("click", onOk);
+          cancel.addEventListener("click", onCancel);
+          input.addEventListener("keydown", onKey);
+        });
+      }
+
+      // ปุ่มตา: แสดง/ซ่อน PIN (เปิดหน้าต่างใหม่ = ซ่อนเสมอ)
+      function setPinVisible(btn, visible) {
+        document.getElementById(btn.dataset.target).type = visible ? "text" : "password";
+        btn.querySelector("i").className = visible ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+        btn.setAttribute("aria-label", visible ? "ซ่อน PIN" : "แสดง PIN");
+      }
+      document.querySelectorAll(".pin-eye").forEach((btn) =>
+        btn.addEventListener("click", () => {
+          setPinVisible(btn, document.getElementById(btn.dataset.target).type === "password");
+          document.getElementById(btn.dataset.target).focus();
+        }),
+      );
+      const hideAllPins = () => document.querySelectorAll(".pin-eye").forEach((btn) => setPinVisible(btn, false));
+
       function openUsernameModal() {
+        hideAllPins();
         const input = document.getElementById("username-input");
         input.value = localStorage.getItem("username") || "";
+        document.getElementById("pin-input").value = "";
+        const pinSet = localStorage.getItem("pinSet") === "1";
+        const status = document.getElementById("pin-status");
+        status.textContent = pinSet
+          ? "ตั้ง PIN แล้ว · กรอกใหม่เพื่อเปลี่ยน"
+          : "ไม่ตั้งก็ได้ · ถ้าไม่ตั้ง ชื่อนี้จะใช้ได้แค่เครื่องนี้";
+        status.classList.toggle("ok", pinSet);
         document.getElementById("username-modal").classList.add("active");
         input.focus();
         input.select();
@@ -953,23 +1120,49 @@
 
       async function saveUsername() {
         const newName = document.getElementById("username-input").value.trim();
+        const pin = document.getElementById("pin-input").value.trim();
         if (!newName) {
           showToast("กรุณากรอกชื่อเล่น", "error");
           return;
         }
-        localStorage.setItem("username", newName);
-        renderProfile(newName);
+        if (pin && !/^\d{4,6}$/.test(pin)) {
+          showToast("PIN ต้องเป็นตัวเลข 4–6 หลัก", "error");
+          return;
+        }
+        const oldName = localStorage.getItem("username");
         closeUsernameModal();
-        showToast(`เปลี่ยนชื่อเป็น "${newName}" แล้ว`);
-        // บันทึกชื่อใหม่ลงตาราง users แล้วโหลดประวัติของบัญชีนั้น
-        await registerOrUpdateUser(newName);
+        // เปลี่ยนชื่อ = เข้าสู่ระบบด้วยชื่อใหม่ (ชื่อที่มีเจ้าของต้องใส่ PIN) ไม่สำเร็จ = ใช้ชื่อเดิม
+        if (newName !== oldName || !currentUserId) {
+          const ok = await signIn(newName);
+          if (!ok) {
+            if (oldName) renderProfile(oldName);
+            openUsernameModal();
+            return;
+          }
+          showToast(`ใช้ชื่อ "${newName}" แล้ว`);
+        }
+        if (pin) await savePin(pin);
         loadRecentTrips();
       }
 
+      async function savePin(pin) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/users/pin?pin=${encodeURIComponent(pin)}`, { method: "POST" });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || "ตั้ง PIN ไม่สำเร็จ");
+          localStorage.setItem("pinSet", data.pinSet ? "1" : "0");
+          showToast("ตั้ง PIN แล้ว ใช้เข้าชื่อนี้จากเครื่องอื่นได้");
+        } catch (error) {
+          showToast(error.message || "ตั้ง PIN ไม่สำเร็จ", "error");
+        }
+      }
+
       // Enter = บันทึก, Esc = ปิด, คลิกพื้นหลัง = ปิด
-      document.getElementById("username-input").addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.isComposing) saveUsername();
-      });
+      ["username-input", "pin-input"].forEach((id) =>
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.isComposing) saveUsername();
+        }),
+      );
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeUsernameModal();
       });
@@ -1028,10 +1221,11 @@
         const endDate = document.getElementById("trip-end-date").value;
 
         // ตรวจสอบและดึงชื่อเล่น ถ้าไม่มีให้ใช้ Guest
-        let creatorName = localStorage.getItem("username");
-        if (!creatorName || creatorName === "My Username" || creatorName.trim() === "") {
-          creatorName = "Guest_" + Math.floor(Math.random() * 1000);
-          localStorage.setItem("username", creatorName);
+        const creatorName = localStorage.getItem("username") || "";
+        if (!currentUserId || !authToken()) {
+          showToast("ยังเข้าสู่ระบบไม่สำเร็จ ตั้งชื่อเล่นก่อนแล้วลองใหม่", "error");
+          openUsernameModal();
+          return;
         }
 
         const endBeforeStart = startDate && endDate && endDate < startDate;
@@ -1085,6 +1279,11 @@
         if (!inviteCode) {
           setInvalid("group-code", true);
           showToast("กรุณากรอกรหัสเชิญห้องทริป", "error");
+          return;
+        }
+        if (!currentUserId || !authToken()) {
+          showToast("ยังเข้าสู่ระบบไม่สำเร็จ ตั้งชื่อเล่นก่อนแล้วลองใหม่", "error");
+          openUsernameModal();
           return;
         }
 

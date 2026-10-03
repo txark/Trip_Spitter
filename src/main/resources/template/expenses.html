@@ -131,10 +131,95 @@
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
       }
 
-      .amount-field .currency {
+      /* สกุลเงิน: select โปร่งใสทับสัญลักษณ์ แตะแล้วเลือกสกุลอื่นได้ */
+      .cur-pick {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
         font-size: 1.5rem;
         font-weight: 800;
         color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .cur-pick i {
+        font-size: 0.7rem;
+      }
+
+      .cur-pick select {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        opacity: 0;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .cur-pick:focus-within {
+        color: var(--primary);
+      }
+
+      /* แถวอัตราแลกเปลี่ยน (เฉพาะเงินต่างประเทศ) */
+      .rate-row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-top: 6px;
+        font-size: 0.875rem;
+      }
+
+      .rate-row .rate-label {
+        color: var(--text-muted);
+      }
+
+      .rate-input {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 10px;
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        font-family: var(--font-mono);
+      }
+
+      .container .rate-input input {
+        width: 92px;
+        height: 34px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        font-family: inherit;
+        font-size: 0.9375rem;
+      }
+
+      .rate-baht {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-weight: 700;
+      }
+
+      .rate-note {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+      }
+
+      .rate-note.warn {
+        color: #b45309;
+      }
+
+      .feed-amount small {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: right;
       }
 
       .container .amount-field input {
@@ -219,6 +304,114 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      /* เลือกคนจ่าย: select โปร่งใสทับทั้งแถว */
+      .payer-pick {
+        position: relative;
+        cursor: pointer;
+      }
+
+      .payer-pick > i {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+      }
+
+      .container .payer-pick select {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      /* แท็บรายการบิล: ฉันจ่าย / ฉันร่วมหาร / ทั้งทริป */
+      /* .segmented ประกาศทีหลัง: ต้องใช้ selector ที่เจาะจงกว่า ไม่งั้นโดนทับเป็น 2 คอลัมน์ */
+      .segmented.view-tabs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-bottom: 12px;
+      }
+
+      .view-tabs label {
+        min-width: 0; /* ให้ช่องหดได้ ไม่ดันแท็บล้นจอเล็ก */
+      }
+
+      .view-tabs label > span {
+        height: 34px;
+        gap: 4px;
+        padding: 0 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: clamp(0.75rem, 2.6vw, 0.85rem);
+      }
+
+      .view-tabs .tab-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* จอแคบมาก: ตัวเลขขึ้นบรรทัดล่าง ชื่อแท็บไม่โดนตัด */
+      @media (max-width: 340px) {
+        .view-tabs label > span {
+          flex-direction: column;
+          gap: 0;
+          height: 42px;
+          line-height: 1.15;
+        }
+      }
+
+      /* ตัวเลขในแท็บ: span ซ้อนใน .segmented span จึงต้องล้างสไตล์ปุ่มออก */
+      .segmented.view-tabs .tab-label {
+        display: block;
+        height: auto;
+        padding: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        font-size: inherit;
+        color: inherit;
+        min-width: 0;
+      }
+
+      .segmented.view-tabs .tab-count {
+        display: inline;
+        flex-shrink: 0; /* ชื่อแท็บยาวแล้วโดนตัด "…" แทน ตัวเลขต้องอยู่เสมอ */
+        height: auto;
+        padding: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: inherit;
+        opacity: 0.55;
+      }
+
+      /* ไม่มีบิล / แท็บที่เลือกอยู่ (เห็นรายการแล้ว) = ไม่ต้องโชว์ตัวเลข */
+      .segmented.view-tabs .tab-count:empty,
+      .segmented.view-tabs input:checked + span .tab-count {
+        display: none;
+      }
+
+      .date-hint {
+        margin-top: 6px;
+        font-size: 0.8125rem;
+        color: #b45309;
+      }
+
+      .my-share {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .my-share .text-muted {
+        font-weight: 500;
       }
 
       .you-tag {
@@ -702,6 +895,92 @@
           background: var(--background);
         }
       }
+      /* แก้ไข/ลบบิล: ปุ่มท้ายใบเสร็จ */
+      .bill-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--border);
+      }
+
+      .bill-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 32px;
+        padding: 4px 10px;
+        border: none;
+        border-radius: 8px;
+        background: none;
+        color: var(--text-muted);
+        font-family: inherit;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background-color 0.15s,
+          color 0.15s;
+      }
+
+      .bill-action.danger.armed {
+        background: var(--danger);
+        color: #ffffff;
+      }
+
+      .bill-action:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+
+      .bill-locked {
+        margin-right: auto;
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+      }
+
+      .receipt.editing {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      .edit-note {
+        margin: -10px 0 16px;
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+      }
+
+      .cancel-edit-btn {
+        width: 100%;
+        height: 44px;
+        margin-top: 8px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        color: var(--text-muted);
+        font-family: inherit;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .bill-action:not(:disabled):hover {
+          background: var(--surface-muted);
+          color: var(--text-main);
+        }
+
+        .bill-action.danger:not(.armed):not(:disabled):hover {
+          color: var(--danger);
+        }
+
+        .cancel-edit-btn:hover {
+          color: var(--text-main);
+        }
+      }
+
       /* แถบบอกว่ากำลังบันทึกบิลจากรายการในแพลน */
       .plan-link {
         display: flex;
@@ -816,10 +1095,13 @@
       <!-- จอคอม: ฟอร์มซ้าย / รายการบิลขวา, มือถือ: เรียงลงมา -->
       <div class="two-col">
         <!-- ฟอร์มกรอกบิลใหม่ -->
-        <div class="form-card sticky-col">
+        <div class="form-card sticky-col" id="expense-form">
           <div class="form-heading">
-            <div class="avatar icon"><i class="fa-solid fa-plus"></i></div>
-            เพิ่มบิลใหม่
+            <div class="avatar icon"><i class="fa-solid fa-plus" id="form-icon"></i></div>
+            <span id="form-title">เพิ่มบิลใหม่</span>
+          </div>
+          <div class="edit-note hidden" id="edit-note">
+            บันทึกแล้วยอดหนี้ของทุกคนในบิลนี้จะคำนวณใหม่
           </div>
 
           <!-- เปิดมาจากปุ่ม "บันทึกค่าใช้จ่ายจริง" ในหน้าแพลน -->
@@ -828,7 +1110,11 @@
           <div class="input-group" id="group-amount">
             <label for="expense-amount">จำนวนเงิน</label>
             <div class="amount-field">
-              <span class="currency">฿</span>
+              <label class="cur-pick" title="สกุลเงิน · แตะเพื่อเปลี่ยน">
+                <span id="cur-symbol">฿</span>
+                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                <select id="expense-currency" aria-label="สกุลเงิน"></select>
+              </label>
               <input
                 type="number"
                 id="expense-amount"
@@ -840,6 +1126,12 @@
               />
             </div>
             <div class="field-error">กรุณากรอกจำนวนเงินที่มากกว่า 0</div>
+            <!-- เงินต่างประเทศ: เรทกลาง (เก็บในช่องซ่อน) + ยอดเป็นบาท (หนี้คิดเป็นบาท) -->
+            <input type="hidden" id="expense-rate" />
+            <div class="rate-row hidden" id="rate-row">
+              <span class="rate-note" id="rate-note"></span>
+              <span class="rate-baht" id="rate-baht"></span>
+            </div>
           </div>
 
           <div class="input-group" id="group-title">
@@ -852,6 +1144,12 @@
             />
             <div class="field-error">กรุณาตั้งชื่อรายการ</div>
           </div>
+          <div class="input-group" id="group-date">
+            <label for="expense-date">วันที่จ่าย</label>
+            <input type="date" id="expense-date" />
+            <div class="date-hint hidden" id="date-hint"></div>
+            <div class="field-error" id="date-error">กรุณาเลือกวันที่</div>
+          </div>
 
           <div class="input-group">
             <span class="label">หมวดหมู่</span>
@@ -861,12 +1159,15 @@
           </div>
 
           <div class="input-group">
-            <span class="label">จ่ายโดย</span>
-            <div class="people-row" id="expense-payer-display">
-              <span class="grow">กำลังโหลดชื่อผู้จ่าย...</span>
+            <label class="label" for="expense-payer">จ่ายโดย</label>
+            <!-- เลือกคนจ่ายได้ (บันทึกแทนเพื่อนที่จ่าย) ค่าเริ่มต้น = คุณ -->
+            <div class="people-row payer-pick" id="expense-payer-display">
+              <span id="payer-avatar"></span>
+              <span class="grow" id="payer-name">กำลังโหลดชื่อผู้จ่าย...</span>
+              <span class="you-tag" id="payer-you" hidden>คุณ</span>
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+              <select id="expense-payer" aria-label="คนจ่าย"></select>
             </div>
-            <!-- เก็บ ID ผู้จ่ายสำหรับส่งหลังบ้าน -->
-            <input type="hidden" id="expense-payer" value="" />
           </div>
 
           <div class="input-group">
@@ -926,6 +1227,7 @@
                   <button
                     type="button"
                     class="text-btn"
+                    id="rest-btn"
                     onclick="giveRestToMe()"
                   >
                     ที่เหลือเป็นของฉัน
@@ -945,13 +1247,35 @@
             <i class="fa-solid fa-floppy-disk"></i>
             <span>บันทึกบิล</span>
           </button>
+          <button
+            type="button"
+            class="cancel-edit-btn hidden"
+            id="cancel-edit-btn"
+            onclick="exitEdit()"
+          >
+            ยกเลิกการแก้ไข
+          </button>
         </div>
 
         <!-- รายการบิลของผู้ใช้ -->
         <section>
           <div class="section-title">
-            <span class="title-text">บิลของคุณ</span>
+            <span class="title-text">บิลในทริป</span>
             <span class="count-pill" id="expenses-count" hidden></span>
+          </div>
+          <div class="segmented view-tabs" id="view-tabs" role="radiogroup" aria-label="บิลที่แสดง">
+            <label>
+              <input type="radio" name="bill-view" value="MINE" checked />
+              <span><span class="tab-label">ฉันจ่าย</span><span class="tab-count" id="tab-count-MINE"></span></span>
+            </label>
+            <label>
+              <input type="radio" name="bill-view" value="SHARED" />
+              <span><span class="tab-label">ฉันร่วมหาร</span><span class="tab-count" id="tab-count-SHARED"></span></span>
+            </label>
+            <label>
+              <input type="radio" name="bill-view" value="ALL" />
+              <span><span class="tab-label">ทั้งทริป</span><span class="tab-count" id="tab-count-ALL"></span></span>
+            </label>
           </div>
           <div class="filter-bar hidden" id="filter-bar"></div>
           <div id="expenses-list-container">
@@ -1022,7 +1346,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const tripId = urlParams.get("tripId") || 1;
       let currentMemberId = null;
-      const API_BASE_URL = "http://localhost:8090/api";
+      const API_BASE_URL = API_BASE; // ตั้งที่ ui.js
 
       document.getElementById("back-dashboard-btn").href =
         `dashboard.html?tripId=${tripId}`;
@@ -1044,6 +1368,8 @@
         CATEGORIES.find((c) => c.value === value) || CATEGORIES[4];
 
       let allMyExpenses = [];
+      let tripInfo = null; // สกุลเงิน/เรทของทริป (ตั้งในหน้าแพลน)
+      const LAST_CURRENCY_KEY = `billCurrency:${tripId}`;
       let allTripExpenses = []; // ทุกบิลในทริป (ไว้นับบิลที่บันทึกจากรายการในแพลนไปแล้ว)
       let tripMembers = [];
 
@@ -1054,13 +1380,151 @@
       const PLAN_TO_CATEGORY = { FOOD: "FOOD", STAY: "ACCOMMODATION", TRAVEL: "TRANSPORT" };
       let activeFilter = "ALL";
       let justAddedId = null;
+      let editingId = null; // บิลที่กำลังแก้ (null = เพิ่มบิลใหม่)
       let currentMemberName = "";
+      let payerId = null; // คนจ่ายของบิลในฟอร์ม (ค่าเริ่มต้น = คุณ)
+      let viewMode = "MINE"; // แท็บรายการบิล
+
+      const sameId = (a, b) => a != null && b != null && String(a) === String(b);
+      const memberNameOf = (id) => {
+        const m = tripMembers.find((x) => sameId(x.id, id));
+        return m ? m.guestName || `สมาชิก #${m.id}` : `สมาชิก #${id}`;
+      };
+      const payerIsMe = () => sameId(payerId, currentMemberId);
+      const payerLabel = () => (payerIsMe() ? "คุณ" : memberNameOf(payerId));
+      // แก้/ลบได้: คนจ่าย หรือคนที่บันทึกบิลนั้น (บันทึกแทนเพื่อน)
+      const canEditBill = (item) =>
+        !!item?.user && (sameId(item.user.id, currentMemberId) || sameId(item.recordedById, currentMemberId));
+
+      // วันที่ในฟอร์ม: ค่าเริ่มต้น = วันนี้ตามเขตเวลาของทริป
+      const pad2 = (n) => String(n).padStart(2, "0");
+      function todayKey() {
+        const now = zoneNow(tripInfo?.timeZone);
+        return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+      }
+      const dayKeyOf = (iso) => String(iso || "").slice(0, 10);
+
+      // วันที่จ่าย: เลือกได้ถึงวันนี้ (ตามเขตเวลาทริป) ก่อน/หลังทริปเลือกได้แต่เตือนไว้
+      function syncDateLimit() {
+        document.getElementById("expense-date").max = todayKey();
+        updateDateHint();
+      }
+
+      function updateDateHint() {
+        const value = document.getElementById("expense-date").value;
+        const hint = document.getElementById("date-hint");
+        const start = dayKeyOf(tripInfo?.startDate);
+        const end = dayKeyOf(tripInfo?.endDate);
+        let text = "";
+        if (value && start && value < start) text = "ก่อนเริ่มทริป (เช่น จองล่วงหน้า)";
+        else if (value && end && value > end) text = "หลังจบทริป";
+        hint.textContent = text;
+        hint.classList.toggle("hidden", !text);
+      }
 
       // --- โหมดหารแบบกำหนดเอง ---
       // เก็บยอดที่กรอกไว้ตาม memberId เพื่อให้ค่าไม่หายเวลาเพิ่ม/ลดคนใน modal
       const customAmounts = new Map();
       // คิดเป็นสตางค์ (จำนวนเต็ม) กันปัญหาทศนิยมของ JS เช่น 0.1 + 0.2
       const toCents = (v) => Math.round((Number(v) || 0) * 100);
+
+      // ---------- สกุลเงินของบิล ----------
+      const billCurrency = () => document.getElementById("expense-currency").value || BASE_CURRENCY;
+      const fmtBill = (v) => fmtCur(v, billCurrency());
+      const billRate = () => readRateInput(document.getElementById("expense-rate"));
+
+      function renderCurrencyOptions(selected) {
+        const select = document.getElementById("expense-currency");
+        const tripCur = isForeign(tripInfo?.currency) ? tripInfo.currency : null;
+        const top = [BASE_CURRENCY, ...(tripCur ? [tripCur] : [])];
+        const option = (c) => `<option value="${c.code}">${esc(c.symbol.trim())} ${esc(c.name)} (${c.code})</option>`;
+        select.innerHTML =
+          top.map((code) => option(currencyOf(code))).join("") +
+          `<optgroup label="สกุลอื่น">${CURRENCIES.filter((c) => !top.includes(c.code)).map(option).join("")}</optgroup>`;
+        let want = selected;
+        if (!want) {
+          try {
+            want = localStorage.getItem(LAST_CURRENCY_KEY);
+          } catch {}
+        }
+        select.value = want && [...select.options].some((o) => o.value === want) ? want : tripCur || BASE_CURRENCY;
+      }
+
+      // เปลี่ยนสกุล: เติมเรท (ของทริปถ้าตรงกัน ไม่งั้นเรทวันนี้) ซ่อน/โชว์แถวเรท
+      async function syncCurrency({ rate = null, fetchRate = true } = {}) {
+        const code = billCurrency();
+        const foreign = isForeign(code);
+        document.getElementById("cur-symbol").textContent = currencySymbol(code);
+        document.getElementById("rate-row").classList.toggle("hidden", !foreign);
+        // ช่องยอดของแต่ละคน (กำหนดเอง) ใช้สกุลเดียวกับบิล
+        if (splitMode() === "CUSTOM") renderCustomRows();
+        const rateInput = document.getElementById("expense-rate");
+        const note = document.getElementById("rate-note");
+        note.classList.remove("warn");
+        if (!foreign) {
+          setRateInput(rateInput, null);
+        } else if (rate) {
+          setRateInput(rateInput, rate);
+          note.textContent = "";
+        } else if (tripInfo?.currency === code && Number(tripInfo.exchangeRate) > 0) {
+          setRateInput(rateInput, Number(tripInfo.exchangeRate));
+          note.textContent = "เรทของทริป (ตั้งในหน้าแพลน)";
+        } else if (fetchRate) {
+          setRateInput(rateInput, null);
+          await loadTodayRate();
+        }
+        updateRateBaht();
+        updateSplitPreview();
+        updateCustomStatus();
+      }
+
+      async function loadTodayRate() {
+        const code = billCurrency();
+        const note = document.getElementById("rate-note");
+        const rateInput = document.getElementById("expense-rate");
+        note.classList.remove("warn");
+        note.textContent = "กำลังดึงเรทวันนี้...";
+        try {
+          const today = await fetchRateToBaht(code);
+          if (billCurrency() !== code) return;
+          if (!today) {
+            note.innerHTML = `ยังไม่มีเรทกลางของ${esc(currencyOf(code).name)} <button type="button" class="text-btn" data-rate-retry><i class="fa-solid fa-rotate"></i> ลองใหม่</button>`;
+            note.classList.add("warn");
+          } else {
+            setRateInput(rateInput, today.rate);
+            note.innerHTML = rateNoteHtml(code, today);
+          }
+        } catch {
+          note.innerHTML = `ดึงเรทไม่ได้ตอนนี้ <button type="button" class="text-btn" data-rate-retry><i class="fa-solid fa-rotate"></i> ลองใหม่</button>`;
+          note.classList.add("warn");
+        }
+        updateRateBaht();
+        updateSplitPreview();
+      }
+
+      function updateRateBaht() {
+        const amount = Number(document.getElementById("expense-amount").value) || 0;
+        const rate = billRate();
+        document.getElementById("rate-baht").textContent =
+          isForeign(billCurrency()) && amount > 0 && rate > 0 ? `≈ ${fmt(toBaht(amount, rate))}` : "";
+      }
+
+      // จำสกุลที่ผู้ใช้เลือกเอง (บิลถัดไปของทริปนี้เริ่มที่สกุลเดิม)
+      document.getElementById("expense-currency").addEventListener("change", () => {
+        try {
+          localStorage.setItem(LAST_CURRENCY_KEY, billCurrency());
+        } catch {}
+        syncCurrency();
+      });
+      // ดึงเรทไม่ได้ -> ปุ่ม "ลองใหม่" ในข้อความใต้ช่องจำนวนเงิน
+      document.getElementById("rate-note").addEventListener("click", (e) => {
+        if (e.target.closest("[data-rate-retry]")) loadTodayRate();
+      });
+      document.getElementById("expense-rate").addEventListener("input", () => {
+        updateRateBaht();
+        updateSplitPreview();
+      });
+      document.getElementById("expense-amount").addEventListener("input", updateRateBaht);
 
       function splitMode() {
         return (
@@ -1069,15 +1533,15 @@
         );
       }
 
-      // คนที่ร่วมหาร: คนที่เลือกใน modal ก่อน แล้วผู้จ่าย (คุณ) อยู่ล่างสุดเสมอ
+      // คนที่ร่วมหาร: คนที่เลือกใน modal ก่อน แล้วคนจ่ายอยู่ล่างสุดเสมอ (isMe = คนจ่าย)
       function splitPeople() {
         const me =
-          currentMemberId == null
+          payerId == null
             ? []
             : [
                 {
-                  id: String(currentMemberId),
-                  name: currentMemberName,
+                  id: String(payerId),
+                  name: memberNameOf(payerId),
                   isMe: true,
                 },
               ];
@@ -1101,9 +1565,9 @@
               <div class="custom-row">
                 ${avatar(p.name, "sm")}
                 <span class="name">${esc(p.name)}</span>
-                ${p.isMe ? '<span class="you-tag">คุณ</span>' : ""}
+                ${p.isMe ? `<span class="you-tag">${payerIsMe() ? "คุณ" : "คนจ่าย"}</span>` : ""}
                 <label class="mini-amount">
-                  <span>฿</span>
+                  <span>${esc(currencySymbol(billCurrency()))}</span>
                   <input type="number" min="0" step="any" inputmode="decimal" placeholder="0"
                     data-member-id="${esc(p.id)}"
                     value="${esc(customAmounts.get(p.id) ?? "")}"
@@ -1122,16 +1586,16 @@
         const el = document.getElementById("custom-status");
 
         let cls = "";
-        let html = `แบ่งแล้ว ${fmt(sum / 100)}`;
+        let html = `แบ่งแล้ว ${fmtBill(sum / 100)}`;
         if (total > 0 && diff === 0) {
           cls = "ok";
-          html = `<i class="fa-solid fa-circle-check"></i> ครบพอดี ${fmt(total / 100)}`;
+          html = `<i class="fa-solid fa-circle-check"></i> ครบพอดี ${fmtBill(total / 100)}`;
         } else if (total > 0 && diff > 0) {
           cls = "under";
-          html = `<i class="fa-solid fa-circle-half-stroke"></i> เหลืออีก ${fmt(diff / 100)}`;
+          html = `<i class="fa-solid fa-circle-half-stroke"></i> เหลืออีก ${fmtBill(diff / 100)}`;
         } else if (total > 0 && diff < 0) {
           cls = "over";
-          html = `<i class="fa-solid fa-circle-exclamation"></i> เกิน ${fmt(-diff / 100)}`;
+          html = `<i class="fa-solid fa-circle-exclamation"></i> เกิน ${fmtBill(-diff / 100)}`;
         }
         el.className = `split-status ${cls}`;
         el.innerHTML = html;
@@ -1170,10 +1634,10 @@
           return;
         }
         if (rest < 0) {
-          showToast(`ยอดของเพื่อนรวมกันเกินบิลไป ${fmt(-rest / 100)}`, "error");
+          showToast(`ยอดของเพื่อนรวมกันเกินบิลไป ${fmtBill(-rest / 100)}`, "error");
           return;
         }
-        customAmounts.set(String(currentMemberId), String(rest / 100));
+        customAmounts.set(String(payerId), String(rest / 100));
         setInvalid("group-custom", false);
         renderCustomRows();
       }
@@ -1257,9 +1721,13 @@
         const people = selectedParticipantIds().length + 1; // +1 = ผู้จ่าย
         const perPerson = Math.round((amount / people) * 100) / 100;
         document.getElementById("split-preview-label").textContent =
-          people === 1 ? "จ่ายคนเดียว" : `หาร ${people} คน (รวมคุณ)`;
+          people === 1 ? "จ่ายคนเดียว" : `หาร ${people} คน (รวม${payerLabel()})`;
+        // เงินต่างประเทศ: บอกเป็นบาทด้วย (หนี้คิดเป็นบาท)
+        const rate = billRate();
         document.getElementById("split-preview-amount").textContent =
-          fmt(perPerson);
+          isForeign(billCurrency())
+            ? `${fmtBill(perPerson)}${rate > 0 ? ` ≈ ${fmt(toBaht(perPerson, rate))}` : ""}`
+            : fmt(perPerson);
       }
 
       // --- Modal เลือกผู้ร่วมหาร ---
@@ -1300,9 +1768,9 @@
 
       // Esc = ปิด modal
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && isParticipantModalOpen()) {
-          closeParticipantModal();
-        }
+        if (e.key !== "Escape") return;
+        if (isParticipantModalOpen()) closeParticipantModal();
+        else if (editingId != null) exitEdit();
       });
 
       // Enter/Space บนช่องเลือกผู้ร่วมหาร = เปิด modal (เหมือนปุ่ม)
@@ -1336,7 +1804,7 @@
       function updateModalConfirmLabel() {
         const n = selectedParticipantIds().length;
         document.getElementById("modal-confirm-btn").textContent =
-          n === 0 ? "ยืนยัน (จ่ายคนเดียว)" : `ยืนยัน (${n} คน + คุณ)`;
+          n === 0 ? "ยืนยัน (จ่ายคนเดียว)" : `ยืนยัน (${n} คน + ${payerLabel()})`;
       }
 
       // อัปเดตข้อความสรุป + avatar ของคนที่เลือกบนฟอร์มหลัก
@@ -1423,36 +1891,15 @@
             currentUserMember.guestName || `สมาชิก #${currentMemberId}`;
           currentMemberName = myName;
 
-          // ผู้จ่ายล็อกเป็นผู้ใช้ปัจจุบันเสมอ
-          payerDisplay.innerHTML = `
-            ${avatar(myName, "sm")}
-            <span class="grow">${esc(myName)}</span>
-            <span class="you-tag">คุณ</span>`;
-          payerInput.value = currentMemberId;
-
-          // checkbox ผู้ร่วมหาร (ไม่รวมผู้จ่าย)
-          const others = members.filter(
-            (m) => String(m.id) !== String(currentMemberId),
-          );
-          modalContainer.innerHTML =
-            others.length === 0
-              ? emptyBox(
-                  "fa-solid fa-user-plus",
-                  "ยังไม่มีเพื่อนในทริป ชวนเพื่อนด้วยรหัสเชิญได้เลย",
-                )
-              : others
-                  .map((m) => {
-                    const name = m.guestName || `สมาชิก #${m.id}`;
-                    return `
-                      <label class="member-option">
-                        ${avatar(name, "sm")}
-                        <span class="name">${esc(name)}</span>
-                        <input type="checkbox" name="participant" value="${esc(m.id)}" data-name="${esc(name)}" checked />
-                      </label>`;
-                  })
-                  .join("");
-
-          updateParticipantSummary();
+          // คนจ่าย: เลือกได้ทุกคนในทริป (คุณอยู่บนสุด) ค่าเริ่มต้น = คุณ
+          const ordered = [currentUserMember, ...members.filter((m) => !sameId(m.id, currentMemberId))];
+          payerInput.innerHTML = ordered
+            .map((m) => {
+              const name = m.guestName || `สมาชิก #${m.id}`;
+              return `<option value="${esc(m.id)}">${esc(name)}${sameId(m.id, currentMemberId) ? " (คุณ)" : ""}</option>`;
+            })
+            .join("");
+          setPayer(currentMemberId, { allChecked: true });
           return true;
         } catch (error) {
           console.error("Error loading members:", error);
@@ -1468,16 +1915,57 @@
         }
       }
 
+      // checkbox ผู้ร่วมหาร = ทุกคนยกเว้นคนจ่าย
+      // เปลี่ยนคนจ่าย: คนเดิมกลายเป็นผู้ร่วมหาร (ติ๊กไว้) คนอื่นคงการเลือกเดิม
+      function renderParticipantOptions({ allChecked = false, previousPayer = null } = {}) {
+        const container = document.getElementById("modal-participants-container");
+        const wasChecked = new Set(selectedParticipantIds().map(String));
+        if (previousPayer != null) wasChecked.add(String(previousPayer));
+        const others = tripMembers.filter((m) => !sameId(m.id, payerId));
+        container.innerHTML =
+          others.length === 0
+            ? emptyBox("fa-solid fa-user-plus", "ยังไม่มีเพื่อนในทริป ชวนเพื่อนด้วยรหัสเชิญได้เลย")
+            : others
+                .map((m) => {
+                  const name = m.guestName || `สมาชิก #${m.id}`;
+                  const checked = allChecked || wasChecked.has(String(m.id));
+                  return `
+                    <label class="member-option">
+                      ${avatar(name, "sm")}
+                      <span class="name">${esc(name)}${sameId(m.id, currentMemberId) ? " (คุณ)" : ""}</span>
+                      <input type="checkbox" name="participant" value="${esc(m.id)}" data-name="${esc(name)}"${checked ? " checked" : ""} />
+                    </label>`;
+                })
+                .join("");
+      }
+
+      function setPayer(id, { allChecked = false } = {}) {
+        const previous = payerId;
+        payerId = String(id);
+        document.getElementById("expense-payer").value = payerId;
+        const name = memberNameOf(payerId);
+        document.getElementById("payer-avatar").innerHTML = avatar(name, "sm");
+        document.getElementById("payer-name").textContent = name;
+        document.getElementById("payer-you").hidden = !payerIsMe();
+        document.getElementById("rest-btn").textContent = payerIsMe() ? "ที่เหลือเป็นของฉัน" : "ที่เหลือเป็นของคนจ่าย";
+        renderParticipantOptions({ allChecked, previousPayer: previous && previous !== payerId ? previous : null });
+        updateParticipantSummary();
+      }
+
+      document.getElementById("expense-payer").addEventListener("change", (e) => setPayer(e.target.value));
+
       // --- สรุปยอดด้านบน ---
+      // ยอดที่คนจ่ายของบิลยังรอคนอื่นคืน
       function pendingFromOthers(item) {
+        const payer = item.user ? item.user.id : currentMemberId;
         return (item.splits || [])
           .filter(
             (s) =>
               !s.isPaid &&
               s.tripMember &&
-              String(s.tripMember.id) !== String(currentMemberId),
+              String(s.tripMember.id) !== String(payer),
           )
-          .reduce((sum, s) => sum + Number(s.amountOwed || 0), 0);
+          .reduce((sum, s) => sum + Number(s.amountOwed || 0) - Number(s.paidAmount || 0), 0);
       }
 
       function renderSummary() {
@@ -1500,8 +1988,9 @@
       // --- ตัวกรองหมวดหมู่ (แสดงเฉพาะหมวดที่มีบิล) ---
       function renderFilterBar() {
         const bar = document.getElementById("filter-bar");
+        const source = viewList();
         const used = CATEGORIES.filter((c) =>
-          allMyExpenses.some((e) => categoryOf(e.category).value === c.value),
+          source.some((e) => categoryOf(e.category).value === c.value),
         );
         if (used.length < 2) {
           bar.classList.add("hidden");
@@ -1520,14 +2009,14 @@
             ${icon ? `<i class="${icon}"></i>` : ""}${label} <span style="opacity:.7">${count}</span>
           </button>`;
         bar.innerHTML =
-          chip("ALL", "ทั้งหมด", "", allMyExpenses.length) +
+          chip("ALL", "ทั้งหมด", "", source.length) +
           used
             .map((c) =>
               chip(
                 c.value,
                 c.label,
                 c.icon,
-                allMyExpenses.filter(
+                source.filter(
                   (e) => categoryOf(e.category).value === c.value,
                 ).length,
                 `cat-${c.value}`,
@@ -1558,17 +2047,27 @@
       function renderExpenseCard(item) {
         const cat = categoryOf(item.category);
         const splits = item.splits || [];
-        const isMe = (sp) =>
-          sp.tripMember && String(sp.tripMember.id) === String(currentMemberId);
+        const payer = item.user ? item.user.id : null;
+        const payerMe = sameId(payer, currentMemberId);
+        const payerName = payerMe ? "คุณ" : item.user?.guestName || memberNameOf(payer);
+        // isMe = คนจ่ายของบิลนี้ (ชื่อเดิมจากตอนที่คนจ่ายเป็นคุณเสมอ)
+        const isMe = (sp) => sp.tripMember && sameId(sp.tripMember.id, payer);
         const others = splits.filter((sp) => sp.tripMember && !isMe(sp));
         const mine = splits.filter(isMe);
+        const myShare = !payerMe ? splits.find((sp) => sp.tripMember && sameId(sp.tripMember.id, currentMemberId)) : null;
+        const nameOf = (sp) =>
+          sameId(sp.tripMember.id, currentMemberId) ? "คุณ" : sp.tripMember.guestName || `สมาชิก #${sp.tripMember.id}`;
         const pending = pendingFromOthers(item);
         const paidCount = others.filter((sp) => sp.isPaid).length;
+        const anyRepaid = others.some((sp) => sp.isPaid || Number(sp.paidAmount) > 0);
         const allBack = others.length > 0 && pending === 0;
 
         const isCustom =
           String(item.splitType || "").toUpperCase() === "CUSTOM";
+        const recordedForOther = !payerMe && sameId(item.recordedById, currentMemberId);
         const meta = [
+          payerMe ? "" : `${payerName} จ่าย`,
+          recordedForOther ? "คุณบันทึกแทน" : "",
           item.activityId != null ? "จากแพลน" : "",
           cat.label,
           splits.length > 1
@@ -1583,34 +2082,61 @@
           <div class="receipt-line${sp.isPaid && !isMe(sp) ? " is-paid" : ""}">
             <span class="who">${esc(label)}${sp.isPaid && !isMe(sp) ? ' <i class="fa-solid fa-check" title="จ่ายแล้ว"></i>' : ""}</span>
             <span class="leader"></span>
-            <span class="money">${fmt(sp.amountOwed)}</span>
+            <span class="money">${
+              !sp.isPaid && Number(sp.paidAmount) > 0 && !isMe(sp)
+                ? `<small class="text-muted">จ่ายแล้ว ${fmt(sp.paidAmount)} · </small>`
+                : ""
+            }${fmt(sp.amountOwed)}</span>
           </div>`;
         const lines =
           splits.length > 1
             ? `<hr class="receipt-divider" />` +
-              others
-                .map((sp) =>
-                  line(
-                    sp,
-                    sp.tripMember.guestName || `สมาชิก #${sp.tripMember.id}`,
-                  ),
-                )
-                .join("") +
-              mine.map((sp) => line(sp, "คุณ")).join("")
+              others.map((sp) => line(sp, nameOf(sp))).join("") +
+              mine.map((sp) => line(sp, payerMe ? "คุณ" : `${payerName} (คนจ่าย)`)).join("")
             : "";
 
-        const footer =
-          others.length > 0 && pending > 0
+        // บิลที่คนอื่นจ่าย แต่คุณร่วมหาร: บอกส่วนของคุณ
+        const myLeft = myShare ? Number(myShare.amountOwed || 0) - (myShare.isPaid ? Number(myShare.amountOwed || 0) : Number(myShare.paidAmount || 0)) : 0;
+        const footer = myShare
+          ? `<hr class="receipt-divider" />
+             <div class="my-share">
+               <span>ส่วนของคุณ <span class="text-muted">· ${myLeft > 0.004 ? `ค้างคืน ${esc(payerName)}` : "คืนแล้ว"}</span></span>
+               <span class="money${myLeft > 0.004 ? " text-danger" : ""}">${fmt(myLeft > 0.004 ? myLeft : myShare.amountOwed)}</span>
+             </div>`
+          : others.length > 0 && pending > 0
             ? `<hr class="receipt-divider" />
                <div class="receipt-total">
-                 <span>รอคืน · ${paidCount}/${others.length} คน</span>
+                 <span>รอคืน${payerMe ? "" : `ให้ ${esc(payerName)}`} · ${paidCount}/${others.length} คน</span>
                  <span class="money text-danger">${fmt(pending)}</span>
                </div>`
             : "";
 
+        // แก้/ลบได้เฉพาะคนจ่ายหรือคนบันทึก, เพื่อนจ่ายคืนแล้ว = ล็อก (หลังบ้านก็ไม่ยอมให้แก้)
+        const actions = !canEditBill(item)
+          ? ""
+          : anyRepaid
+            ? `<div class="bill-actions">
+                 <span class="bill-locked"><i class="fa-solid fa-lock"></i> เพื่อนจ่ายคืนแล้ว แก้หรือลบไม่ได้</span>
+               </div>`
+            : `<div class="bill-actions">
+                 <button type="button" class="bill-action" data-action="edit" data-id="${esc(item.id)}">
+                   <i class="fa-solid fa-pen"></i> แก้ไข
+                 </button>
+                 <button type="button" class="bill-action danger" data-action="delete" data-id="${esc(item.id)}">
+                   <i class="fa-solid fa-trash-can"></i> <span>ลบ</span>
+                 </button>
+               </div>`;
+
         const date = formatDate(item.expenseDate);
+        const cls = [
+          "receipt",
+          String(item.id) === String(justAddedId) ? "print-in" : "",
+          String(item.id) === String(editingId) ? "editing" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
         return `
-          <article class="receipt${String(item.id) === String(justAddedId) ? " print-in" : ""}">
+          <article class="${cls}" data-id="${esc(item.id)}">
             <div class="receipt-head">
               <span class="receipt-no">Bill #${String(item.id).padStart(5, "0")}</span>
               <span class="receipt-no">${esc(date)}</span>
@@ -1621,35 +2147,67 @@
                 <h4>${esc(item.title)}</h4>
                 <div class="feed-meta">${esc(meta)}</div>
               </div>
-              <div class="feed-amount money">${fmt(item.totalAmount)}</div>
+              <div class="feed-amount money">${
+                isForeign(item.currency) && item.originalAmount != null
+                  ? `${fmtCur(item.originalAmount, item.currency)}<small>≈ ${fmt(item.totalAmount)}</small>`
+                  : fmt(item.totalAmount)
+              }</div>
             </div>
             ${lines}
             ${footer}
             ${allBack ? paidStampHtml("ได้คืนครบ") : ""}
+            ${actions}
           </article>`;
       }
 
+      // แท็บ: ฉันจ่าย (รวมที่บันทึกแทนเพื่อน) / ฉันร่วมหารบิลของคนอื่น / ทุกบิลในทริป
+      const VIEWS = {
+        MINE: {
+          match: canEditBill,
+          empty: "คุณยังไม่มีบิลในทริปนี้ ลองเพิ่มบิลแรกจากฟอร์มได้เลย",
+        },
+        SHARED: {
+          match: (e) =>
+            !sameId(e.user?.id, currentMemberId) &&
+            (e.splits || []).some((sp) => sp.tripMember && sameId(sp.tripMember.id, currentMemberId)),
+          empty: "ยังไม่มีบิลของเพื่อนที่คุณร่วมหาร",
+        },
+        ALL: { match: () => true, empty: "ยังไม่มีบิลในทริปนี้" },
+      };
+      const viewList = (mode = viewMode) =>
+        allTripExpenses.filter(VIEWS[mode].match).sort((a, b) => Number(b.id) - Number(a.id));
+
       function renderExpenseList() {
         const container = document.getElementById("expenses-list-container");
+        const source = viewList();
         const list =
           activeFilter === "ALL"
-            ? allMyExpenses
-            : allMyExpenses.filter(
+            ? source
+            : source.filter(
                 (e) => categoryOf(e.category).value === activeFilter,
               );
 
+        Object.keys(VIEWS).forEach((mode) => {
+          const n = viewList(mode).length;
+          document.getElementById(`tab-count-${mode}`).textContent = n ? n : "";
+        });
         const countPill = document.getElementById("expenses-count");
-        countPill.hidden = allMyExpenses.length === 0;
-        countPill.textContent = `${allMyExpenses.length} รายการ`;
+        countPill.hidden = allTripExpenses.length === 0;
+        countPill.textContent = `${allTripExpenses.length} บิล`;
 
         container.innerHTML =
-          allMyExpenses.length === 0
-            ? emptyBox(
-                "fa-solid fa-receipt",
-                "คุณยังไม่มีบิลในทริปนี้ ลองเพิ่มบิลแรกจากฟอร์มได้เลย",
-              )
+          source.length === 0
+            ? emptyBox("fa-solid fa-receipt", VIEWS[viewMode].empty)
             : list.map(renderExpenseCard).join("");
       }
+
+      document.getElementById("view-tabs").addEventListener("change", (e) => {
+        if (e.target.name !== "bill-view") return;
+        viewMode = e.target.value;
+        activeFilter = "ALL";
+        renderFilterBar();
+        renderExpenseList();
+      });
 
       // --- โหลดเฉพาะบิลที่ผู้ใช้ปัจจุบันเป็นคนจ่าย ---
       async function loadExpenses() {
@@ -1668,6 +2226,21 @@
                 item.user && String(item.user.id) === String(currentMemberId),
             )
             .sort((a, b) => Number(b.id) - Number(a.id)); // ล่าสุดขึ้นก่อน
+          if (armedDelete) disarmDelete(); // การ์ดจะถูกวาดใหม่
+          if (editingId != null) {
+            const still = allTripExpenses.find(
+              (e) => String(e.id) === String(editingId) && canEditBill(e),
+            );
+            const locked =
+              still &&
+              (still.splits || []).some(
+                (sp) =>
+                  (sp.isPaid || Number(sp.paidAmount) > 0) &&
+                  sp.tripMember &&
+                  !sameId(sp.tripMember.id, still.user?.id),
+              );
+            if (!still || locked) exitEdit({ focus: false });
+          }
 
           renderSummary();
           renderFilterBar();
@@ -1695,7 +2268,9 @@
         btn.disabled = on;
         btn.innerHTML = on
           ? '<i class="fa-solid fa-spinner fa-spin"></i><span>กำลังบันทึก...</span>'
-          : '<i class="fa-solid fa-floppy-disk"></i><span>บันทึกบิล</span>';
+          : editingId != null
+            ? '<i class="fa-solid fa-check"></i><span>บันทึกการแก้ไข</span>'
+            : '<i class="fa-solid fa-floppy-disk"></i><span>บันทึกบิล</span>';
       }
 
       async function submitExpense() {
@@ -1704,15 +2279,27 @@
         const amountInput = document.getElementById("expense-amount");
         const title = titleInput.value.trim();
         const totalAmount = Number(amountInput.value);
-        const paidByMemberId = document.getElementById("expense-payer").value;
+        const paidByMemberId = payerId;
+        const dateInput = document.getElementById("expense-date");
+        const expenseDate = dateInput.value;
 
         // ตรวจฟอร์ม: ทำเครื่องหมายทุกช่องที่ผิด แล้วโฟกัสช่องแรก
         const amountBad = !(totalAmount > 0);
         const titleBad = !title;
+        const future = !!expenseDate && expenseDate > todayKey();
+        const dateBad = !expenseDate || future;
+        document.getElementById("date-error").textContent = future
+          ? "วันที่จ่ายต้องไม่เป็นวันในอนาคต"
+          : "กรุณาเลือกวันที่";
         setInvalid("group-amount", amountBad);
         setInvalid("group-title", titleBad);
-        if (amountBad || titleBad) {
-          (amountBad ? amountInput : titleInput).focus();
+        setInvalid("group-date", dateBad);
+        if (amountBad || titleBad || dateBad) {
+          (amountBad ? amountInput : titleBad ? titleInput : dateInput).focus();
+          if (future && !amountBad && !titleBad) {
+            showToast("วันที่จ่ายต้องไม่เป็นวันในอนาคต", "error");
+            return;
+          }
           showToast("กรุณากรอกข้อมูลบิลให้ครบถ้วน", "error");
           return;
         }
@@ -1742,7 +2329,29 @@
           splitType: mode,
           category: category,
           activityId: planActivity ? planActivity.id : null,
+          expenseDate,
         };
+        // แก้บิล: คงการผูกกับแพลนไว้ตามเดิม
+        const editing =
+          editingId != null
+            ? allTripExpenses.find((e) => String(e.id) === String(editingId))
+            : null;
+        if (editing) body.activityId = editing.activityId ?? null;
+
+        // เงินต่างประเทศ: หนี้คิดเป็นบาท = ยอดตามใบเสร็จ × เรท
+        const currency = billCurrency();
+        const foreign = isForeign(currency);
+        const rate = billRate();
+        if (foreign && !(rate > 0)) {
+          showToast("ยังไม่มีเรทของสกุลนี้ กำลังดึงเรทใหม่ ลองบันทึกอีกครั้ง", "error");
+          loadTodayRate();
+          return;
+        }
+        const receiptAmount = toCents(totalAmount) / 100;
+        body.currency = currency;
+        body.totalAmount = foreign ? toBaht(receiptAmount, rate) : receiptAmount;
+        body.originalAmount = foreign ? receiptAmount : null;
+        body.exchangeRate = foreign ? rate : null;
 
         // กำหนดเอง: ผลรวมของแต่ละคนต้องเท่ากับยอดบิลพอดี (หลังบ้านตรวจซ้ำอีกชั้น)
         if (mode === "CUSTOM") {
@@ -1760,8 +2369,8 @@
             setInvalid("group-custom", true);
             showToast(
               diff > 0
-                ? `ยังแบ่งไม่ครบ เหลืออีก ${fmt(diff / 100)}`
-                : `แบ่งเกินยอดบิลไป ${fmt(-diff / 100)}`,
+                ? `ยังแบ่งไม่ครบ เหลืออีก ${fmtBill(diff / 100)}`
+                : `แบ่งเกินยอดบิลไป ${fmtBill(-diff / 100)}`,
               "error",
             );
             document.querySelector("#custom-rows input")?.focus();
@@ -1769,16 +2378,27 @@
           }
           body.splits = splitPeople().map((p) => ({
             memberId: Number(p.id),
-            amount: toCents(customAmounts.get(p.id)) / 100,
+            amount: foreign
+              ? toBaht(toCents(customAmounts.get(p.id)) / 100, rate)
+              : toCents(customAmounts.get(p.id)) / 100,
           }));
+          // แปลงเป็นบาทแล้วปัดเศษ: ส่วนต่างสตางค์ให้ผู้จ่าย (ผลรวมต้องเท่ายอดบิลพอดี)
+          if (foreign) {
+            const sumCents = body.splits.reduce((s, sp) => s + toCents(sp.amount), 0);
+            const mine = body.splits.find((sp) => String(sp.memberId) === String(paidByMemberId)) || body.splits[0];
+            mine.amount = (toCents(mine.amount) + toCents(body.totalAmount) - sumCents) / 100;
+          }
         }
 
         setSubmitting(true);
         try {
+          const query = `participantIds=${participantIds.join(",")}`;
           const response = await fetch(
-            `${API_BASE_URL}/expenses/add/${tripId}?paidByMemberId=${paidByMemberId}&participantIds=${participantIds.join(",")}`,
+            editing
+              ? `${API_BASE_URL}/expenses/${editing.id}?memberId=${currentMemberId}&paidByMemberId=${paidByMemberId}&${query}`
+              : `${API_BASE_URL}/expenses/add/${tripId}?paidByMemberId=${paidByMemberId}&recordedByMemberId=${currentMemberId}&${query}`,
             {
-              method: "POST",
+              method: editing ? "PUT" : "POST",
               headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -1787,7 +2407,12 @@
             },
           );
 
-          if (response.ok) {
+          if (response.ok && editing) {
+            justAddedId = editing.id;
+            exitEdit({ focus: false });
+            showToast(`แก้ไข "${title}" ${fmtBill(totalAmount)} แล้ว`);
+            await loadExpenses();
+          } else if (response.ok) {
             const saved = await response.json().catch(() => null);
             justAddedId = saved ? saved.id : null;
 
@@ -1801,17 +2426,21 @@
             updateParticipantSummary();
             updateCustomStatus();
 
-            showToast(`บันทึก "${title}" ${fmt(totalAmount)} แล้ว`);
-            if (planActivity) showPlanSaved(planActivity, totalAmount);
+            showToast(`บันทึก "${title}" ${fmtBill(totalAmount)}${payerIsMe() ? "" : ` (${memberNameOf(payerId)} จ่าย)`} แล้ว`);
+            // บิลที่บันทึกต้องเห็นในแท็บปัจจุบัน
+            if (!payerIsMe() && viewMode === "SHARED") document.querySelector('input[name="bill-view"][value="MINE"]').click();
+            if (planActivity) showPlanSaved(planActivity, fmtBill(totalAmount));
             await loadExpenses();
             amountInput.focus(); // พร้อมกรอกบิลถัดไปทันที
           } else {
             const errData = await response.text();
             console.error("Server error response:", errData);
-            let serverMessage = "";
-            try {
-              serverMessage = JSON.parse(errData).message || "";
-            } catch {}
+            const serverMessage = serverMessageOf(errData);
+            // บิลถูกล็อก/ไม่มีแล้ว (เช่น เพื่อนเพิ่งจ่ายคืน): ออกจากโหมดแก้ แล้วโหลดใหม่
+            if (editing && (response.status === 409 || response.status === 404)) {
+              exitEdit({ focus: false });
+              loadExpenses();
+            }
             showToast(
               serverMessage ||
                 (response.status === 400
@@ -1828,6 +2457,200 @@
         }
       }
 
+      function serverMessageOf(text) {
+        try {
+          return JSON.parse(text).message || "";
+        } catch {
+          return "";
+        }
+      }
+
+      // --- แก้ไขบิล: เติมข้อมูลบิลเดิมลงฟอร์ม ---
+      function setFormMode() {
+        const editing = editingId != null;
+        document.getElementById("form-title").textContent = editing
+          ? `แก้ไขบิล #${String(editingId).padStart(5, "0")}`
+          : "เพิ่มบิลใหม่";
+        document.getElementById("form-icon").className = editing
+          ? "fa-solid fa-pen"
+          : "fa-solid fa-plus";
+        document.getElementById("edit-note").classList.toggle("hidden", !editing);
+        document
+          .getElementById("cancel-edit-btn")
+          .classList.toggle("hidden", !editing);
+        setSubmitting(false);
+        document.querySelectorAll(".receipt[data-id]").forEach((card) => {
+          card.classList.toggle(
+            "editing",
+            editing && card.dataset.id === String(editingId),
+          );
+        });
+      }
+
+      function setSplitMode(mode) {
+        const radio = document.querySelector(
+          `input[name="split-mode"][value="${mode}"]`,
+        );
+        if (!radio || radio.checked) return;
+        radio.checked = true;
+        radio.dispatchEvent(new Event("change"));
+      }
+
+      function startEdit(id) {
+        const item = allTripExpenses.find((e) => String(e.id) === String(id));
+        if (!item || !canEditBill(item)) return;
+        // กำลังบันทึกจากแพลนอยู่: เลิกผูก (บิลที่แก้คงการผูกเดิมของมันเอง)
+        if (planActivity) forgetPlanLink();
+        document.getElementById("plan-link").classList.add("hidden");
+
+        editingId = item.id;
+        ["group-amount", "group-title", "group-custom"].forEach((g) =>
+          setInvalid(g, false),
+        );
+        const itemForeign = isForeign(item.currency) && item.originalAmount != null && Number(item.exchangeRate) > 0;
+        renderCurrencyOptions(itemForeign ? item.currency : BASE_CURRENCY);
+        syncCurrency({ rate: itemForeign ? Number(item.exchangeRate) : null, fetchRate: false });
+        document.getElementById("expense-amount").value =
+          (itemForeign ? Number(item.originalAmount) : Number(item.totalAmount)) || "";
+        document.getElementById("expense-title").value = item.title || "";
+        document.getElementById("expense-date").value = dayKeyOf(item.expenseDate) || todayKey();
+        setInvalid("group-date", false);
+        updateDateHint();
+        setPayer(item.user.id);
+        const category = categoryOf(item.category).value;
+        document.querySelector(
+          `input[name="expense-category"][value="${category}"]`,
+        ).checked = true;
+
+        // ผู้ร่วมหาร = คนที่มีส่วนแบ่งในบิล (checkbox มีทุกคนยกเว้นคนจ่าย)
+        const splits = item.splits || [];
+        const inBill = new Set(
+          splits
+            .filter((sp) => sp.tripMember)
+            .map((sp) => String(sp.tripMember.id)),
+        );
+        document
+          .querySelectorAll('input[name="participant"]')
+          .forEach((cb) => (cb.checked = inBill.has(String(cb.value))));
+
+        customAmounts.clear();
+        const custom = String(item.splitType || "").toUpperCase() === "CUSTOM";
+        if (custom) {
+          splits.forEach(
+            (sp) =>
+              sp.tripMember &&
+              customAmounts.set(
+                String(sp.tripMember.id),
+                String(
+                  itemForeign
+                    ? Math.round((Number(sp.amountOwed) / Number(item.exchangeRate)) * 100) / 100
+                    : Number(sp.amountOwed),
+                ),
+              ),
+          );
+        }
+        setSplitMode(custom ? "CUSTOM" : "EQUAL");
+        updateParticipantSummary();
+        updateCustomStatus();
+        updateRateBaht();
+        setFormMode();
+
+        // มือถือ: ฟอร์มอยู่ด้านบน เลื่อนขึ้นไปให้เห็น
+        const form = document.getElementById("expense-form");
+        if (form.getBoundingClientRect().top < 0) {
+          form.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        document
+          .getElementById("expense-amount")
+          .focus({ preventScroll: true });
+      }
+
+      // ออกจากโหมดแก้ไข: ล้างฟอร์มกลับเป็นค่าเริ่มต้นของบิลใหม่
+      function exitEdit({ focus = true } = {}) {
+        if (editingId == null) return;
+        editingId = null;
+        document.getElementById("expense-title").value = "";
+        document.getElementById("expense-amount").value = "";
+        document.getElementById("expense-date").value = todayKey();
+        updateDateHint();
+        setPayer(currentMemberId, { allChecked: true });
+        document.querySelector(
+          `input[name="expense-category"][value="${DEFAULT_CATEGORY}"]`,
+        ).checked = true;
+        document
+          .querySelectorAll('input[name="participant"]')
+          .forEach((cb) => (cb.checked = true));
+        customAmounts.clear();
+        setSplitMode("EQUAL");
+        renderCurrencyOptions();
+        syncCurrency();
+        ["group-amount", "group-title", "group-custom"].forEach((g) =>
+          setInvalid(g, false),
+        );
+        updateParticipantSummary();
+        updateCustomStatus();
+        setFormMode();
+        if (focus) document.getElementById("expense-amount").focus();
+      }
+
+      // --- ลบบิล: กดสองครั้งเพื่อยืนยัน ---
+      let armedDelete = null; // { btn, timer }
+
+      function disarmDelete() {
+        if (!armedDelete) return;
+        clearTimeout(armedDelete.timer);
+        armedDelete.btn.classList.remove("armed");
+        armedDelete.btn.querySelector("span").textContent = "ลบ";
+        armedDelete = null;
+      }
+
+      async function deleteExpense(btn) {
+        if (!armedDelete || armedDelete.btn !== btn) {
+          disarmDelete();
+          btn.classList.add("armed");
+          btn.querySelector("span").textContent = "กดอีกครั้งเพื่อลบ";
+          armedDelete = { btn, timer: setTimeout(disarmDelete, 3500) };
+          return;
+        }
+        disarmDelete();
+        const id = btn.dataset.id;
+        const item = allTripExpenses.find((e) => String(e.id) === String(id));
+        btn.disabled = true;
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/expenses/${id}?memberId=${currentMemberId}`,
+            { method: "DELETE" },
+          );
+          if (response.ok) {
+            if (String(editingId) === String(id)) exitEdit({ focus: false });
+            showToast(`ลบบิล "${item ? item.title : ""}" แล้ว`);
+          } else {
+            showToast(
+              serverMessageOf(await response.text()) ||
+                "ลบบิลไม่สำเร็จ กรุณาลองใหม่",
+              "error",
+            );
+          }
+        } catch (error) {
+          console.error("Delete failed:", error);
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
+        }
+        await loadExpenses();
+      }
+
+      document
+        .getElementById("expenses-list-container")
+        .addEventListener("click", (e) => {
+          const btn = e.target.closest(".bill-action");
+          if (!btn || btn.disabled) return;
+          if (btn.dataset.action === "edit") {
+            disarmDelete();
+            startEdit(btn.dataset.id);
+          } else if (btn.dataset.action === "delete") {
+            deleteExpense(btn);
+          }
+        });
+
       // --- กรอกบิลให้จากรายการในแพลน ---
       const planUrl = (act) =>
         `plan.html?tripId=${encodeURIComponent(tripId)}${act ? `#day-${String(act.activityDate).slice(0, 10)}` : ""}`;
@@ -1841,11 +2664,15 @@
 
       // ยอดประมาณการทั้งบิลจากแพลน: ที่พัก = ราคา/ห้อง/คืน × ห้อง × คืน, กิจกรรม = ต่อคน × ผู้ร่วม, อื่น ๆ = ต่อคน × ทุกคน
       function planEstimate(act) {
-        const cost = Number(act.cost) || 0;
+        // รถส่วนตัวไม่มีค่าตั๋วในแพลน (ค่าน้ำมัน/ทางด่วนกรอกยอดจริงเอง)
+        const cost =
+          act.category === "FOOD" || (act.category === "TRAVEL" && act.transportMode === "CAR") ? 0 : Number(act.cost) || 0;
         if (cost <= 0) return 0;
         if (act.category === "STAY") return cost * (act.rooms || 1) * Math.max(nightsOf(act), 1);
         const people =
-          act.category === "ACTIVITY" && act.participantIds?.length ? act.participantIds.length : tripMembers.length;
+          ["ACTIVITY", "TRAVEL"].includes(act.category) && act.participantIds?.length
+            ? act.participantIds.length
+            : tripMembers.length;
         return cost * Math.max(people, 1);
       }
 
@@ -1867,13 +2694,27 @@
           planActivity = act;
 
           document.getElementById("expense-title").value = act.title || "";
+          // วันของรายการในแพลน (ถ้ายังไม่ถึงวันนั้น = วันนี้ เพราะวันที่จ่ายเป็นอนาคตไม่ได้)
+          if (act.activityDate) {
+            const planDay = dayKeyOf(act.activityDate);
+            document.getElementById("expense-date").value = planDay > todayKey() ? todayKey() : planDay;
+            updateDateHint();
+          }
+          // ราคาในแพลนเป็นเงินท้องถิ่น = บิลเริ่มที่สกุลนั้น (ยอดประมาณเป็นสกุลเดียวกับราคา)
+          const actCur = isForeign(act.costCurrency) ? act.costCurrency : null;
+          if (actCur) {
+            renderCurrencyOptions(actCur);
+            const sameTrip = tripInfo?.currency === actCur && Number(tripInfo.exchangeRate) > 0;
+            await syncCurrency({ rate: sameTrip ? Number(tripInfo.exchangeRate) : Number(act.costRate) || null });
+          }
           const estimate = Math.round(planEstimate(act) * 100) / 100;
           if (estimate > 0) document.getElementById("expense-amount").value = estimate;
+          updateRateBaht();
           const category = PLAN_TO_CATEGORY[act.category] || "OTHER";
           const radio = document.querySelector(`input[name="expense-category"][value="${category}"]`);
           if (radio) radio.checked = true;
-          // กิจกรรม: หารเฉพาะคนที่ไปด้วย, ประเภทอื่น: ทุกคน (ค่าเริ่มต้น)
-          if (act.category === "ACTIVITY" && act.participantIds?.length) {
+          // กิจกรรม/เดินทาง: หารเฉพาะคนที่ไปด้วย, ประเภทอื่น: ทุกคน (ค่าเริ่มต้น)
+          if (["ACTIVITY", "TRAVEL"].includes(act.category) && act.participantIds?.length) {
             const going = new Set(act.participantIds.map(String));
             document
               .querySelectorAll('input[name="participant"]')
@@ -1893,7 +2734,7 @@
             <i class="fa-solid fa-route"></i>
             <div class="plan-link-body">
               <strong>บันทึกจากแพลน: ${esc(act.title)}</strong>
-              <span>${esc(date)}${estimate > 0 ? ` · ประมาณ ${fmt(estimate)} — แก้เป็นยอดที่จ่ายจริงได้` : ""}</span>
+              <span>${esc(date)}${estimate > 0 ? ` · ประมาณ ${fmtCur(estimate, actCur)} — แก้เป็นยอดที่จ่ายจริงได้` : ""}</span>
               ${
                 existing.length
                   ? `<span class="warn">รายการนี้มีบิลแล้ว ${existing.length} ใบ (${fmt(existingTotal)}) ระวังบันทึกซ้ำ</span>`
@@ -1925,7 +2766,7 @@
         banner.innerHTML = `
           <i class="fa-solid fa-circle-check"></i>
           <div class="plan-link-body">
-            <strong>บันทึก "${esc(act.title)}" ${fmt(amount)} แล้ว</strong>
+            <strong>บันทึก "${esc(act.title)}" ${esc(amount)} แล้ว</strong>
             <span>แพลนจะแสดงยอดที่จ่ายจริงของรายการนี้</span>
           </div>
           <a href="${planUrl(act)}">กลับไปแพลน <i class="fa-solid fa-arrow-right"></i></a>`;
@@ -1933,8 +2774,29 @@
 
       // ต้องรู้ currentMemberId ก่อน จึงค่อยกรองรายการบิล
       // โหลดสมาชิกไม่สำเร็จ/ไม่ได้เป็นสมาชิก: ไม่แสดง "0 บิล" ให้เข้าใจผิด
+      renderCurrencyOptions();
+      syncCurrency({ fetchRate: false });
+      document.getElementById("expense-date").value = todayKey();
+      syncDateLimit();
+      document.getElementById("expense-date").addEventListener("input", () => {
+        setInvalid("group-date", false);
+        updateDateHint();
+      });
+      const tripLoaded = fetch(`${API_BASE_URL}/trips/${tripId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((trip) => {
+          const dateInput = document.getElementById("expense-date");
+          const wasToday = dateInput.value === todayKey();
+          tripInfo = trip;
+          if (wasToday && editingId == null && !planActivityId) dateInput.value = todayKey();
+          syncDateLimit();
+          renderCurrencyOptions();
+          return syncCurrency();
+        })
+        .catch(() => null);
+
       loadTripMembers().then((ok) => {
-        if (ok === true) return loadExpenses().then(applyPlanPrefill);
+        if (ok === true) return Promise.all([loadExpenses(), tripLoaded]).then(applyPlanPrefill);
         document.getElementById("expenses-list-container").innerHTML = emptyBox(
           "fa-solid fa-user-slash",
           ok === "not-member"

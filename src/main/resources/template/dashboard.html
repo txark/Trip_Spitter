@@ -322,6 +322,109 @@
         }
       }
 
+      /* --- การ์ด "ถัดไป" จากแพลนเที่ยว (แถบสีซ้ายตามประเภท) --- */
+      .next-card {
+        --cat: var(--primary);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 16px 0;
+        padding: 14px 16px 14px 20px;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 0.2s;
+      }
+
+      .next-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: var(--cat);
+      }
+
+      .next-icon {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        color: var(--cat);
+        background: color-mix(in srgb, var(--cat) 12%, white);
+      }
+
+      .next-body {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .next-label {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+
+      .next-label .now {
+        padding: 1px 8px;
+        border-radius: 999px;
+        background: var(--cat);
+        color: #ffffff;
+      }
+
+      .next-title {
+        margin-top: 2px;
+        overflow: hidden;
+        font-size: 1rem;
+        font-weight: 700;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .next-title .time {
+        margin-right: 6px;
+        font-family: var(--font-mono);
+      }
+
+      .next-sub {
+        margin-top: 2px;
+        overflow: hidden;
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .next-go {
+        flex-shrink: 0;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      @media (max-width: 520px) {
+        .next-go span {
+          display: none;
+        }
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .next-card:hover {
+          border-color: var(--cat);
+        }
+      }
+
       /* --- เมนูลัด (มือถือ/แท็บเล็ต; จอคอมใช้ sidebar แทน) --- */
       .quick-nav {
         display: grid;
@@ -396,6 +499,46 @@
         display: flex;
         justify-content: space-between;
         gap: 8px;
+      }
+
+      /* เลื่อนดูค่าใช้จ่ายทีละวัน */
+      .day-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .day-nav button {
+        width: 26px;
+        height: 26px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-main);
+        cursor: pointer;
+      }
+
+      .day-nav button:disabled {
+        opacity: 0.25;
+        cursor: default;
+      }
+
+      .day-nav button:not(:disabled):hover {
+        background: var(--surface-muted);
+      }
+
+      .day-nav .day-label {
+        min-width: 64px;
+        text-align: center;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .receipt-total.sub {
+        margin-top: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-muted);
       }
 
       .receipt-row {
@@ -707,6 +850,9 @@
         </div>
       </div>
 
+      <!-- รายการถัดไปในแพลนเที่ยว (โหลดแพลนไม่ได้ = ซ่อน) -->
+      <a class="next-card hidden" id="next-card" href="plan.html" aria-live="polite"></a>
+
       <!-- เมนูลัด (จอคอมซ่อน เพราะมี sidebar แล้ว) -->
       <nav class="quick-nav">
         <a href="plan.html" class="nav-item">
@@ -775,7 +921,7 @@
       const currentUserId = localStorage.getItem("userId");
       const currentUsername = localStorage.getItem("username");
 
-      const API_BASE_URL = "http://localhost:8090/api"; // ปรับพอร์ตตาม Backend จริง
+      const API_BASE_URL = API_BASE; // ตั้งที่ ui.js
 
       // ส่ง tripId ต่อไปยังหน้าย่อย ไม่งั้นหน้าเหล่านั้นจะ fallback ไปเป็นทริป 1
       document
@@ -864,7 +1010,7 @@
       }
 
       // --- สรุปยอด ---
-      function renderStats(expenses, myMemberId) {
+      function renderStats(expenses, myMemberId, budget = 0) {
         const me = String(myMemberId);
         const total = expenses.reduce(
           (s, e) => s + Number(e.totalAmount || 0),
@@ -881,8 +1027,10 @@
             const amount = Number(s.amountOwed || 0);
             if (splitIsMe) myShare += amount;
             if (s.isPaid) return;
-            if (splitIsMe && !payerIsMe) owe += amount;
-            if (!splitIsMe && payerIsMe) receive += amount;
+            const left = amount - Number(s.paidAmount || 0); // จ่ายมาบางส่วนแล้ว
+            if (left <= 0) return;
+            if (splitIsMe && !payerIsMe) owe += left;
+            if (!splitIsMe && payerIsMe) receive += left;
           });
         });
 
@@ -890,10 +1038,17 @@
         document.getElementById("stat-total-sub").textContent =
           `${expenses.length} บิล`;
         document.getElementById("stat-share").textContent = fmt(myShare);
-        document.getElementById("stat-share-sub").textContent =
-          total > 0
-            ? `${Math.round((myShare / total) * 100)}% ของทั้งทริป`
-            : "";
+        // ตั้งงบต่อคนไว้ (หน้าแพลน) = เทียบส่วนของคุณกับงบ
+        const shareSub = document.getElementById("stat-share-sub");
+        shareSub.classList.toggle("text-danger", budget > 0 && myShare > budget);
+        shareSub.textContent =
+          budget > 0
+            ? myShare > budget
+              ? `เกินงบ ${fmt(roundMoney(myShare - budget))} (งบ ${fmt(budget)})`
+              : `${Math.round((myShare / budget) * 100)}% ของงบ ${fmt(budget)}`
+            : total > 0
+              ? `${Math.round((myShare / total) * 100)}% ของทั้งทริป`
+              : "";
 
         const net = roundMoney(receive - owe);
         const netEl = document.getElementById("stat-net");
@@ -907,8 +1062,20 @@
               : "เคลียร์ครบแล้ว 🎉";
       }
 
-      // --- ค่าใช้จ่ายล่าสุด: ใบเสร็จยาวใบเดียว พร้อมยอดรวมทั้งทริปด้านล่าง ---
+      // --- ค่าใช้จ่ายล่าสุด: แสดงทีละวัน (เริ่มที่วันนี้ ถ้าวันนี้ยังไม่มีบิล = วันล่าสุดที่มี) ---
+      const dayKeyOf = (e) => String(e.expenseDate || "").slice(0, 10);
+      const pad2 = (n) => String(n).padStart(2, "0");
+      const shortDay = (key) => `${key.slice(8, 10)}/${key.slice(5, 7)}`;
+      let recentExpenses = [];
+      let recentDay = null;
+
+      function todayKey() {
+        const now = zoneNow(tripTimeZone);
+        return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+      }
+
       function renderRecent(expenses) {
+        recentExpenses = expenses;
         const container = document.getElementById("expenses-feed-container");
         if (expenses.length === 0) {
           container.innerHTML = emptyBox(
@@ -917,27 +1084,29 @@
           );
           return;
         }
-        const RECENT = 6;
         const total = expenses.reduce(
           (s, e) => s + Number(e.totalAmount || 0),
           0,
         );
-        const today = new Date().toLocaleDateString("th-TH", {
-          day: "numeric",
-          month: "short",
-          year: "2-digit",
-        });
+        // วันที่มีบิล เรียงเก่า -> ใหม่
+        const days = [...new Set(expenses.map(dayKeyOf).filter(Boolean))].sort();
+        if (!days.includes(recentDay)) {
+          const today = todayKey();
+          recentDay = days.includes(today) ? today : days.at(-1) || null;
+        }
+        const index = days.indexOf(recentDay);
+        const dayItems = expenses.filter((e) => (dayKeyOf(e) || null) === recentDay);
+        const dayTotal = dayItems.reduce((sum, e) => sum + Number(e.totalAmount || 0), 0);
+        const isToday = recentDay === todayKey();
 
-        const rows = [...expenses]
+        const rows = [...dayItems]
           .sort((a, b) => Number(b.id) - Number(a.id)) // ล่าสุดขึ้นก่อน
-          .slice(0, RECENT)
           .map((item) => {
             const key = catKeyOf(item.category);
             const cat = CATEGORIES[key];
             const payer = item.user
               ? item.user.guestName || `สมาชิก #${item.user.id}`
               : "ไม่ระบุ";
-            const date = parseDate(item.expenseDate);
             return `
               <div class="receipt-row">
                 <div class="cat-icon cat-${key}"><i class="${cat.icon}"></i></div>
@@ -946,7 +1115,7 @@
                   <div class="feed-meta">
                     ${avatar(payer)}
                     <span class="payer">${esc(payer)} จ่าย</span>
-                    ${date ? `<span>· ${esc(formatDay(date))}</span>` : ""}
+                    ${isForeign(item.currency) && item.originalAmount != null ? `<span>· ${esc(fmtCur(item.originalAmount, item.currency))}</span>` : ""}
                   </div>
                 </div>
                 <div class="feed-amount money">${fmt(item.totalAmount)}</div>
@@ -957,18 +1126,41 @@
         container.innerHTML = `
           <div class="receipt">
             <div class="receipt-head">
-              <span class="receipt-no">Trip receipt · ${expenses.length} บิล</span>
-              <span class="receipt-no">${esc(today)}</span>
+              <span class="receipt-no">${isToday ? "วันนี้" : "Trip receipt"} · ${dayItems.length} บิล</span>
+              <span class="receipt-no day-nav">
+                <button type="button" data-day-step="-1" aria-label="วันก่อนหน้า" ${index <= 0 ? "disabled" : ""}>
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <span class="day-label">${recentDay ? esc(shortDay(recentDay)) : "ไม่ระบุวัน"}</span>
+                <button type="button" data-day-step="1" aria-label="วันถัดไป" ${index < 0 || index >= days.length - 1 ? "disabled" : ""}>
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </span>
             </div>
             <hr class="receipt-divider" />
-            ${rows}
+            ${rows || emptyBox("fa-solid fa-receipt", "ไม่มีค่าใช้จ่ายวันนี้")}
             <hr class="receipt-divider" />
             <div class="receipt-total">
-              <span>รวมทั้งทริป</span>
+              <span>รวม${isToday ? "วันนี้" : `วันที่ ${recentDay ? esc(shortDay(recentDay)) : ""}`}</span>
+              <span class="money">${fmt(dayTotal)}</span>
+            </div>
+            <div class="receipt-total sub">
+              <span>รวมทั้งทริป ${expenses.length} บิล</span>
               <span class="money">${fmt(total)}</span>
             </div>
           </div>`;
       }
+
+      document.getElementById("expenses-feed-container").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-day-step]");
+        if (!btn || btn.disabled) return;
+        const days = [...new Set(recentExpenses.map(dayKeyOf).filter(Boolean))].sort();
+        const next = days[days.indexOf(recentDay) + Number(btn.dataset.dayStep)];
+        if (next) {
+          recentDay = next;
+          renderRecent(recentExpenses);
+        }
+      });
 
       // --- แยกตามหมวดหมู่ ---
       function renderCategories(expenses) {
@@ -1046,6 +1238,191 @@
           .join("");
       }
 
+      // --- ถัดไปในแพลน ---
+      const PLAN_ICONS = {
+        TRAVEL: ["fa-solid fa-route", "#0284c7"],
+        FOOD: ["fa-solid fa-utensils", "#ea580c"],
+        STAY: ["fa-solid fa-bed", "#7c3aed"],
+        SIGHTSEEING: ["fa-solid fa-camera", "#16a34a"],
+        ACTIVITY: ["fa-solid fa-person-hiking", "#db2777"],
+        OTHER: ["fa-solid fa-star", "#71717a"],
+      };
+      const MODE_ICONS = {
+        CAR: "fa-solid fa-car",
+        VAN: "fa-solid fa-van-shuttle",
+        BUS: "fa-solid fa-bus",
+        TRAIN: "fa-solid fa-train",
+        PLANE: "fa-solid fa-plane",
+        BOAT: "fa-solid fa-ship",
+      };
+      // รายการที่ไม่มีเวลาจบ (เช่น มื้ออาหาร) ถือว่า "ตอนนี้" อยู่ 1 ชั่วโมง
+      const DEFAULT_DURATION_MS = 60 * 60000;
+      let planActivities = null;
+      let tripTimeZone = null; // เขตเวลาของทริป (ตั้งในหน้าแพลน)
+
+      const hhmm = (t) => (t ? String(t).slice(0, 5) : "");
+      const dayKey = (v) => String(v || "").slice(0, 10);
+      const atTime = (key, time) => new Date(`${key}T${time ? hhmm(time) : "00:00"}:00`);
+      const localKey = (d) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+      // แตกแพลนเป็นเหตุการณ์ตามเวลา: ที่พัก = เช็คอิน + เช็คเอาท์, ข้ามคืน = จบวันถัดไป
+      function planEvents(activities) {
+        const events = [];
+        activities.forEach((act) => {
+          const key = dayKey(act.activityDate);
+          if (!key) return;
+          const [icon, color] = PLAN_ICONS[act.category] || PLAN_ICONS.OTHER;
+          const base = { act, icon, color };
+          if (act.category === "STAY") {
+            const start = atTime(key, act.startTime);
+            events.push({ ...base, key, time: act.startTime, start, end: new Date(+start + DEFAULT_DURATION_MS), label: `เช็คอิน ${act.title}` });
+            const outKey = dayKey(act.endDate) || key;
+            if (outKey !== key || act.endTime) {
+              const out = atTime(outKey, act.endTime);
+              events.push({ ...base, key: outKey, time: act.endTime, start: out, end: new Date(+out + DEFAULT_DURATION_MS), label: `เช็คเอาท์ ${act.title}`, icon: "fa-solid fa-right-from-bracket" });
+            }
+            return;
+          }
+          const start = atTime(key, act.startTime);
+          let end;
+          if (!act.startTime) {
+            end = new Date(+start + 86400000); // ทั้งวัน
+          } else if (act.endTime) {
+            // เวลาถัดไปที่น้อยกว่าเวลาก่อนหน้า = ข้ามวัน (เครื่องบินต่อเครื่องข้ามได้หลายวัน)
+            const stops = act.category === "TRAVEL" && act.transportMode === "PLANE" ? act.stops || [] : [];
+            const times = [act.startTime, ...stops.flatMap((st) => [st.arriveTime, st.departTime]), act.endTime]
+              .filter(Boolean)
+              .map((t) => atTime(key, t));
+            for (let i = 1; i < times.length; i++) {
+              while (times[i] <= times[i - 1]) times[i] = new Date(+times[i] + 86400000);
+            }
+            end = times[times.length - 1];
+          } else {
+            end = new Date(+start + DEFAULT_DURATION_MS);
+          }
+          const modeIcon = act.category === "TRAVEL" ? MODE_ICONS[act.transportMode] : null;
+          events.push({ ...base, key, time: act.startTime, start, end, label: act.title, icon: modeIcon || icon });
+        });
+        return events.sort((a, b) => a.start - b.start || !!a.time - !!b.time);
+      }
+
+      function untilText(ev, now) {
+        const mins = Math.round((ev.start - now) / 60000);
+        const today = localKey(now);
+        const tomorrow = localKey(new Date(+now + 86400000));
+        if (!ev.time) {
+          if (ev.key === tomorrow) return "พรุ่งนี้ · ทั้งวัน";
+          return `อีก ${Math.max(Math.round((atTime(ev.key) - atTime(today)) / 86400000), 1)} วัน · ทั้งวัน`;
+        }
+        if (ev.key === today) {
+          if (mins < 60) return `อีก ${Math.max(mins, 1)} นาที`;
+          const h = Math.floor(mins / 60);
+          const m = mins % 60;
+          return `อีก ${h} ชม.${m ? ` ${m} นาที` : ""}`;
+        }
+        if (ev.key === tomorrow) return `พรุ่งนี้ ${hhmm(ev.time)}`;
+        return `อีก ${Math.round((atTime(ev.key) - atTime(today)) / 86400000)} วัน`;
+      }
+
+      function eventSub(ev) {
+        const act = ev.act;
+        if (act.category === "TRAVEL" && act.origin && act.location) {
+          const via = act.transportMode === "PLANE" ? (act.stops || []).map((st) => st.place) : [];
+          return [act.origin, ...via, act.location].join(" → ");
+        }
+        return act.location || "";
+      }
+
+      function renderNextCard() {
+        const card = document.getElementById("next-card");
+        if (!planActivities) {
+          card.classList.add("hidden");
+          return;
+        }
+        const planUrl = (key) =>
+          `plan.html?tripId=${encodeURIComponent(tripId)}${key ? `#day-${key}` : ""}`;
+        const show = ({ icon, color, label, title, sub, go, href }) => {
+          card.style.setProperty("--cat", color);
+          card.href = href;
+          card.innerHTML = `
+            <div class="next-icon"><i class="${icon}"></i></div>
+            <div class="next-body">
+              <div class="next-label">${label}</div>
+              <div class="next-title">${title}</div>
+              ${sub ? `<div class="next-sub">${sub}</div>` : ""}
+            </div>
+            <span class="next-go"><span>${go} </span><i class="fa-solid fa-arrow-right"></i></span>`;
+          card.classList.remove("hidden");
+        };
+
+        const events = planEvents(planActivities);
+        if (!events.length) {
+          show({
+            icon: "fa-solid fa-route",
+            color: "#7c3aed",
+            label: "แพลนเที่ยว",
+            title: "ยังไม่มีแพลน",
+            sub: "วางแพลนทั้งทริปไว้ ตรงนี้จะบอกว่าต้องไปไหนต่อ",
+            go: "วางแพลน",
+            href: planUrl(),
+          });
+          return;
+        }
+
+        const now = zoneNow(tripTimeZone);
+        const current = events.find((ev) => ev.time && ev.start <= now && now < ev.end);
+        const upcoming = events.filter((ev) => ev.start > now);
+        const main = current || upcoming[0];
+        if (!main) {
+          show({
+            icon: "fa-solid fa-flag-checkered",
+            color: "#16a34a",
+            label: "แพลนเที่ยว",
+            title: "เที่ยวครบทุกรายการแล้ว",
+            sub: `ทั้งหมด ${planActivities.length} รายการ`,
+            go: "ดูแพลน",
+            href: planUrl(),
+          });
+          return;
+        }
+
+        const after = upcoming.find((ev) => ev !== main);
+        const label = current
+          ? `<span class="now">ตอนนี้</span>${
+              current.act.endTime && current.act.category !== "STAY" ? ` ถึง ${esc(hhmm(current.act.endTime))}` : ""
+            }`
+          : `ถัดไป · ${esc(untilText(main, now))}`;
+        const subParts = [
+          eventSub(main),
+          after
+            ? `ต่อจากนั้น ${after.time && after.key === main.key ? hhmm(after.time) : formatDay(atTime(after.key))} ${after.label}`
+            : "",
+        ].filter(Boolean);
+        show({
+          icon: main.icon,
+          color: main.color,
+          label,
+          title: `${main.time ? `<span class="time">${esc(hhmm(main.time))}</span>` : ""}${esc(main.label)}`,
+          sub: esc(subParts.join(" · ")),
+          go: "ดูแพลน",
+          href: planUrl(main.key),
+        });
+      }
+
+      // แพลนแยกโหลด: โหลดไม่ได้ก็ไม่กระทบส่วนอื่นของหน้า
+      async function loadPlan() {
+        try {
+          const res = await fetch(`${API_BASE_URL}/activities/trip/${tripId}`);
+          if (!res.ok) throw new Error("load plan failed");
+          planActivities = (await res.json()) || [];
+        } catch (error) {
+          console.error("Error loading plan:", error);
+          // โหลดรอบหลังไม่สำเร็จ: ใช้ข้อมูลเดิมไปก่อน
+        }
+        renderNextCard();
+      }
+
       async function loadTripDashboard() {
         // 1. บันทึกประวัติการเข้าชมทริปล่าสุดลงฐานข้อมูล (ไม่ต้องรอ และไม่ให้พังทั้งหน้าถ้าล้มเหลว)
         if (currentUserId) {
@@ -1081,11 +1458,13 @@
           document.getElementById("invite-code-display").textContent =
             trip.inviteCode || "------";
           renderBarcode(trip.inviteCode);
+          tripTimeZone = trip.timeZone || null;
+          renderNextCard();
           renderTripDates(trip);
           renderMembersMeta(members);
 
           // 4. เนื้อหา
-          renderStats(expenses, myMemberId);
+          renderStats(expenses, myMemberId, Number(trip.budgetPerPerson) || 0);
           renderRecent(expenses);
           renderCategories(expenses);
           renderMembers(members, expenses, myMemberId);
@@ -1142,6 +1521,15 @@
       }
 
       loadTripDashboard();
+      loadPlan();
+      // ทุกนาที: โหลดแพลนใหม่ (เพื่อนอาจแก้) แล้วอัปเดต "อีก X นาที / ตอนนี้"
+      setInterval(() => {
+        if (document.hidden) renderNextCard();
+        else loadPlan();
+      }, 60000);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) loadPlan();
+      });
     </script>
   </body>
 </html>
