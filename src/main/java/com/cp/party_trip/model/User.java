@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+// ชื่อเล่นห้ามซ้ำ: สมัครชื่อเดียวกันพร้อมกัน 2 เครื่องเคยได้ 2 บัญชี แล้วเข้าชื่อนั้นไม่ได้อีกเลย
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(name = "uk_users_username", columnNames = "username"))
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1131,18 +1131,58 @@
         }
         const oldName = localStorage.getItem("username");
         closeUsernameModal();
-        // เปลี่ยนชื่อ = เข้าสู่ระบบด้วยชื่อใหม่ (ชื่อที่มีเจ้าของต้องใส่ PIN) ไม่สำเร็จ = ใช้ชื่อเดิม
+        // เข้าแล้ว = เปลี่ยนชื่อบัญชีเดิม (ทริป/บิล/หนี้ตามไปด้วย)
+        // ชื่อใหม่เป็นบัญชีอื่นอยู่แล้ว = ถามก่อนว่าจะสลับไปใช้บัญชีนั้นไหม (ต้องใส่ PIN)
         if (newName !== oldName || !currentUserId) {
-          const ok = await signIn(newName);
+          let ok = false;
+          if (currentUserId && oldName && authToken(oldName)) {
+            const result = await renameTo(newName);
+            if (result === "ok") {
+              ok = true;
+              showToast(`เปลี่ยนชื่อเป็น "${newName}" แล้ว ทริปเดิมยังอยู่ครบ`);
+            } else if (
+              result === "taken" &&
+              confirm(
+                `ชื่อ "${newName}" มีบัญชีอยู่แล้ว\nถ้าเป็นบัญชีของคุณเอง กดตกลงเพื่อสลับไปใช้บัญชีนั้น (ใส่ PIN)\nทริปของชื่อ "${oldName}" จะไม่ตามไปด้วย`,
+              )
+            ) {
+              ok = await signIn(newName);
+              if (ok) showToast(`ใช้ชื่อ "${newName}" แล้ว`);
+            }
+          } else {
+            ok = await signIn(newName);
+            if (ok) showToast(`ใช้ชื่อ "${newName}" แล้ว`);
+          }
           if (!ok) {
             if (oldName) renderProfile(oldName);
             openUsernameModal();
             return;
           }
-          showToast(`ใช้ชื่อ "${newName}" แล้ว`);
         }
         if (pin) await savePin(pin);
         loadRecentTrips();
+      }
+
+      // ผล: "ok" | "taken" (ชื่อเป็นของบัญชีอื่น) | "error" (แจ้งผู้ใช้แล้ว)
+      async function renameTo(newName) {
+        const oldName = localStorage.getItem("username");
+        try {
+          const res = await fetch(`${API_BASE_URL}/users/rename?username=${encodeURIComponent(newName)}`, {
+            method: "POST",
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok) {
+            saveRenamed(oldName, data, data.token);
+            currentUserId = data.id;
+            renderProfile(data.username);
+            return "ok";
+          }
+          if (res.status === 409 && data.message === "NAME_TAKEN") return "taken";
+          showToast(data.message || "เปลี่ยนชื่อไม่สำเร็จ", "error");
+        } catch {
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
+        }
+        return "error";
       }
 
       async function savePin(pin) {
