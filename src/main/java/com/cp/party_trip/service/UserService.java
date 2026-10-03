@@ -1,9 +1,12 @@
 package com.cp.party_trip.service;
 
 import com.cp.party_trip.model.User;
+import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.repository.UserRepo;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.crypto.SecretKeyFactory;
@@ -31,14 +34,18 @@ public class UserService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UserRepo userRepo;
+    private final TripMemberRepo tripMemberRepo;
     // กันเดา PIN: ผิดครบ 5 ครั้ง ล็อกชื่อนั้น 10 นาที (เก็บในหน่วยความจำ รีสตาร์ตแล้วเริ่มนับใหม่)
     private final Map<String, Attempts> attempts = new ConcurrentHashMap<>();
+    // สมัคร/เข้าชื่อเดียวกันพร้อมกันหลายเครื่อง: ทำทีละคำขอต่อชื่อ
+    private final Map<String, Object> nameLocks = new ConcurrentHashMap<>();
 
     private record Attempts(int count, Instant lockedUntil) {
     }
 
-    public UserService(UserRepo userRepo) {
+    public UserService(UserRepo userRepo, TripMemberRepo tripMemberRepo) {
         this.userRepo = userRepo;
+        this.tripMemberRepo = tripMemberRepo;
     }
 
     // ผลการเข้าสู่ระบบ: บัญชี + token ที่หน้าเว็บต้องเก็บไว้
@@ -46,10 +53,13 @@ public class UserService {
     }
 
     public Login login(String username, String token, String pin) {
-        String name = username == null ? "" : username.trim();
-        if (name.isEmpty() || name.length() > 40) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ชื่อเล่นต้องมี 1–40 ตัวอักษร");
+        String name = cleanName(username);
+        synchronized (nameLocks.computeIfAbsent(name, k -> new Object())) {
+            return loginLocked(name, token, pin);
         }
+    }
+
+    private Login loginLocked(String name, String token, String pin) {
         Optional<User> existing = userRepo.findByUsername(name);
         if (existing.isEmpty()) {
             User user = new User();
@@ -58,7 +68,13 @@ public class UserService {
             if (pin != null && !pin.isBlank()) {
                 user.setPinHash(hashPin(requireValidPin(pin)));
             }
-            return new Login(userRepo.save(user), user.getAuthToken());
+            try {
+                return new Login(userRepo.save(user), user.getAuthToken());
+            } catch (DataIntegrityViolationException e) {
+                // อีกเครื่องเพิ่งสมัครชื่อนี้ไป (กันซ้ำชั้นฐานข้อมูล)
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "ชื่อนี้มีคนใช้แล้ว ใช้ชื่ออื่น หรือให้เจ้าของชื่อตั้ง PIN ก่อนแล้วเข้าด้วย PIN");
+            }
         }
 
         User user = existing.get();
@@ -86,6 +102,42 @@ public class UserService {
         }
         attempts.remove(name);
         return new Login(user, user.getAuthToken());
+    }
+
+    // เปลี่ยนชื่อเล่นของบัญชีนี้ (token/PIN เดิม) + ชื่อในทุกทริปที่อยู่ บิล/หนี้/ประวัติเดิมยังเป็นของเรา
+    // ชื่อใหม่เป็นของบัญชีอื่นอยู่แล้ว = 409 NAME_TAKEN (หน้าเว็บจะถามว่าจะเข้าชื่อนั้นด้วย PIN แทนไหม)
+    @Transactional
+    public User rename(User me, String newName) {
+        String name = cleanName(newName);
+        User user = userRepo.findById(me.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "กรุณาเข้าสู่ระบบใหม่ที่หน้าแรก"));
+        String oldName = user.getUsername();
+        if (name.equals(oldName)) {
+            return user;
+        }
+        if (userRepo.findByUsername(name).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "NAME_TAKEN");
+        }
+        if (tripMemberRepo.countNameClashes(oldName, name) > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "มีเพื่อนชื่อ \"" + name + "\" อยู่ในทริปเดียวกับคุณแล้ว ลองชื่ออื่น");
+        }
+        user.setUsername(name);
+        try {
+            userRepo.saveAndFlush(user); // อีกเครื่องสมัครชื่อนี้พร้อมกัน = ชน unique ที่นี่
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "NAME_TAKEN");
+        }
+        tripMemberRepo.renameGuest(oldName, name);
+        return user;
+    }
+
+    private static String cleanName(String raw) {
+        String name = raw == null ? "" : raw.trim();
+        if (name.isEmpty() || name.length() > 40) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ชื่อเล่นต้องมี 1–40 ตัวอักษร");
+        }
+        return name;
     }
 
     // ตั้ง/เปลี่ยน PIN ของตัวเอง (null/ว่าง = ลบ PIN)

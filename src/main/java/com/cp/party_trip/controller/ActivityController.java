@@ -23,6 +23,7 @@ public class ActivityController {
     @GetMapping("/trip/{tripId}")
     public ResponseEntity<?> getActivitiesByTrip(@PathVariable Long tripId) {
         try {
+            guard.me(tripId);
             return ResponseEntity.ok(activityService.getTripActivities(tripId));
         } catch (ResponseStatusException e) {
             return error(e);

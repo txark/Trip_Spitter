@@ -235,7 +235,7 @@
       /* ปุ่มเลือกหมวดหมู่ (ไอคอนอยู่บน ข้อความอยู่ล่าง) */
       .category-grid {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
       }
 
@@ -399,6 +399,144 @@
         margin-top: 6px;
         font-size: 0.8125rem;
         color: #b45309;
+      }
+
+      /* หัวกลุ่มวันในรายการบิล */
+      .day-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin: 18px 2px 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+
+      .day-head:first-child {
+        margin-top: 4px;
+      }
+
+      .day-head .day-name {
+        color: var(--text-main);
+        font-size: 0.88rem;
+      }
+
+      .day-head .money {
+        font-weight: 700;
+      }
+
+      /* มือถือ/แท็บเล็ต: ปุ่มลอย + ฟอร์มเลื่อนขึ้นจากด้านล่าง (เหมือนหน้าแพลน) */
+      .add-fab {
+        position: fixed;
+        right: 20px;
+        bottom: calc(20px + env(safe-area-inset-bottom));
+        z-index: 800;
+        width: 58px;
+        height: 58px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #ffffff;
+        font-size: 1.35rem;
+        box-shadow: 0 10px 24px rgba(79, 70, 229, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 899;
+        background: rgba(15, 23, 42, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+
+      .sheet-backdrop.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body.sheet-open {
+        overflow: hidden;
+      }
+
+      .sheet-close {
+        display: none;
+        margin-left: auto;
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 50%;
+        background: var(--surface-muted);
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        cursor: pointer;
+      }
+
+      @media (max-width: 1023px) {
+        .exp-layout {
+          padding-bottom: 76px; /* เว้นที่ให้ปุ่มลอย */
+        }
+
+        .container .exp-layout > .form-card {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 900;
+          max-height: 88vh;
+          max-height: 88dvh;
+          margin: 0;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          border-bottom: none;
+          border-radius: 20px 20px 0 0;
+          padding-bottom: calc(20px + env(safe-area-inset-bottom));
+          box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.2);
+          transition:
+            transform 0.28s ease,
+            visibility 0.28s;
+        }
+
+        .exp-layout > .form-card::before {
+          content: "";
+          display: block;
+          width: 40px;
+          height: 4px;
+          margin: -6px auto 12px;
+          border-radius: 2px;
+          background: var(--border);
+        }
+
+        .exp-layout > .form-card.collapsed {
+          transform: translateY(105%);
+          visibility: hidden;
+        }
+
+        .sheet-close {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .add-fab,
+        .sheet-backdrop {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .container .exp-layout > .form-card,
+        .sheet-backdrop {
+          transition: none;
+        }
       }
 
       .my-share {
@@ -1093,12 +1231,13 @@
       </div>
 
       <!-- จอคอม: ฟอร์มซ้าย / รายการบิลขวา, มือถือ: เรียงลงมา -->
-      <div class="two-col">
+      <div class="two-col exp-layout">
         <!-- ฟอร์มกรอกบิลใหม่ -->
         <div class="form-card sticky-col" id="expense-form">
           <div class="form-heading">
             <div class="avatar icon"><i class="fa-solid fa-plus" id="form-icon"></i></div>
             <span id="form-title">เพิ่มบิลใหม่</span>
+            <button type="button" class="sheet-close" id="sheet-close" aria-label="ปิดฟอร์ม">&times;</button>
           </div>
           <div class="edit-note hidden" id="edit-note">
             บันทึกแล้วยอดหนี้ของทุกคนในบิลนี้จะคำนวณใหม่
@@ -1251,7 +1390,7 @@
             type="button"
             class="cancel-edit-btn hidden"
             id="cancel-edit-btn"
-            onclick="exitEdit()"
+            onclick="sheetMode() ? closeSheet() : exitEdit()"
           >
             ยกเลิกการแก้ไข
           </button>
@@ -1286,6 +1425,12 @@
         </section>
       </div>
     </div>
+    <!-- มือถือ: ปุ่มเพิ่มบิล + พื้นหลังมืดตอนเปิดฟอร์ม -->
+    <button type="button" class="add-fab hidden" id="add-fab" aria-label="เพิ่มบิล">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    <div class="sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
+
     <!-- Pop-up Modal สำหรับเลือกสมาชิก (อยู่นอก .container เพื่อให้ทับทุกอย่างได้จริง:
          ถ้าอยู่ในฟอร์มที่เป็น position: sticky z-index จะถูกจำกัดอยู่แค่ในฟอร์ม) -->
     <div id="participant-modal" class="modal-overlay hidden">
@@ -1351,21 +1496,11 @@
       document.getElementById("back-dashboard-btn").href =
         `dashboard.html?tripId=${tripId}`;
 
-      const CATEGORIES = [
-        { value: "FOOD", label: "อาหาร", icon: "fa-solid fa-utensils" },
-        { value: "ACCOMMODATION", label: "ที่พัก", icon: "fa-solid fa-hotel" },
-        { value: "TRANSPORT", label: "เดินทาง", icon: "fa-solid fa-car" },
-        {
-          value: "SHOPPING",
-          label: "ช้อปปิ้ง",
-          icon: "fa-solid fa-shopping-bag",
-        },
-        { value: "OTHER", label: "อื่นๆ", icon: "fa-solid fa-star" },
-      ];
+      // หมวดหมู่ใช้ร่วมกับหน้าภาพรวม/แพลน (ui.js)
+      const CATEGORIES = EXPENSE_CATEGORIES;
       // หมวดที่เลือกไว้ตอนเปิดหน้า
       const DEFAULT_CATEGORY = "OTHER";
-      const categoryOf = (value) =>
-        CATEGORIES.find((c) => c.value === value) || CATEGORIES[4];
+      const categoryOf = expenseCategoryOf;
 
       let allMyExpenses = [];
       let tripInfo = null; // สกุลเงิน/เรทของทริป (ตั้งในหน้าแพลน)
@@ -1377,7 +1512,7 @@
       const planActivityId = urlParams.get("activityId");
       let planActivity = null;
       // ประเภทในแพลน -> หมวดหมู่บิล (ที่เหลือเป็น "อื่นๆ")
-      const PLAN_TO_CATEGORY = { FOOD: "FOOD", STAY: "ACCOMMODATION", TRAVEL: "TRANSPORT" };
+      const PLAN_TO_CATEGORY = PLAN_TO_EXPENSE_CATEGORY;
       let activeFilter = "ALL";
       let justAddedId = null;
       let editingId = null; // บิลที่กำลังแก้ (null = เพิ่มบิลใหม่)
@@ -1770,6 +1905,7 @@
       document.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
         if (isParticipantModalOpen()) closeParticipantModal();
+        else if (sheetOpen()) closeSheet();
         else if (editingId != null) exitEdit();
       });
 
@@ -1846,6 +1982,46 @@
       function confirmParticipantSelection() {
         closeParticipantModal();
       }
+
+      // ---------- มือถือ/แท็บเล็ต: ฟอร์มแบบ bottom sheet เปิดจากปุ่มลอย ----------
+      const expenseForm = document.getElementById("expense-form");
+      const wideScreen = window.matchMedia("(min-width: 1024px)");
+      const sheetMode = () => !wideScreen.matches;
+      const sheetOpen = () => sheetMode() && !expenseForm.classList.contains("collapsed");
+
+      function syncSheet() {
+        const open = sheetOpen();
+        document.getElementById("sheet-backdrop").classList.toggle("show", open);
+        document.body.classList.toggle("sheet-open", open);
+        document.getElementById("add-fab").classList.toggle("hidden", !sheetMode() || open);
+      }
+
+      function openSheet() {
+        expenseForm.classList.remove("collapsed");
+        syncSheet();
+      }
+
+      // ปิดฟอร์ม (กำลังแก้บิลอยู่ = ยกเลิกการแก้)
+      function closeSheet() {
+        if (!sheetMode()) return;
+        if (editingId != null) exitEdit({ focus: false });
+        expenseForm.classList.add("collapsed");
+        syncSheet();
+      }
+
+      document.getElementById("add-fab").addEventListener("click", () => {
+        openSheet();
+        setTimeout(() => document.getElementById("expense-amount").focus({ preventScroll: true }), 280);
+      });
+      document.getElementById("sheet-backdrop").addEventListener("click", closeSheet);
+      document.getElementById("sheet-close").addEventListener("click", closeSheet);
+      wideScreen.addEventListener("change", () => {
+        expenseForm.classList.toggle("collapsed", sheetMode() && editingId == null && !planActivity);
+        syncSheet();
+      });
+      // เปิดหน้ามาบนมือถือ: เห็นรายการบิลก่อน (มาจากแพลน = เปิดฟอร์มให้เลย)
+      if (sheetMode() && !planActivityId) expenseForm.classList.add("collapsed");
+      syncSheet();
 
       // --- โหลดรายชื่อสมาชิก ---
       async function loadTripMembers() {
@@ -2198,7 +2374,43 @@
         container.innerHTML =
           source.length === 0
             ? emptyBox("fa-solid fa-receipt", VIEWS[viewMode].empty)
-            : list.map(renderExpenseCard).join("");
+            : groupByDay(list)
+                .map(
+                  (g) => `
+                    <div class="day-head">
+                      <span class="day-name">${esc(dayLabel(g.key))}</span>
+                      <span>${g.items.length} บิล · <span class="money">${fmt(g.total)}</span></span>
+                    </div>
+                    ${g.items.map(renderExpenseCard).join("")}`,
+                )
+                .join("");
+      }
+
+      // บิลแบ่งตามวันที่จ่าย (วันล่าสุดก่อน ในวันเดียวกันบิลใหม่ก่อน)
+      function groupByDay(list) {
+        const groups = new Map();
+        [...list]
+          .sort((a, b) => dayKeyOf(b.expenseDate).localeCompare(dayKeyOf(a.expenseDate)) || Number(b.id) - Number(a.id))
+          .forEach((e) => {
+            const key = dayKeyOf(e.expenseDate) || "";
+            if (!groups.has(key)) groups.set(key, { key, items: [], total: 0 });
+            const g = groups.get(key);
+            g.items.push(e);
+            g.total += Number(e.totalAmount || 0);
+          });
+        return [...groups.values()];
+      }
+
+      // "วันนี้", "เมื่อวาน", ไม่งั้น "ศ. 2 ต.ค."
+      function dayLabel(key) {
+        if (!key) return "ไม่ระบุวัน";
+        const today = todayKey();
+        const d = new Date(`${key}T00:00:00`);
+        const t = new Date(`${today}T00:00:00`);
+        const diff = Math.round((t - d) / 86400000);
+        if (diff === 0) return "วันนี้";
+        if (diff === 1) return "เมื่อวาน";
+        return d.toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" });
       }
 
       document.getElementById("view-tabs").addEventListener("change", (e) => {
@@ -2395,7 +2607,7 @@
           const query = `participantIds=${participantIds.join(",")}`;
           const response = await fetch(
             editing
-              ? `${API_BASE_URL}/expenses/${editing.id}?memberId=${currentMemberId}&paidByMemberId=${paidByMemberId}&${query}`
+              ? `${API_BASE_URL}/expenses/${editing.id}?memberId=${currentMemberId}&paidByMemberId=${paidByMemberId}&revision=${editing.revision ?? 0}&${query}`
               : `${API_BASE_URL}/expenses/add/${tripId}?paidByMemberId=${paidByMemberId}&recordedByMemberId=${currentMemberId}&${query}`,
             {
               method: editing ? "PUT" : "POST",
@@ -2410,6 +2622,7 @@
           if (response.ok && editing) {
             justAddedId = editing.id;
             exitEdit({ focus: false });
+            closeSheet();
             showToast(`แก้ไข "${title}" ${fmtBill(totalAmount)} แล้ว`);
             await loadExpenses();
           } else if (response.ok) {
@@ -2431,7 +2644,9 @@
             if (!payerIsMe() && viewMode === "SHARED") document.querySelector('input[name="bill-view"][value="MINE"]').click();
             if (planActivity) showPlanSaved(planActivity, fmtBill(totalAmount));
             await loadExpenses();
-            amountInput.focus(); // พร้อมกรอกบิลถัดไปทันที
+            // จอคอม: พร้อมกรอกบิลถัดไปทันที, มือถือ: ปิดฟอร์มให้เห็นบิลที่เพิ่งเพิ่ม
+            if (sheetMode()) closeSheet();
+            else amountInput.focus();
           } else {
             const errData = await response.text();
             console.error("Server error response:", errData);
@@ -2504,6 +2719,7 @@
         document.getElementById("plan-link").classList.add("hidden");
 
         editingId = item.id;
+        openSheet();
         ["group-amount", "group-title", "group-custom"].forEach((g) =>
           setInvalid(g, false),
         );
@@ -2618,7 +2834,7 @@
         btn.disabled = true;
         try {
           const response = await fetch(
-            `${API_BASE_URL}/expenses/${id}?memberId=${currentMemberId}`,
+            `${API_BASE_URL}/expenses/${id}?memberId=${currentMemberId}${item ? `&revision=${item.revision ?? 0}` : ""}`,
             { method: "DELETE" },
           );
           if (response.ok) {
@@ -2663,17 +2879,9 @@
       }
 
       // ยอดประมาณการทั้งบิลจากแพลน: ที่พัก = ราคา/ห้อง/คืน × ห้อง × คืน, กิจกรรม = ต่อคน × ผู้ร่วม, อื่น ๆ = ต่อคน × ทุกคน
+      // ยอดในสกุลของราคาในแพลน (สูตรร่วมใน ui.js คิดเป็นบาท จึงส่งเรท 1 เข้าไป)
       function planEstimate(act) {
-        // รถส่วนตัวไม่มีค่าตั๋วในแพลน (ค่าน้ำมัน/ทางด่วนกรอกยอดจริงเอง)
-        const cost =
-          act.category === "FOOD" || (act.category === "TRAVEL" && act.transportMode === "CAR") ? 0 : Number(act.cost) || 0;
-        if (cost <= 0) return 0;
-        if (act.category === "STAY") return cost * (act.rooms || 1) * Math.max(nightsOf(act), 1);
-        const people =
-          ["ACTIVITY", "TRAVEL"].includes(act.category) && act.participantIds?.length
-            ? act.participantIds.length
-            : tripMembers.length;
-        return cost * Math.max(people, 1);
+        return planEstimateBaht({ ...act, costCurrency: null }, null, tripMembers.length);
       }
 
       function forgetPlanLink() {
@@ -2695,6 +2903,7 @@
 
           document.getElementById("expense-title").value = act.title || "";
           // วันของรายการในแพลน (ถ้ายังไม่ถึงวันนั้น = วันนี้ เพราะวันที่จ่ายเป็นอนาคตไม่ได้)
+          openSheet();
           if (act.activityDate) {
             const planDay = dayKeyOf(act.activityDate);
             document.getElementById("expense-date").value = planDay > todayKey() ? todayKey() : planDay;
