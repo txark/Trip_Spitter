@@ -2,7 +2,7 @@
 // แสดง/ซ่อนด้วย CSS (.app-sidebar ใน all.css) มือถือและแท็บเล็ตจะไม่เห็น
 // ห่อด้วย IIFE เพราะแต่ละหน้าประกาศ const tripId / API_BASE_URL ไว้เองแล้ว ถ้าประกาศซ้ำระดับบนสุดจะ error
 (function () {
-  const API_BASE_URL = "http://localhost:8090/api";
+  const API_BASE_URL = API_BASE; // ตั้งที่ ui.js
   const tripId = new URLSearchParams(window.location.search).get("tripId") || 1;
   const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
 

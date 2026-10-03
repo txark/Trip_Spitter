@@ -2,10 +2,12 @@ package com.cp.party_trip.service;
 
 import com.cp.party_trip.dto.ActivityRequest;
 import com.cp.party_trip.model.Activity;
+import com.cp.party_trip.model.ActivityStop;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
 import com.cp.party_trip.repository.ActivityRepo;
 import com.cp.party_trip.repository.ExpenseRepo;
+import com.cp.party_trip.repository.PollRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.repository.TripRepo;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,7 @@ public class ActivityService {
     static final int MAX_GUESTS_PER_ROOM = 20;
     static final Set<String> BOOKING_METHODS = Set.of("ONLINE", "PHONE", "PAGE");
     static final BigDecimal MAX_COST = new BigDecimal("9999999");
+    static final int MAX_STOPS = 5;
 
     // เรียงตามวัน → กิจกรรมไม่ระบุเวลาก่อน → เวลาเริ่ม → ลำดับที่เพิ่ม
     private static final Comparator<Activity> TIMELINE_ORDER = Comparator
@@ -52,13 +55,15 @@ public class ActivityService {
     private final TripRepo tripRepo;
     private final TripMemberRepo tripMemberRepo;
     private final ExpenseRepo expenseRepo;
+    private final PollRepo pollRepo;
 
     public ActivityService(ActivityRepo activityRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo,
-            ExpenseRepo expenseRepo) {
+            ExpenseRepo expenseRepo, PollRepo pollRepo) {
         this.activityRepo = activityRepo;
         this.tripRepo = tripRepo;
         this.tripMemberRepo = tripMemberRepo;
         this.expenseRepo = expenseRepo;
+        this.pollRepo = pollRepo;
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +80,16 @@ public class ActivityService {
         activity.setTrip(trip);
         activity.setCreatedByMemberId(request.getMemberId());
         apply(activity, trip, request);
+        // มาจากผลโหวต: โหวตต้องอยู่ในทริปเดียวกัน (แก้รายการทีหลังไม่เปลี่ยนที่มา)
+        if (request.getPollId() != null) {
+            boolean sameTrip = pollRepo.findById(request.getPollId())
+                    .map(p -> tripId.equals(p.getTripId()))
+                    .orElse(false);
+            if (!sameTrip) {
+                throw badRequest("ไม่พบโหวตนี้ในทริป");
+            }
+            activity.setPollId(request.getPollId());
+        }
         return activityRepo.save(activity);
     }
 
@@ -166,6 +181,7 @@ public class ActivityService {
         String bookingMethod = null;
         String contact = null;
         List<Long> participants = List.of();
+        List<ActivityStop> stops = new ArrayList<>();
         switch (category) {
             case "TRAVEL" -> {
                 origin = clean(request.getOrigin());
@@ -176,6 +192,11 @@ public class ActivityService {
                 if (transportMode != null && BOOKABLE_MODES.contains(transportMode)) {
                     bookingRef = cleanBookingRef(request.getBookingRef());
                 }
+                if ("PLANE".equals(transportMode)) {
+                    stops = cleanStops(request.getStops());
+                }
+                // ใครไปเที่ยวนี้บ้าง (ไม่ระบุ = ทุกคน) ใช้คิดค่าเดินทางรวม
+                participants = cleanParticipants(trip.getId(), request.getParticipantIds());
             }
             case "FOOD" -> mealType = oneOf(request.getMealType(), MEAL_TYPES);
             case "STAY" -> {
@@ -216,6 +237,10 @@ public class ActivityService {
             }
             cost = cost.setScale(2, RoundingMode.UNNECESSARY);
         }
+        // ขับรถไปเอง / มื้ออาหาร: ไม่มีค่าใช้จ่ายในแพลน (ยอดจริงบันทึกเป็นบิลทีหลัง)
+        if ("CAR".equals(transportMode) || "FOOD".equals(category)) {
+            cost = null;
+        }
 
         activity.setTitle(title);
         activity.setActivityDate(date);
@@ -231,11 +256,16 @@ public class ActivityService {
         activity.setBookingRef(bookingRef);
         activity.setBooked(booked);
         activity.setCost(cost);
+        // ราคาเงินต่างประเทศ: ต้องมีเรทคู่กัน, ไม่มีราคา = ไม่มีสกุลเงิน
+        String costCurrency = cost == null ? null : Money.currency(request.getCostCurrency());
+        activity.setCostCurrency(costCurrency);
+        activity.setCostRate(costCurrency == null ? null : Money.rate(request.getCostRate()));
         activity.setRooms(rooms);
         activity.setGuestsPerRoom(guestsPerRoom);
         activity.setBookingMethod(bookingMethod);
         activity.setContact(contact);
         activity.setParticipantIds(participants);
+        activity.setStops(stops);
 
         // พิกัดต้องมาคู่กันและอยู่ในช่วงที่เป็นไปได้ ไม่มีสถานที่ = ไม่มีพิกัด
         Double lat = request.getLatitude();
@@ -244,6 +274,35 @@ public class ActivityService {
                 && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
         activity.setLatitude(validCoords ? lat : null);
         activity.setLongitude(validCoords ? lng : null);
+    }
+
+    // เมืองต่อเครื่อง: ต้องมีชื่อเมือง ไม่เกิน 5 เมือง เวลาไม่ใส่ก็ได้ (ตัดวินาทีทิ้งเหมือนเวลาอื่น)
+    private List<ActivityStop> cleanStops(List<ActivityStop> requested) {
+        List<ActivityStop> result = new ArrayList<>();
+        if (requested == null) {
+            return result;
+        }
+        for (ActivityStop stop : requested) {
+            if (stop == null) {
+                continue;
+            }
+            String place = clean(stop.getPlace());
+            if (place == null) {
+                throw badRequest("กรุณากรอกเมืองที่ต่อเครื่อง");
+            }
+            if (place.length() > MAX_LOCATION_LENGTH) {
+                throw badRequest("ชื่อเมืองต่อเครื่องยาวเกิน " + MAX_LOCATION_LENGTH + " ตัวอักษร");
+            }
+            ActivityStop cleaned = new ActivityStop();
+            cleaned.setPlace(place);
+            cleaned.setArriveTime(minutes(stop.getArriveTime()));
+            cleaned.setDepartTime(minutes(stop.getDepartTime()));
+            result.add(cleaned);
+        }
+        if (result.size() > MAX_STOPS) {
+            throw badRequest("ต่อเครื่องได้ไม่เกิน " + MAX_STOPS + " เมือง");
+        }
+        return result;
     }
 
     // ตัดซ้ำ คงลำดับ และต้องเป็นสมาชิกของทริปนี้ทุกคน
