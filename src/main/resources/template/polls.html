@@ -759,6 +759,55 @@
         color: var(--text-muted);
       }
 
+      /* ผลโหวตที่ชนะ -> เพิ่มลงแพลน / อยู่ในแพลนแล้ว */
+      .closed-plan {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        padding: 0 14px 12px 58px;
+      }
+
+      .plan-add,
+      .plan-in {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 3px 12px;
+        border-radius: 999px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-decoration: none;
+        max-width: 100%;
+      }
+
+      .plan-add {
+        border: 1px dashed var(--border-strong);
+        color: var(--text-muted);
+        background: var(--surface);
+      }
+
+      .plan-in {
+        border: 1px solid rgba(22, 163, 74, 0.25);
+        background: rgba(22, 163, 74, 0.08);
+        color: #15803d;
+      }
+
+      .plan-add span,
+      .plan-in span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .plan-add:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+        }
+      }
+
       .readonly-notice {
         padding: 12px 14px;
         margin-bottom: 12px;
@@ -979,7 +1028,7 @@
     <script>
       const urlParams = new URLSearchParams(window.location.search);
       const tripId = urlParams.get("tripId") || 1;
-      const API_BASE_URL = "http://localhost:8090/api";
+      const API_BASE_URL = API_BASE; // ตั้งที่ ui.js
 
       const MIN_OPTIONS = 2;
       const MAX_OPTIONS = 10;
@@ -1014,6 +1063,7 @@
 
       let myMemberId = null;
       let polls = [];
+      let planActivities = []; // รายการในแพลน (ไว้ดูว่าผลโหวตไหนเพิ่มลงแพลนแล้ว)
       let activeFilter = "ALL";
       let selectedDuration = null;
       // โหวตที่ปิดแล้วที่ผู้ใช้กางรายละเอียดไว้ (คงไว้หลังโหลดข้อมูลใหม่)
@@ -1165,6 +1215,36 @@
           </span>`;
       }
 
+      // ผลที่ชนะ: อยู่ในแพลนแล้ว = ลิงก์ไปวันนั้น, ยังไม่อยู่ = ปุ่มเพิ่มลงแพลน (เสมอ = ทุกข้อที่เสมอ)
+      const planDayText = (key) =>
+        new Date(`${key}T00:00:00`).toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" });
+
+      function planRowHtml(poll, winners) {
+        if (!winners.length) return "";
+        const inPlan = planActivities.filter((a) => String(a.pollId) === String(poll.id));
+        if (inPlan.length) {
+          return `<div class="closed-plan">${inPlan
+            .map((a) => {
+              const key = String(a.activityDate).slice(0, 10);
+              return `<a class="plan-in" href="plan.html?tripId=${encodeURIComponent(tripId)}#day-${key}">
+                  <i class="fa-solid fa-circle-check"></i><span>อยู่ในแพลนแล้ว · ${esc(planDayText(key))}</span>
+                </a>`;
+            })
+            .join("")}</div>`;
+        }
+        if (!canAct()) return "";
+        const link = (o) =>
+          `plan.html?tripId=${encodeURIComponent(tripId)}&fromPoll=${encodeURIComponent(poll.id)}` +
+          `&q=${encodeURIComponent(poll.question || "")}&answer=${encodeURIComponent(o.optionText || "")}`;
+        return `<div class="closed-plan">${winners
+          .map(
+            (o) => `<a class="plan-add" href="${link(o)}">
+                <i class="fa-solid fa-route"></i><span>${winners.length > 1 ? `เพิ่ม "${esc(o.optionText)}" ลงแพลน` : "เพิ่มลงแพลน"}</span>
+              </a>`,
+          )
+          .join("")}</div>`;
+      }
+
       // โหวตที่ปิดแล้ว: เหลือแค่คำถาม + ข้อที่ชนะ (เสมอกันแสดงทุกข้อที่เสมอ)
       function renderClosedCard(poll) {
         const options = poll.options || [];
@@ -1210,7 +1290,7 @@
 
         const detailId = `poll-detail-${esc(poll.id)}`;
         return `
-          <article class="closed-card${winners.length === 0 ? " no-votes" : ""}${expanded ? " expanded" : ""}" data-poll-id="${esc(poll.id)}">
+          <article id="poll-${esc(poll.id)}" class="closed-card${winners.length === 0 ? " no-votes" : ""}${expanded ? " expanded" : ""}" data-poll-id="${esc(poll.id)}">
             <div class="closed-row">
               <button type="button" class="closed-toggle" data-action="toggle-detail"
                       aria-expanded="${expanded}" aria-controls="${detailId}">
@@ -1224,6 +1304,7 @@
               </button>
               ${canManage ? `<button type="button" class="small-btn danger" data-action="delete" aria-label="ลบโหวต"><i class="fa-solid fa-trash-can"></i></button>` : ""}
             </div>
+            ${planRowHtml(poll, winners)}
             <div class="closed-detail" id="${detailId}">
               <hr class="receipt-divider" />
               <div class="ballot-meta">${meta}</div>
@@ -1835,9 +1916,18 @@
             );
           }
 
-          await fetchPolls();
+          // โหลดแพลนไม่ได้ก็ยังใช้หน้าโหวตได้ (แค่ไม่มีปุ่มเพิ่มลงแพลน)
+          const [, planList] = await Promise.all([
+            fetchPolls(),
+            request(`${API_BASE_URL}/activities/trip/${tripId}`).catch(() => null),
+          ]);
+          planActivities = Array.isArray(planList) ? planList : [];
           renderAll();
           syncFormCollapse();
+          // กลับมาจากแพลน (#poll-5) = เลื่อนไปที่โหวตนั้น
+          if (location.hash.startsWith("#poll-")) {
+            document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: "center" });
+          }
         } catch (error) {
           console.error("Error loading polls:", error);
           document.getElementById("poll-list").innerHTML = emptyBox(

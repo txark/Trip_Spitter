@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.PollRequest;
 import com.cp.party_trip.dto.PollResultDTO;
 import com.cp.party_trip.dto.PollSummaryDTO;
@@ -19,9 +20,11 @@ import java.util.List;
 @RequestMapping("/api/polls")
 public class PollController {
     private final PollService pollService;
+    private final AuthGuard guard;
 
-    public PollController(PollService pollService) {
+    public PollController(PollService pollService, AuthGuard guard) {
         this.pollService = pollService;
+        this.guard = guard;
     }
 
     // โหวตทั้งหมดของทริป + ข้อที่ memberId เลือก
@@ -38,6 +41,7 @@ public class PollController {
             @RequestParam Long optionId,
             @RequestParam Long memberId) {
         try {
+            guard.self(guard.tripOfPoll(pollId), memberId);
             PollVote vote = pollService.castVote(pollId, optionId, memberId);
             return ResponseEntity.ok(vote == null ? "ยกเลิกโหวตแล้ว" : "บันทึกคะแนนโหวตสำเร็จ");
         } catch (ResponseStatusException e) {
@@ -64,7 +68,8 @@ public class PollController {
             @RequestParam String optionText,
             @RequestParam(required = false) Long memberId) {
         try {
-            PollOption newOption = pollService.addOptionToPoll(pollId, optionText, memberId);
+            Long me = guard.self(guard.tripOfPoll(pollId), memberId).getId();
+            PollOption newOption = pollService.addOptionToPoll(pollId, optionText, me);
             return ResponseEntity.ok(newOption);
         } catch (ResponseStatusException e) {
             return error(e);
@@ -74,6 +79,7 @@ public class PollController {
     @PostMapping
     public ResponseEntity<?> createPoll(@RequestBody PollRequest request) {
         try {
+            request.setMemberId(guard.self(request.getTripId(), request.getMemberId()).getId());
             Poll newPoll = pollService.createPoll(request);
             return ResponseEntity.ok(newPoll);
         } catch (ResponseStatusException e) {
@@ -84,6 +90,7 @@ public class PollController {
     @PutMapping("/{pollId}/close")
     public ResponseEntity<?> closePoll(@PathVariable Long pollId, @RequestParam Long memberId) {
         try {
+            guard.self(guard.tripOfPoll(pollId), memberId);
             return ResponseEntity.ok(pollService.closePoll(pollId, memberId));
         } catch (ResponseStatusException e) {
             return error(e);
@@ -93,6 +100,7 @@ public class PollController {
     @DeleteMapping("/{pollId}")
     public ResponseEntity<?> deletePoll(@PathVariable Long pollId, @RequestParam Long memberId) {
         try {
+            guard.self(guard.tripOfPoll(pollId), memberId);
             pollService.deletePoll(pollId, memberId);
             return ResponseEntity.ok("ลบโหวตแล้ว");
         } catch (ResponseStatusException e) {

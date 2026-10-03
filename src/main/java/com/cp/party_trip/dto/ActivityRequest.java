@@ -22,12 +22,16 @@ public class ActivityRequest {
     private String bookingRef;
     private Boolean booked;
     private BigDecimal cost;
+    private String costCurrency; // null/THB = บาท
+    private BigDecimal costRate;
     private Double latitude;
     private Double longitude;
     private Integer rooms;
     private String bookingMethod;
     private Integer guestsPerRoom;
     private String contact;
+    private Long pollId;
+    private List<com.cp.party_trip.model.ActivityStop> stops; // เครื่องบิน: เมืองต่อเครื่อง // เพิ่มจากผลโหวต (ใช้ตอนเพิ่มเท่านั้น)
     private List<Long> participantIds;
 
     public String getTitle() {
@@ -138,6 +142,22 @@ public class ActivityRequest {
         return cost;
     }
 
+    public String getCostCurrency() {
+        return costCurrency;
+    }
+
+    public void setCostCurrency(String costCurrency) {
+        this.costCurrency = costCurrency;
+    }
+
+    public BigDecimal getCostRate() {
+        return costRate;
+    }
+
+    public void setCostRate(BigDecimal costRate) {
+        this.costRate = costRate;
+    }
+
     public void setCost(BigDecimal cost) {
         this.cost = cost;
     }
@@ -164,6 +184,22 @@ public class ActivityRequest {
 
     public void setRooms(Integer rooms) {
         this.rooms = rooms;
+    }
+
+    public List<com.cp.party_trip.model.ActivityStop> getStops() {
+        return stops;
+    }
+
+    public void setStops(List<com.cp.party_trip.model.ActivityStop> stops) {
+        this.stops = stops;
+    }
+
+    public Long getPollId() {
+        return pollId;
+    }
+
+    public void setPollId(Long pollId) {
+        this.pollId = pollId;
     }
 
     public String getContact() {

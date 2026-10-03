@@ -1,12 +1,270 @@
 // ตัวช่วย UI ที่ใช้ร่วมกันหลายหน้า (expenses, debts)
 // สไตล์ที่คู่กัน (.avatar, .toast, .skeleton, .stat-*) อยู่ใน css/all.css
 
+// ---------- ที่อยู่ backend (ตั้งที่เดียว ทุกหน้าใช้ API_BASE) ----------
+// ลำดับ: localStorage "apiBase" -> <meta name="api-base"> -> host เดียวกับหน้าเว็บ พอร์ต 8090
+// (เปิดผ่าน Live Server จากมือถือด้วย IP ของคอม เช่น 192.168.1.5:5500 ก็จะเรียก 192.168.1.5:8090 ให้เอง)
+const API_BASE = (() => {
+  const clean = (url) => String(url).trim().replace(/\/+$/, "");
+  try {
+    const saved = localStorage.getItem("apiBase");
+    if (saved) return clean(saved);
+  } catch {}
+  const meta = document.querySelector('meta[name="api-base"]');
+  if (meta?.content) return clean(meta.content);
+  if (location.protocol === "file:" || !location.hostname) return "http://localhost:8090/api";
+  return `${location.protocol}//${location.hostname}:8090/api`;
+})();
+
+// ---------- ตัวตนผู้ใช้: token ต่อเครื่อง (แนบ header X-Auth-Token ให้ทุกคำสั่งที่ไป backend) ----------
+// เก็บ token แยกตามชื่อเล่น เปลี่ยนชื่อไปมาในเครื่องเดียวกันจะได้ไม่ต้องใส่ PIN
+const AUTH_HEADER = "X-Auth-Token";
+const nativeFetch = window.fetch.bind(window);
+
+function readTokens() {
+  try {
+    return JSON.parse(localStorage.getItem("authTokens") || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+
+function authToken(name = localStorage.getItem("username")) {
+  return (name && readTokens()[name]) || "";
+}
+
+function saveAuth(user, token) {
+  try {
+    const tokens = readTokens();
+    tokens[user.username] = token;
+    localStorage.setItem("authTokens", JSON.stringify(tokens));
+    localStorage.setItem("username", user.username);
+    localStorage.setItem("userId", user.id);
+    localStorage.setItem("pinSet", user.pinSet ? "1" : "0");
+  } catch {}
+}
+
+// เข้าด้วยชื่อเล่น (+ PIN ถ้าชื่อนี้มีเจ้าของในเครื่องอื่น)
+// ผล: { ok, user } | { ok:false, needPin } | { ok:false, taken, message } | { ok:false, message }
+async function loginAs(username, pin = "") {
+  const query = `username=${encodeURIComponent(username)}${pin ? `&pin=${encodeURIComponent(pin)}` : ""}`;
+  const token = authToken(username);
+  try {
+    const res = await nativeFetch(`${API_BASE}/users/login?${query}`, {
+      method: "POST",
+      headers: token ? { [AUTH_HEADER]: token } : {},
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      saveAuth(data, data.token);
+      return { ok: true, user: data };
+    }
+    if (res.status === 401 && data.message === "PIN_REQUIRED") return { ok: false, needPin: true };
+    if (res.status === 409) return { ok: false, taken: true, message: data.message };
+    return { ok: false, message: data.message || "เข้าสู่ระบบไม่สำเร็จ" };
+  } catch {
+    return { ok: false, offline: true, message: "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้" };
+  }
+}
+
+// เปิดหน้าไหนก็ได้: มีชื่อแต่ยังไม่มี token (ผู้ใช้เดิมก่อนมีระบบนี้) -> ขอ token ให้อัตโนมัติ
+// คำสั่งไป backend ทุกอันรอขั้นนี้เสร็จก่อน จะได้มี token แนบไปเสมอ
+const authReady = (async () => {
+  const name = localStorage.getItem("username");
+  if (!name || authToken(name)) return;
+  await loginAs(name);
+})();
+
+let authWarned = false;
+window.fetch = async (input, init = {}) => {
+  const url = typeof input === "string" ? input : input?.url || "";
+  if (!url.startsWith(API_BASE)) return nativeFetch(input, init);
+  await authReady;
+  const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+  const token = authToken();
+  if (token && !headers.has(AUTH_HEADER)) headers.set(AUTH_HEADER, token);
+  const res = await nativeFetch(input, { ...init, headers });
+  // token หาย/ไม่ตรงชื่อ: บอกครั้งเดียวต่อหน้า ให้กลับไปเข้าใหม่ที่หน้าแรก
+  if (res.status === 401 && !url.includes("/users/login") && !authWarned) {
+    authWarned = true;
+    setTimeout(() => showToast("ยืนยันตัวตนไม่ผ่าน กรุณากลับไปเข้าสู่ระบบที่หน้าแรก", "error"), 0);
+  }
+  return res;
+};
+
 // จัดรูปแบบเงินบาท เช่น 1234.5 -> ฿1,234.5
 function fmt(n) {
   return `฿${Number(n || 0).toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}`;
+}
+
+// ---------- สกุลเงิน ----------
+// เงินหลักของระบบคือบาท (หนี้/งบคิดเป็นบาทเสมอ) เงินอื่นเก็บคู่กับเรท "1 หน่วย = กี่บาท"
+const BASE_CURRENCY = "THB";
+const CURRENCIES = [
+  { code: "THB", symbol: "฿", name: "บาท", dp: 2 },
+  { code: "JPY", symbol: "¥", name: "เยน", dp: 0 },
+  { code: "KRW", symbol: "₩", name: "วอน", dp: 0 },
+  { code: "CNY", symbol: "CN¥", name: "หยวน", dp: 2 },
+  { code: "HKD", symbol: "HK$", name: "ดอลลาร์ฮ่องกง", dp: 2 },
+  { code: "TWD", symbol: "NT$", name: "ดอลลาร์ไต้หวัน", dp: 0 },
+  { code: "SGD", symbol: "S$", name: "ดอลลาร์สิงคโปร์", dp: 2 },
+  { code: "MYR", symbol: "RM", name: "ริงกิต", dp: 2 },
+  { code: "IDR", symbol: "Rp", name: "รูเปียห์", dp: 0 },
+  { code: "PHP", symbol: "₱", name: "เปโซ", dp: 2 },
+  { code: "VND", symbol: "₫", name: "ดอง", dp: 0 },
+  { code: "LAK", symbol: "₭", name: "กีบ", dp: 0 },
+  { code: "MMK", symbol: "K", name: "จ๊าด", dp: 0 },
+  { code: "INR", symbol: "₹", name: "รูปี", dp: 2 },
+  { code: "NPR", symbol: "Rs", name: "รูปีเนปาล", dp: 2 },
+  { code: "AED", symbol: "AED ", name: "ดีแรห์ม", dp: 2 },
+  { code: "TRY", symbol: "₺", name: "ลีรา", dp: 2 },
+  { code: "EUR", symbol: "€", name: "ยูโร", dp: 2 },
+  { code: "GBP", symbol: "£", name: "ปอนด์", dp: 2 },
+  { code: "CHF", symbol: "CHF ", name: "ฟรังก์สวิส", dp: 2 },
+  { code: "USD", symbol: "$", name: "ดอลลาร์สหรัฐ", dp: 2 },
+  { code: "AUD", symbol: "A$", name: "ดอลลาร์ออสเตรเลีย", dp: 2 },
+  { code: "NZD", symbol: "NZ$", name: "ดอลลาร์นิวซีแลนด์", dp: 2 },
+];
+const isForeign = (code) => !!code && String(code).toUpperCase() !== BASE_CURRENCY;
+function currencyOf(code) {
+  const c = String(code || BASE_CURRENCY).toUpperCase();
+  return CURRENCIES.find((x) => x.code === c) || { code: c, symbol: `${c} `, name: c, dp: 2 };
+}
+const currencySymbol = (code) => currencyOf(code).symbol.trim();
+
+// เช่น fmtCur(3000, "JPY") -> ¥3,000 (บาทใช้ fmt เดิม)
+function fmtCur(n, code) {
+  if (!isForeign(code)) return fmt(n);
+  const c = currencyOf(code);
+  return `${c.symbol}${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: c.dp })}`;
+}
+
+// ยอดเงินต่างประเทศ -> บาท (ปัดเป็นสตางค์)
+const toBaht = (amount, rate) => Math.round(Number(amount || 0) * Number(rate || 0) * 100) / 100;
+const roundRate = (rate) => Math.round(Number(rate || 0) * 1e6) / 1e6;
+
+// "1 ¥ = ฿0.213" (เงินที่ค่าน้อยมากแสดงเป็น 100/1,000 หน่วย จะได้อ่านง่าย)
+function rateText(code, rate) {
+  const r = Number(rate) || 0;
+  const unit = r && r < 0.01 ? 1000 : r && r < 0.1 ? 100 : 1;
+  const baht = (r * unit).toLocaleString(undefined, { maximumFractionDigits: unit > 1 ? 2 : 4 });
+  return `${fmtCur(unit, code)} = ฿${baht}`;
+}
+
+// สกุลเงินที่น่าจะใช้ ตามเขตเวลาของทริป
+const ZONE_CURRENCY = {
+  "Asia/Bangkok": "THB", "Asia/Yangon": "MMK", "Asia/Kolkata": "INR", "Asia/Kathmandu": "NPR",
+  "Asia/Singapore": "SGD", "Asia/Manila": "PHP", "Asia/Makassar": "IDR", "Asia/Hong_Kong": "HKD",
+  "Asia/Shanghai": "CNY", "Asia/Taipei": "TWD", "Asia/Tokyo": "JPY", "Asia/Seoul": "KRW",
+  "Asia/Dubai": "AED", "Europe/Istanbul": "TRY", "Europe/London": "GBP", "Europe/Paris": "EUR",
+  "Australia/Sydney": "AUD", "Pacific/Auckland": "NZD", "America/Los_Angeles": "USD", "America/New_York": "USD",
+};
+
+// เรทกลาง (mid-market) วันนี้ -> { rate, date, source }
+// 1) ECB ผ่าน frankfurter.dev (สกุลหลัก อัปเดตวันทำการละครั้ง)
+// 2) สกุลที่ ECB ไม่มี (ดอง กีบ จ๊าด ฯลฯ) หรือดึงไม่ได้ -> open.er-api.com (อัปเดตวันละครั้ง)
+// ไม่มีทั้งสองแหล่ง = null ให้กรอกเอง
+const ECB_CODES = new Set(["AUD", "CHF", "CNY", "EUR", "GBP", "HKD", "IDR", "INR", "JPY", "KRW", "MYR", "NZD", "PHP", "SGD", "TRY", "USD"]);
+const rateCache = new Map();
+
+async function rateFromEcb(c) {
+  const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${c}&symbols=THB`);
+  if (!res.ok) throw new Error("rate unavailable");
+  const data = await res.json();
+  const rate = Number(data?.rates?.THB);
+  if (!(rate > 0)) throw new Error("rate unavailable");
+  return { rate: roundRate(rate), date: data.date, source: "ECB" };
+}
+
+async function rateFromOpenEr(c) {
+  const res = await fetch(`https://open.er-api.com/v6/latest/${c}`);
+  if (!res.ok) throw new Error("rate unavailable");
+  const data = await res.json();
+  const rate = Number(data?.rates?.THB);
+  if (data?.result !== "success" || !(rate > 0)) return null;
+  const date = new Date(Number(data.time_last_update_unix) * 1000).toISOString().slice(0, 10);
+  return { rate: roundRate(rate), date, source: "ExchangeRate-API" };
+}
+
+// ช่องเรท = ตัวแปลงเงินสองทาง: [₺ 1] = [฿ 0.6836] กรอกฝั่งไหนก็ได้ อีกฝั่งคำนวณให้
+// เรท (1 หน่วย = กี่บาท) มาจากเรทกลาง/เรทของทริป แก้ในช่องไม่ได้ ช่องนี้มีไว้เทียบราคาเท่านั้น
+// ช่องเงินสกุลอื่นมี data-out = id ช่องบาท, ช่องบาทมี data-from = id ช่องเงินสกุลอื่น
+// เรทแบบ 1 หน่วย = กี่บาท เช่น ₺1 = ฿0.6836, ₫1 = ฿0.001292
+function bahtUnitText(code, rate) {
+  const r = Number(rate) || 0;
+  const dp = r !== 0 && r < 0.01 ? 6 : r < 1 ? 4 : 2;
+  return `${currencySymbol(code)}1 = ฿${r.toLocaleString(undefined, { maximumFractionDigits: dp })}`;
+}
+
+// ปัดให้อ่านง่าย: ต่ำกว่า 1 เก็บ 4 ตำแหน่ง ไม่งั้น 2 ตำแหน่ง
+function roundFine(n) {
+  const v = Number(n) || 0;
+  const a = Math.abs(v);
+  const f = v === 0 ? 100 : a < 0.01 ? 1e6 : a < 1 ? 1e4 : 100;
+  return Math.round(v * f) / f;
+}
+
+// เงินสกุลอื่น -> บาท
+function updateRateOut(input) {
+  const out = input.dataset.out && document.getElementById(input.dataset.out);
+  if (!out) return;
+  const rate = Number(input.dataset.rate) || 0;
+  const amount = Number(input.value);
+  out.disabled = !(rate > 0);
+  out.placeholder = rate > 0 ? "0" : "–";
+  out.value = rate > 0 && input.value !== "" && amount >= 0 ? roundFine(amount * rate) : "";
+}
+
+// บาท -> เงินสกุลอื่น (แปลงกลับ)
+function updateRateIn(bahtInput) {
+  const foreign = document.getElementById(bahtInput.dataset.from);
+  if (!foreign) return;
+  const rate = Number(foreign.dataset.rate) || 0;
+  const baht = Number(bahtInput.value);
+  if (rate > 0) foreign.value = bahtInput.value !== "" && baht >= 0 ? roundFine(baht / rate) : "";
+}
+
+// ตั้งเรทให้ช่อง: เริ่มที่ 1 หน่วย = กี่บาท
+function setRateInput(input, rate) {
+  if (Number(rate) > 0) {
+    input.dataset.rate = roundRate(rate);
+    input.value = 1;
+  } else {
+    input.value = "";
+    delete input.dataset.rate;
+  }
+  updateRateOut(input);
+}
+
+// เรทของช่อง (บาท/หน่วย) — ไม่มีเรท = 0
+const readRateInput = (input) => Number(input.dataset.rate) || 0;
+
+document.addEventListener("input", (e) => {
+  if (e.target?.dataset?.out) updateRateOut(e.target);
+  else if (e.target?.dataset?.from) updateRateIn(e.target);
+});
+
+// ใต้ช่องเรท: "ข้อมูลวันที่ 2026-10-02 เรทกลาง **₺1 = ฿0.6836**"
+const rateNoteHtml = (code, r) => `ข้อมูลวันที่ ${esc(r.date)} เรทกลาง <strong>${esc(bahtUnitText(code, r.rate))}</strong>`;
+
+async function fetchRateToBaht(code) {
+  const c = String(code || "").toUpperCase();
+  if (!/^[A-Z]{3}$/.test(c) || c === BASE_CURRENCY) return null;
+  if (rateCache.has(c)) return rateCache.get(c);
+  let result = null;
+  if (ECB_CODES.has(c)) {
+    try {
+      result = await rateFromEcb(c);
+    } catch {
+      result = null;
+    }
+  }
+  if (!result) result = await rateFromOpenEr(c);
+  if (result) rateCache.set(c, result);
+  return result;
 }
 
 // ชื่อคน/ชื่อบิลมาจากผู้ใช้ ต้อง escape ก่อนใส่ลง innerHTML ทุกครั้ง
@@ -36,6 +294,31 @@ function avatar(name, size = "") {
 function findMyMember(members) {
   const username = localStorage.getItem("username");
   return (members || []).find((m) => username && m.guestName === username) || null;
+}
+
+// เวลาตอนนี้ "ที่ที่เที่ยว" เป็น Date ที่ตัวเลข วัน/ชม./นาที ตรงกับนาฬิกาของเขตเวลานั้น
+// (แพลนเก็บเวลาท้องถิ่นของที่เที่ยว เทียบกับนาฬิกาเครื่องตรง ๆ จะคลาดเมื่อไปต่างประเทศ)
+const DEFAULT_TIME_ZONE = "Asia/Bangkok";
+function zoneNow(zone) {
+  const now = new Date();
+  try {
+    const parts = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: zone || DEFAULT_TIME_ZONE,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .formatToParts(now)
+      .forEach((p) => (parts[p.type] = p.value));
+    return new Date(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+  } catch {
+    return now;
+  }
 }
 
 const NOT_MEMBER_TEXT = "ไม่พบชื่อของคุณในทริปนี้ เข้าร่วมทริปด้วยรหัสเชิญที่หน้าแรกก่อน";

@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.ChecklistBulkRequest;
 import com.cp.party_trip.dto.ChecklistDetailsRequest;
 import com.cp.party_trip.model.ChecklistItem;
@@ -14,9 +15,11 @@ import java.util.List;
 @RequestMapping("/api/checklist")
 public class ChecklistController {
     private final ChecklistService checklistService;
+    private final AuthGuard guard;
 
-    public ChecklistController(ChecklistService checklistService) {
+    public ChecklistController(ChecklistService checklistService, AuthGuard guard) {
         this.checklistService = checklistService;
+        this.guard = guard;
     }
 
     @GetMapping("/{tripId}")
@@ -35,6 +38,7 @@ public class ChecklistController {
             @RequestParam(required = false) Long assignedToMemberId,
             @RequestParam(required = false) String notes) {
         try {
+            guard.me(tripId);
             return ResponseEntity.ok(checklistService.addItem(tripId, category, itemName, assignedToMemberId, notes));
         } catch (ResponseStatusException e) {
             return error(e);
@@ -45,6 +49,7 @@ public class ChecklistController {
     @PostMapping("/bulk")
     public ResponseEntity<?> addItems(@RequestBody ChecklistBulkRequest request) {
         try {
+            guard.me(request.getTripId());
             return ResponseEntity.ok(checklistService.addItems(
                     request.getTripId(),
                     request.getCategory(),
@@ -59,8 +64,9 @@ public class ChecklistController {
     @PatchMapping("/{itemId}/details")
     public ResponseEntity<?> updateDetails(@PathVariable Long itemId, @RequestBody ChecklistDetailsRequest request) {
         try {
+            Long me = guard.self(guard.tripOfChecklistItem(itemId), request.getMemberId()).getId();
             return ResponseEntity.ok(checklistService.updateDetails(itemId, request.getQuantity(),
-                    request.getUnit(), request.getNotes(), request.getMemberId()));
+                    request.getUnit(), request.getNotes(), me));
         } catch (ResponseStatusException e) {
             return error(e);
         }
@@ -70,6 +76,7 @@ public class ChecklistController {
     @PutMapping("/{itemId}/assignees")
     public ResponseEntity<?> setAssignees(@PathVariable Long itemId, @RequestBody List<Long> memberIds) {
         try {
+            guard.me(guard.tripOfChecklistItem(itemId));
             return ResponseEntity.ok(checklistService.setAssignees(itemId, memberIds));
         } catch (ResponseStatusException e) {
             return error(e);
@@ -82,7 +89,8 @@ public class ChecklistController {
             @RequestParam(required = false) String notes,
             @RequestParam(required = false) Long memberId) {
         try {
-            return ResponseEntity.ok(checklistService.updateNotes(itemId, notes, memberId));
+            Long me = guard.self(guard.tripOfChecklistItem(itemId), memberId).getId();
+            return ResponseEntity.ok(checklistService.updateNotes(itemId, notes, me));
         } catch (ResponseStatusException e) {
             return error(e);
         }
@@ -93,7 +101,8 @@ public class ChecklistController {
             @PathVariable Long itemId,
             @RequestParam(required = false) Long memberId) {
         try {
-            return ResponseEntity.ok(checklistService.toggleCheckStatus(itemId, memberId));
+            Long me = guard.self(guard.tripOfChecklistItem(itemId), memberId).getId();
+            return ResponseEntity.ok(checklistService.toggleCheckStatus(itemId, me));
         } catch (ResponseStatusException e) {
             return error(e);
         }
@@ -105,6 +114,7 @@ public class ChecklistController {
             @PathVariable Long itemId,
             @RequestParam(required = false) Long memberId) {
         try {
+            guard.me(guard.tripOfChecklistItem(itemId)); // มอบให้เพื่อนได้ แต่ต้องอยู่ทริปเดียวกัน
             return ResponseEntity.ok(checklistService.assignItem(itemId, memberId));
         } catch (ResponseStatusException e) {
             return error(e);
@@ -114,6 +124,7 @@ public class ChecklistController {
     @DeleteMapping("/{itemId}")
     public ResponseEntity<?> deleteItem(@PathVariable Long itemId) {
         try {
+            guard.me(guard.tripOfChecklistItem(itemId));
             checklistService.deleteItem(itemId);
             return ResponseEntity.ok("ลบรายการสิ่งของสำเร็จ");
         } catch (ResponseStatusException e) {

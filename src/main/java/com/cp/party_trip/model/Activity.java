@@ -84,6 +84,16 @@ public class Activity {
     @Column(length = 100)
     private String contact;
 
+    // เครื่องบิน: เมืองต่อเครื่อง เรียงตามลำดับที่บินผ่าน (ต้นทาง → ... → ปลายทาง)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "activity_stops", joinColumns = @JoinColumn(name = "activity_id"))
+    @OrderColumn(name = "position")
+    private List<ActivityStop> stops = new ArrayList<>();
+
+    // เพิ่มมาจากผลโหวตไหน (null = เพิ่มเอง) ใช้บอกในหน้าโหวตว่าอยู่ในแพลนแล้ว
+    @Column(name = "poll_id")
+    private Long pollId;
+
     // กิจกรรม: สมาชิกที่ไปด้วย (ไม่ใช่ทุกคนจะไปทุกกิจกรรม)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "activity_participants", joinColumns = @JoinColumn(name = "activity_id"))
@@ -94,6 +104,13 @@ public class Activity {
     // ค่าใช้จ่ายโดยประมาณ: ที่พัก = ต่อห้องต่อคืน, ประเภทอื่น = ต่อคน
     @Column(precision = 10, scale = 2)
     private BigDecimal cost;
+
+    // ราคาเป็นสกุลเงินอื่น (null = บาท) + เรทตอนบันทึก (ใช้เมื่อทริปเปลี่ยนสกุลเงินไปแล้ว)
+    @Column(name = "cost_currency", length = 3)
+    private String costCurrency;
+
+    @Column(name = "cost_rate", precision = 14, scale = 6)
+    private BigDecimal costRate;
 
     private Long createdByMemberId;
 
@@ -241,6 +258,22 @@ public class Activity {
         return cost;
     }
 
+    public String getCostCurrency() {
+        return costCurrency;
+    }
+
+    public void setCostCurrency(String costCurrency) {
+        this.costCurrency = costCurrency;
+    }
+
+    public BigDecimal getCostRate() {
+        return costRate;
+    }
+
+    public void setCostRate(BigDecimal costRate) {
+        this.costRate = costRate;
+    }
+
     public void setCost(BigDecimal cost) {
         this.cost = cost;
     }
@@ -267,6 +300,22 @@ public class Activity {
 
     public void setRooms(Integer rooms) {
         this.rooms = rooms;
+    }
+
+    public List<ActivityStop> getStops() {
+        return stops;
+    }
+
+    public void setStops(List<ActivityStop> stops) {
+        this.stops = stops == null ? new ArrayList<>() : new ArrayList<>(stops);
+    }
+
+    public Long getPollId() {
+        return pollId;
+    }
+
+    public void setPollId(Long pollId) {
+        this.pollId = pollId;
     }
 
     public String getContact() {
