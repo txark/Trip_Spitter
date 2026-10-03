@@ -28,6 +28,33 @@ public class ExpenseSplit {
     @Column(name = "is_paid", nullable = false, columnDefinition = "boolean not null default false")
     private boolean isPaid = false;
 
+    // จ่ายคืนแล้วเท่าไร (รับเงินเป็นยอดรวมแล้วหักมาบางส่วนได้) null = ยังไม่เคยจ่าย
+    @Column(name = "paid_amount", precision = 10, scale = 2)
+    private BigDecimal paidAmount;
+
+    // ส่วนที่จ่ายคืนแล้วจริง: กดยืนยันครบ = ทั้งก้อน, ไม่งั้น = ยอดที่หักมา (ไม่ใช่ getter กัน JSON วนลูป)
+    public BigDecimal paidSoFar() {
+        BigDecimal owed = amountOwed == null ? BigDecimal.ZERO : amountOwed;
+        if (isPaid) {
+            return owed;
+        }
+        BigDecimal paid = paidAmount == null ? BigDecimal.ZERO : paidAmount;
+        return paid.min(owed);
+    }
+
+    public BigDecimal remainingAmount() {
+        BigDecimal owed = amountOwed == null ? BigDecimal.ZERO : amountOwed;
+        return owed.subtract(paidSoFar());
+    }
+
+    public BigDecimal getPaidAmount() {
+        return paidAmount;
+    }
+
+    public void setPaidAmount(BigDecimal paidAmount) {
+        this.paidAmount = paidAmount;
+    }
+
     public Long getTripMemberId() {
         return tripMember != null ? tripMember.getId() : null;
     }

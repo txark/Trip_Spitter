@@ -1215,7 +1215,7 @@
     <script>
       const urlParams = new URLSearchParams(window.location.search);
       const tripId = urlParams.get("tripId") || 1;
-      const API_BASE_URL = "http://localhost:8090/api";
+      const API_BASE_URL = API_BASE; // ตั้งที่ ui.js
 
       // หมวดหมู่ (เก็บรหัสภาษาอังกฤษในฐานข้อมูล แสดงชื่อไทย)
       const CATEGORIES = [

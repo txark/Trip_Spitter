@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.SettlementDTO;
 import com.cp.party_trip.model.Settlement;
 import com.cp.party_trip.model.Trip;
@@ -24,7 +25,11 @@ public class SettlementController {
     private final TripRepo tripRepo;
     private final TripMemberRepo tripMemberRepo;
 
-    public SettlementController(SettlementRepo settlementRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo) {
+    private final AuthGuard guard;
+
+    public SettlementController(SettlementRepo settlementRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo,
+            AuthGuard guard) {
+        this.guard = guard;
         this.settlementRepo = settlementRepo;
         this.tripRepo = tripRepo;
         this.tripMemberRepo = tripMemberRepo;
@@ -37,6 +42,11 @@ public class SettlementController {
             @RequestParam Long receiverId,
             @RequestParam BigDecimal amount) {
 
+        // บันทึกได้เฉพาะคนที่เกี่ยวข้อง (คนจ่ายหรือคนรับ)
+        Long me = guard.me(tripId).getId();
+        if (!me.equals(senderId) && !me.equals(receiverId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("บันทึกได้เฉพาะคนจ่ายหรือคนรับเงิน");
+        }
         if (amount == null || amount.signum() <= 0) {
             return ResponseEntity.badRequest().body("จำนวนเงินต้องมากกว่า 0");
         }

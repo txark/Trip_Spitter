@@ -44,12 +44,13 @@ public class DebtService {
                 TripMember owedby = split.getTripMember();
                 if (owedby == null || split.getAmountOwed() == null)
                     continue;
-                // ส่วนที่ผู้จ่ายยืนยันแล้วว่าได้รับเงิน ถือว่าชำระแล้ว ไม่นับเป็นหนี้
-                if (split.isPaid() && !owedby.equals(paidBy)) {
-                    balances.put(paidBy, balances.get(paidBy).subtract(split.getAmountOwed()));
-                    continue;
+                // ส่วนที่จ่ายคืนแล้ว (ครบหรือบางส่วน) ไม่นับเป็นหนี้ เหลือแค่ยอดที่ยังค้าง
+                BigDecimal paid = owedby.equals(paidBy) ? BigDecimal.ZERO : split.paidSoFar();
+                if (paid.signum() > 0) {
+                    balances.put(paidBy, balances.get(paidBy).subtract(paid));
                 }
-                balances.put(owedby, balances.getOrDefault(owedby, BigDecimal.ZERO).subtract(split.getAmountOwed()));
+                balances.put(owedby, balances.getOrDefault(owedby, BigDecimal.ZERO)
+                        .subtract(split.getAmountOwed().subtract(paid)));
             }
         }
 

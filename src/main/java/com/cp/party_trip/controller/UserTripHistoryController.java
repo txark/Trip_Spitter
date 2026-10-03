@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.model.UserTripHistory;
 import com.cp.party_trip.service.UserTripHistoryService;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +14,11 @@ import java.util.List;
 public class UserTripHistoryController {
 
     private final UserTripHistoryService historyService;
+    private final AuthGuard guard;
 
-    public UserTripHistoryController(UserTripHistoryService historyService) {
+    public UserTripHistoryController(UserTripHistoryService historyService, AuthGuard guard) {
         this.historyService = historyService;
+        this.guard = guard;
     }
 
     // ดึงประวัติทริปล่าสุดตาม userId
@@ -30,7 +33,8 @@ public class UserTripHistoryController {
     public ResponseEntity<?> recordView(
             @RequestParam Long userId,
             @RequestParam Long tripId) {
-        historyService.recordTripView(userId, tripId);
+        // บันทึกได้เฉพาะประวัติของตัวเอง
+        historyService.recordTripView(guard.user().getId(), tripId);
         return ResponseEntity.ok("บันทึกประวัติการเข้าชมสำเร็จ");
     }
 }

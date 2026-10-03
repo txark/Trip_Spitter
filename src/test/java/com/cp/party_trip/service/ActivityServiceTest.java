@@ -7,6 +7,9 @@ import com.cp.party_trip.model.TripMember;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.repository.ActivityRepo;
 import com.cp.party_trip.repository.ExpenseRepo;
+import com.cp.party_trip.repository.PollRepo;
+import com.cp.party_trip.model.Poll;
+import com.cp.party_trip.model.ActivityStop;
 import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.repository.TripRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +34,7 @@ class ActivityServiceTest {
     private TripRepo tripRepo;
     private TripMemberRepo tripMemberRepo;
     private ExpenseRepo expenseRepo;
+    private PollRepo pollRepo;
     private ActivityService service;
     private Trip trip;
 
@@ -40,7 +44,8 @@ class ActivityServiceTest {
         tripRepo = mock(TripRepo.class);
         tripMemberRepo = mock(TripMemberRepo.class);
         expenseRepo = mock(ExpenseRepo.class);
-        service = new ActivityService(activityRepo, tripRepo, tripMemberRepo, expenseRepo);
+        pollRepo = mock(PollRepo.class);
+        service = new ActivityService(activityRepo, tripRepo, tripMemberRepo, expenseRepo, pollRepo);
         when(activityRepo.save(any(Activity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         trip = new Trip();
@@ -91,6 +96,141 @@ class ActivityServiceTest {
         assertEquals("OTHER", saved.getCategory());
         assertEquals(10L, saved.getCreatedByMemberId());
         assertEquals(LocalDateTime.of(2026, 10, 13, 10, 30), saved.getActivityTime());
+    }
+
+    private void poll(Long id, Long tripId) {
+        Poll p = new Poll();
+        p.setId(id);
+        p.setTripId(tripId);
+        when(pollRepo.findById(id)).thenReturn(Optional.of(p));
+    }
+
+    private ActivityStop stop(String place, LocalTime arrive, LocalTime depart) {
+        ActivityStop s = new ActivityStop();
+        s.setPlace(place);
+        s.setArriveTime(arrive);
+        s.setDepartTime(depart);
+        return s;
+    }
+
+    private ActivityRequest travel(String mode) {
+        ActivityRequest r = request("เดินทาง", LocalDate.of(2026, 10, 12));
+        r.setCategory("TRAVEL");
+        r.setTransportMode(mode);
+        return r;
+    }
+
+    @Test
+    void planeKeepsConnectingCitiesInOrder() {
+        ActivityRequest r = travel("PLANE");
+        r.setStops(List.of(stop(" ฮ่องกง (HKG) ", LocalTime.of(10, 0, 30), LocalTime.of(12, 30)),
+                stop("ไทเป (TPE)", null, null)));
+        Activity saved = service.addActivity(1L, r);
+        assertEquals(List.of("ฮ่องกง (HKG)", "ไทเป (TPE)"), saved.getStops().stream().map(ActivityStop::getPlace).toList());
+        assertEquals(LocalTime.of(10, 0), saved.getStops().get(0).getArriveTime());
+        assertNull(saved.getStops().get(1).getDepartTime());
+    }
+
+    @Test
+    void connectingCitiesOnlyForPlanes() {
+        ActivityRequest r = travel("BUS");
+        r.setStops(List.of(stop("โคราช", null, null)));
+        assertTrue(service.addActivity(1L, r).getStops().isEmpty());
+    }
+
+    @Test
+    void rejectsBlankOrTooManyConnectingCities() {
+        ActivityRequest blank = travel("PLANE");
+        blank.setStops(List.of(stop("  ", null, null)));
+        assertEquals(HttpStatus.BAD_REQUEST, statusOf(() -> service.addActivity(1L, blank)));
+
+        ActivityRequest many = travel("PLANE");
+        many.setStops(List.of(stop("A", null, null), stop("B", null, null), stop("C", null, null),
+                stop("D", null, null), stop("E", null, null), stop("F", null, null)));
+        assertEquals(HttpStatus.BAD_REQUEST, statusOf(() -> service.addActivity(1L, many)));
+        verify(activityRepo, never()).save(any());
+    }
+
+    @Test
+    void travelKeepsWhoIsGoing() {
+        ActivityRequest r = travel("VAN");
+        r.setParticipantIds(List.of(10L, 10L));
+        assertEquals(List.of(10L), service.addActivity(1L, r).getParticipantIds());
+
+        ActivityRequest stranger = travel("VAN");
+        stranger.setParticipantIds(List.of(99L));
+        assertEquals(HttpStatus.BAD_REQUEST, statusOf(() -> service.addActivity(1L, stranger)));
+    }
+
+    @Test
+    void costInLocalCurrencyKeepsRate() {
+        ActivityRequest r = request("วัดเซ็นโซจิ", LocalDate.of(2026, 10, 12));
+        r.setCategory("SIGHTSEEING");
+        r.setCost(new BigDecimal("500"));
+        r.setCostCurrency("jpy");
+        r.setCostRate(new BigDecimal("0.23"));
+        Activity saved = service.addActivity(1L, r);
+        assertEquals("JPY", saved.getCostCurrency());
+        assertEquals(new BigDecimal("0.230000"), saved.getCostRate());
+
+        ActivityRequest baht = request("ตลาด", LocalDate.of(2026, 10, 12));
+        baht.setCost(new BigDecimal("100"));
+        baht.setCostCurrency("THB");
+        baht.setCostRate(new BigDecimal("9"));
+        assertNull(service.addActivity(1L, baht).getCostCurrency());
+
+        ActivityRequest noRate = request("ตลาด", LocalDate.of(2026, 10, 12));
+        noRate.setCost(new BigDecimal("100"));
+        noRate.setCostCurrency("JPY");
+        assertEquals(HttpStatus.BAD_REQUEST, statusOf(() -> service.addActivity(1L, noRate)));
+    }
+
+    @Test
+    void privateCarHasNoCost() {
+        ActivityRequest car = travel("CAR");
+        car.setCost(new BigDecimal("500"));
+        assertNull(service.addActivity(1L, car).getCost());
+
+        ActivityRequest van = travel("VAN");
+        van.setCost(new BigDecimal("500"));
+        assertEquals(new BigDecimal("500.00"), service.addActivity(1L, van).getCost());
+    }
+
+    @Test
+    void addFromPollOfSameTripKeepsPollId() {
+        poll(5L, 1L);
+        ActivityRequest r = request("ข้าวซอย", LocalDate.of(2026, 10, 13));
+        r.setPollId(5L);
+        assertEquals(5L, service.addActivity(1L, r).getPollId());
+    }
+
+    @Test
+    void rejectsPollFromAnotherTrip() {
+        poll(6L, 2L);
+        ActivityRequest r = request("ข้าวซอย", LocalDate.of(2026, 10, 13));
+        r.setPollId(6L);
+        assertEquals(HttpStatus.BAD_REQUEST, statusOf(() -> service.addActivity(1L, r)));
+        verify(activityRepo, never()).save(any());
+    }
+
+    @Test
+    void rejectsMissingPoll() {
+        ActivityRequest r = request("ข้าวซอย", LocalDate.of(2026, 10, 13));
+        r.setPollId(7L);
+        assertEquals(HttpStatus.BAD_REQUEST, statusOf(() -> service.addActivity(1L, r)));
+        verify(activityRepo, never()).save(any());
+    }
+
+    @Test
+    void editingDoesNotChangePollId() {
+        Activity existing = new Activity();
+        existing.setId(30L);
+        existing.setTrip(trip);
+        existing.setPollId(5L);
+        when(activityRepo.findById(30L)).thenReturn(Optional.of(existing));
+        ActivityRequest r = request("ข้าวซอย (แก้)", LocalDate.of(2026, 10, 13));
+        r.setPollId(null);
+        assertEquals(5L, service.updateActivity(30L, r).getPollId());
     }
 
     @Test
