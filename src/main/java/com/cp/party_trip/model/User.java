@@ -1,5 +1,6 @@
 package com.cp.party_trip.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -15,6 +16,16 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // token ของเครื่องที่ใช้ชื่อนี้ (ส่งมาใน header X-Auth-Token ทุกครั้งที่แก้ข้อมูล) ห้ามหลุดออกไปใน JSON
+    @JsonIgnore
+    @Column(name = "auth_token", length = 64, unique = true)
+    private String authToken;
+
+    // PIN สำหรับเข้าชื่อนี้จากเครื่องอื่น เก็บแบบ hash (salt:hash)
+    @JsonIgnore
+    @Column(name = "pin_hash", length = 120)
+    private String pinHash;
 
     // Getters & Setters
     public Long getId() {
@@ -39,5 +50,21 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
+    public String getPinHash() {
+        return pinHash;
+    }
+
+    public void setPinHash(String pinHash) {
+        this.pinHash = pinHash;
     }
 }

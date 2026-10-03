@@ -14,6 +14,9 @@ public class ExpenseRequest {
     private String splitType;
     private String category;
     private Long activityId; // บันทึกจากรายการในแพลน (ไม่บังคับ)
+    private java.time.LocalDate expenseDate; // วันที่จ่าย (ไม่ส่ง = วันนี้ / วันเดิมของบิล)
+    private java.math.BigDecimal originalAmount; // เงินต่างประเทศ: ยอดตามใบเสร็จ
+    private java.math.BigDecimal exchangeRate; // 1 หน่วย = กี่บาท
     private List<SplitAmount> splits;
 
     public static class SplitAmount {
@@ -68,6 +71,30 @@ public class ExpenseRequest {
 
     public void setSplitType(String splitType) {
         this.splitType = splitType;
+    }
+
+    public java.math.BigDecimal getOriginalAmount() {
+        return originalAmount;
+    }
+
+    public void setOriginalAmount(java.math.BigDecimal originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
+    public java.math.BigDecimal getExchangeRate() {
+        return exchangeRate;
+    }
+
+    public void setExchangeRate(java.math.BigDecimal exchangeRate) {
+        this.exchangeRate = exchangeRate;
+    }
+
+    public java.time.LocalDate getExpenseDate() {
+        return expenseDate;
+    }
+
+    public void setExpenseDate(java.time.LocalDate expenseDate) {
+        this.expenseDate = expenseDate;
     }
 
     public Long getActivityId() {
