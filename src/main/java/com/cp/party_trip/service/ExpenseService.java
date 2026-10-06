@@ -1,11 +1,11 @@
 package com.cp.party_trip.service;
 
-import com.cp.party_trip.dto.ExpenseRequest;
+import com.cp.party_trip.dto.response.ExpenseViewResponse;
+import com.cp.party_trip.dto.request.ExpenseRequest;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
-import com.cp.party_trip.repository.ActivityRepo;
 import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.TripRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
@@ -28,117 +28,21 @@ public class ExpenseService {
     private final ExpenseRepo expenseRepo;
     private final TripRepo tripRepo;
     private final TripMemberRepo tripMemberRepo;
-    private final ActivityRepo activityRepo;
 
-    public ExpenseService(ExpenseRepo expenseRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo,
-            ActivityRepo activityRepo) {
+    public ExpenseService(ExpenseRepo expenseRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo) {
         this.expenseRepo = expenseRepo;
         this.tripRepo = tripRepo;
         this.tripMemberRepo = tripMemberRepo;
-        this.activityRepo = activityRepo;
     }
 
     @Transactional
     public Expense createExpense(Long tripId, Long userId, ExpenseRequest request, List<Long> participantIds) {
-        return createExpense(tripId, userId, null, request, participantIds);
-    }
-
-    // recordedBy = คนที่กดบันทึก (บันทึกแทนเพื่อนที่จ่ายได้), ไม่ส่ง = คนจ่ายบันทึกเอง
-    @Transactional
-    public Expense createExpense(Long tripId, Long userId, Long recordedBy, ExpenseRequest request,
-            List<Long> participantIds) {
         Trip trip = tripRepo.findById(tripId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบข้อมูลทริป"));
 
         // ผู้จ่ายต้องเป็นสมาชิกของทริปนี้ (เดิมรับสมาชิกทริปอื่นได้)
         TripMember paidBy = findTripMember(tripId, userId);
-        TripMember recorder = recordedBy == null ? paidBy : findTripMember(tripId, recordedBy);
 
-        Expense expense = new Expense();
-        expense.setTrip(trip);
-        expense.setUser(paidBy);
-        expense.setRecordedById(recorder.getId());
-        expense.setExpenseSplits(new ArrayList<>());
-        apply(expense, tripId, paidBy, request, participantIds);
-        return expenseRepo.save(expense);
-    }
-
-    // แก้บิล: เฉพาะคนจ่าย และยังไม่มีเพื่อนคนไหนจ่ายคืน (ไม่งั้นยอดที่คืนไปแล้วจะไม่ตรงกับบิลใหม่)
-    @Transactional
-    public Expense updateExpense(Long expenseId, Long memberId, ExpenseRequest request, List<Long> participantIds) {
-        return updateExpense(expenseId, memberId, null, request, participantIds);
-    }
-
-    // newPayerId = เปลี่ยนคนจ่าย (ไม่ส่ง = คนเดิม) คนที่แก้จะกลายเป็นคนบันทึก จะได้ยังแก้บิลนี้ต่อได้
-    @Transactional
-    public Expense updateExpense(Long expenseId, Long memberId, Long newPayerId, ExpenseRequest request,
-            List<Long> participantIds) {
-        return updateExpense(expenseId, memberId, newPayerId, request, participantIds, null);
-    }
-
-    // expectedRevision = รุ่นของบิลตอนเปิดฟอร์มแก้ (ไม่ตรงกับปัจจุบัน = อีกเครื่องแก้ไปแล้ว -> 409)
-    @Transactional
-    public Expense updateExpense(Long expenseId, Long memberId, Long newPayerId, ExpenseRequest request,
-            List<Long> participantIds, Integer expectedRevision) {
-        Expense expense = findEditable(expenseId, memberId);
-        requireRevision(expense, expectedRevision);
-        expense.setRevision(expense.getRevision() + 1);
-        Long tripId = expense.getTrip().getId();
-        if (newPayerId != null && !newPayerId.equals(expense.getUser().getId())) {
-            expense.setUser(findTripMember(tripId, newPayerId));
-            expense.setRecordedById(memberId);
-        }
-        // สร้างส่วนแบ่งใหม่ทั้งหมด (ลิสต์เดิม + orphanRemoval = ลบแถวเก่าให้เอง)
-        if (expense.getExpenseSplits() == null) {
-            expense.setExpenseSplits(new ArrayList<>());
-        }
-        expense.getExpenseSplits().clear();
-        apply(expense, tripId, expense.getUser(), request, participantIds);
-        return expenseRepo.save(expense);
-    }
-
-    @Transactional
-    public void deleteExpense(Long expenseId, Long memberId) {
-        deleteExpense(expenseId, memberId, null);
-    }
-
-    @Transactional
-    public void deleteExpense(Long expenseId, Long memberId, Integer expectedRevision) {
-        Expense expense = findEditable(expenseId, memberId);
-        requireRevision(expense, expectedRevision);
-        expenseRepo.delete(expense);
-    }
-
-    // findEditable ล็อกแถวบิลไว้แล้ว: คำขอที่ 2 จากอีกเครื่องจะรอจนคำขอแรกเสร็จ แล้วเจอรุ่นที่ไม่ตรง
-    private void requireRevision(Expense expense, Integer expectedRevision) {
-        if (expectedRevision != null && expectedRevision != expense.getRevision()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "บิลนี้เพิ่งถูกแก้จากอีกเครื่อง โหลดข้อมูลใหม่แล้วลองอีกครั้ง");
-        }
-    }
-
-    private Expense findEditable(Long expenseId, Long memberId) {
-        Expense expense = expenseRepo.lockById(expenseId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบบิลนี้"));
-        TripMember paidBy = expense.getUser();
-        boolean allowed = memberId != null && paidBy != null
-                && (memberId.equals(paidBy.getId()) || memberId.equals(expense.getRecordedById()));
-        if (!allowed) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "แก้หรือลบได้เฉพาะคนที่จ่ายหรือคนที่บันทึกบิลนี้");
-        }
-        boolean repaid = expense.getExpenseSplits() != null && expense.getExpenseSplits().stream()
-                .anyMatch(s -> s.paidSoFar().signum() > 0 && s.getTripMember() != null
-                        && !paidBy.getId().equals(s.getTripMember().getId()));
-        if (repaid) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "มีเพื่อนจ่ายคืนบิลนี้แล้ว จึงแก้หรือลบไม่ได้");
-        }
-        return expense;
-    }
-
-    // ตรวจข้อมูลบิล แล้วเติมลง expense พร้อมสร้างส่วนแบ่งของแต่ละคน (ใช้ทั้งตอนเพิ่มและแก้)
-    private void apply(Expense expense, Long tripId, TripMember paidBy, ExpenseRequest request,
-            List<Long> participantIds) {
         if (request.getTotalAmount() == null) {
             throw badRequest("ยอดบิลต้องมากกว่า 0");
         }
@@ -151,7 +55,8 @@ public class ExpenseService {
             throw badRequest("กรุณาตั้งชื่อรายการ");
         }
 
-        // ไม่ระบุวิธีหาร = หารเท่ากัน, ระบุแบบที่ไม่รองรับ = ผิด (เดิมบันทึกบิลโดยไม่มีผู้ร่วมหาร ทำให้ยอดหนี้เพี้ยน)
+        // ไม่ระบุวิธีหาร = หารเท่ากัน, ระบุแบบที่ไม่รองรับ = ผิด
+        // (เดิมบันทึกบิลโดยไม่มีผู้ร่วมหาร ทำให้ยอดหนี้เพี้ยน)
         String splitType = request.getSplitType() == null || request.getSplitType().isBlank()
                 ? "EQUAL"
                 : request.getSplitType().trim().toUpperCase();
@@ -159,57 +64,17 @@ public class ExpenseService {
             throw badRequest("วิธีหารไม่ถูกต้อง (รองรับ EQUAL หรือ CUSTOM)");
         }
 
+        Expense expense = new Expense();
         expense.setTitle(request.getTitle().trim());
         expense.setTotalAmount(totalAmount);
-        // เงินต่างประเทศ: ยอดเงินบาทต้องตรงกับ ยอดตามใบเสร็จ × เรท (คลาดได้ไม่เกิน 1 สตางค์จากการปัด)
-        String currency = Money.currency(request.getCurrency());
-        if (currency == null) {
-            expense.setCurrency(Money.BASE);
-            expense.setOriginalAmount(null);
-            expense.setExchangeRate(null);
-        } else {
-            BigDecimal original = request.getOriginalAmount();
-            if (original == null || original.signum() <= 0) {
-                throw badRequest("กรุณาใส่ยอดตามใบเสร็จ");
-            }
-            BigDecimal rate = Money.rate(request.getExchangeRate());
-            original = original.setScale(2, RoundingMode.HALF_UP);
-            BigDecimal expected = original.multiply(rate).setScale(2, RoundingMode.HALF_UP);
-            if (expected.subtract(totalAmount).abs().compareTo(new BigDecimal("0.01")) > 0) {
-                throw badRequest("ยอดเงินบาทไม่ตรงกับยอดตามใบเสร็จ × อัตราแลกเปลี่ยน");
-            }
-            expense.setCurrency(currency);
-            expense.setOriginalAmount(original);
-            expense.setExchangeRate(rate);
-        }
+        expense.setCurrency(request.getCurrency());
         expense.setCategory(request.getCategory());
-        // วันที่จ่าย: เปลี่ยนแค่วัน เวลาคงเดิม (บิลใหม่ = เวลาตอนบันทึก)
-        if (request.getExpenseDate() != null) {
-            int year = request.getExpenseDate().getYear();
-            if (year < 2000 || year > 2100) {
-                throw badRequest("วันที่ของบิลไม่ถูกต้อง");
-            }
-            // วันที่จ่ายเป็นอนาคตไม่ได้ (เผื่อ 1 วัน: เขตเวลาของทริปอาจเร็วกว่าเซิร์ฟเวอร์)
-            if (request.getExpenseDate().isAfter(java.time.LocalDate.now().plusDays(1))) {
-                throw badRequest("วันที่จ่ายต้องไม่เป็นวันในอนาคต");
-            }
-            java.time.LocalTime time = expense.getExpenseDate() != null
-                    ? expense.getExpenseDate().toLocalTime()
-                    : java.time.LocalTime.now();
-            expense.setExpenseDate(request.getExpenseDate().atTime(time));
-        }
-        if (request.getActivityId() != null) {
-            boolean sameTrip = activityRepo.findById(request.getActivityId())
-                    .map(a -> a.getTrip() != null && tripId.equals(a.getTrip().getId()))
-                    .orElse(false);
-            if (!sameTrip) {
-                throw badRequest("ไม่พบรายการนี้ในแพลนของทริป");
-            }
-        }
-        expense.setActivityId(request.getActivityId());
         expense.setSplitType(splitType);
+        expense.setTrip(trip);
+        expense.setUser(paidBy);
 
-        List<ExpenseSplit> splits = expense.getExpenseSplits();
+        List<ExpenseSplit> splits = new ArrayList<>();
+        expense.setExpenseSplits(splits);
 
         if ("CUSTOM".equals(expense.getSplitType())) {
             // CUSTOM SPLIT: แต่ละคนจ่ายไม่เท่ากัน ตามยอดที่กรอกมา
@@ -244,7 +109,8 @@ public class ExpenseService {
                         s.getAmount().setScale(2, RoundingMode.HALF_UP)));
             }
         } else {
-            // EQUAL SPLIT: ตัดรายชื่อซ้ำออก (ซ้ำแล้วคนเดียวจะมี 2 split และกดจ่ายได้แค่อันเดียว)
+            // EQUAL SPLIT: ตัดรายชื่อซ้ำออก (ซ้ำแล้วคนเดียวจะมี 2 split
+            // และกดจ่ายได้แค่อันเดียว)
             // ไม่มีผู้ร่วมหารเลย = ผู้จ่ายออกเองทั้งหมด
             List<Long> people = new ArrayList<>(new LinkedHashSet<>(
                     participantIds == null ? List.<Long>of() : participantIds));
@@ -254,7 +120,8 @@ public class ExpenseService {
             }
             int count = people.size();
             BigDecimal perPerson = totalAmount.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
-            // เศษจากการปัดทศนิยม (เช่น 100/3) ให้คนแรกรับไป เพื่อให้ผลรวม splits เท่ากับยอดบิลพอดี
+            // เศษจากการปัดทศนิยม (เช่น 100/3) ให้คนแรกรับไป เพื่อให้ผลรวม splits
+            // เท่ากับยอดบิลพอดี
             BigDecimal remainder = totalAmount.subtract(perPerson.multiply(BigDecimal.valueOf(count)));
 
             for (Long memberId : people) {
@@ -262,6 +129,8 @@ public class ExpenseService {
                         splits.isEmpty() ? perPerson.add(remainder) : perPerson));
             }
         }
+
+        return expenseRepo.save(expense);
     }
 
     // หาสมาชิก และตรวจว่าอยู่ในทริปนี้จริง (กันส่ง ID สมาชิกของทริปอื่นมา)

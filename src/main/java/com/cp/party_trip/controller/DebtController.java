@@ -1,6 +1,5 @@
 package com.cp.party_trip.controller;
 
-import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.DebtTransfer;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
@@ -13,86 +12,40 @@ import com.cp.party_trip.model.Repayment;
 import com.cp.party_trip.model.RepaymentItem;
 import com.cp.party_trip.repository.TripMemberRepo;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/debts")
-@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })
 public class DebtController {
 
     private final DebtService debtService;
-    private final ExpenseRepo expenseRepo;
-    private final ExpenseSplitRepo expenseSplitRepo; // 👈 เพิ่มตัวนี้เพื่อดึงข้อมูลตรง ป้องกันบัค 500
-
-    private final RepaymentService repaymentService;
-    private final TripMemberRepo tripMemberRepo;
+    private final DebtMapper debtMapper;
     private final AuthGuard guard;
 
-    public DebtController(DebtService debtService, ExpenseRepo expenseRepo, ExpenseSplitRepo expenseSplitRepo,
-            RepaymentService repaymentService, TripMemberRepo tripMemberRepo, AuthGuard guard) {
-        this.guard = guard;
+    public DebtController(DebtService debtService, ExpenseRepo expenseRepo, ExpenseSplitRepo expenseSplitRepo) {
         this.debtService = debtService;
         this.expenseRepo = expenseRepo;
         this.expenseSplitRepo = expenseSplitRepo;
-        this.repaymentService = repaymentService;
-        this.tripMemberRepo = tripMemberRepo;
     }
 
-    // รับเงินเป็นยอดรวมที่เกี่ยวกับเรา (เราได้รับ หรือเราโอนให้คนอื่น)
-    private List<Map<String, Object>> repaymentsOf(Long tripId, Long memberId) {
-        Map<Long, String> names = new HashMap<>();
-        tripMemberRepo.findByTripId(tripId).forEach(m -> names.put(m.getId(), m.getGuestName()));
-        List<Map<String, Object>> list = new ArrayList<>();
-        for (Repayment r : repaymentService.tripRepayments(tripId)) {
-            if (!memberId.equals(r.getFromMemberId()) && !memberId.equals(r.getToMemberId())) {
-                continue;
-            }
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", r.getId());
-            map.put("fromMemberId", r.getFromMemberId());
-            map.put("fromName", names.getOrDefault(r.getFromMemberId(), "สมาชิก #" + r.getFromMemberId()));
-            map.put("toMemberId", r.getToMemberId());
-            map.put("toName", names.getOrDefault(r.getToMemberId(), "สมาชิก #" + r.getToMemberId()));
-            map.put("amount", r.getAmount());
-            map.put("createdAt", r.getCreatedAt());
-            List<Map<String, Object>> items = new ArrayList<>();
-            for (RepaymentItem item : r.getItems()) {
-                Map<String, Object> i = new HashMap<>();
-                i.put("expenseId", item.getExpenseId());
-                i.put("title", item.getTitle());
-                i.put("amount", item.getAmount());
-                items.add(i);
-            }
-            map.put("items", items);
-            list.add(map);
-        }
-        return list;
-    }
-
+    // ใครต้องโอนให้ใคร (รวบยอดแล้ว)
     @GetMapping("/simplify/{tripId}")
     public ResponseEntity<List<DebtTransfer>> getSimplifiedDebts(@PathVariable Long tripId) {
-        guard.me(tripId);
         List<DebtTransfer> transfers = debtService.calculateDebtSimplification(tripId);
         return ResponseEntity.ok(transfers);
     }
 
     @GetMapping("/summary-details/{tripId}")
-    @Transactional(readOnly = true)
-    public ResponseEntity<Map<String, Object>> getTripDebtSummary(@PathVariable Long tripId,
+    public ResponseEntity<MemberDebtSummaryResponse> getTripDebtSummary(@PathVariable Long tripId,
             @RequestParam Long userId) {
-        // สรุปหนี้ "ของฉัน": ขอดูของสมาชิกคนอื่นไม่ได้
-        guard.self(tripId, userId);
         List<Expense> expenses = expenseRepo.findByTripId(tripId);
         Map<String, Object> response = new HashMap<>();
 
         List<Map<String, Object>> myDebts = new ArrayList<>();
         List<Map<String, Object>> myPaidBills = new ArrayList<>();
 
-        response.put("repayments", repaymentsOf(tripId, userId));
         if (expenses == null || expenses.isEmpty()) {
             response.put("myDebts", myDebts);
             response.put("myPaidBills", myPaidBills);
@@ -142,7 +95,6 @@ public class DebtController {
                             paidStatus = false;
                         }
                         sInfo.put("isPaid", paidStatus);
-                        sInfo.put("paidAmount", split.paidSoFar());
 
                         splitsInfo.add(sInfo);
                     }
@@ -154,9 +106,8 @@ public class DebtController {
                 for (ExpenseSplit split : splits) { // 👈 ใช้ splits จาก Repo
                     if (split.getTripMember() != null && split.getTripMember().getId() != null
                             && split.getTripMember().getId().equals(targetTripMemberId)) {
-                        // ยอดที่ยังค้าง (หักส่วนที่จ่ายมาบางส่วนแล้ว)
-                        BigDecimal remaining = split.getAmountOwed() == null ? BigDecimal.ZERO : split.remainingAmount();
-                        if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+                        if (!split.isPaid() && split.getAmountOwed() != null
+                                && split.getAmountOwed().compareTo(BigDecimal.ZERO) > 0) {
 
                             String creditorName = payer.getGuestName() != null ? payer.getGuestName()
                                     : "สมาชิก #" + payer.getId();
@@ -179,15 +130,13 @@ public class DebtController {
                             }
 
                             BigDecimal currentTotal = (BigDecimal) targetCreditor.get("totalAmount");
-                            targetCreditor.put("totalAmount", currentTotal.add(remaining));
+                            targetCreditor.put("totalAmount", currentTotal.add(split.getAmountOwed()));
 
                             @SuppressWarnings("unchecked")
                             List<Map<String, Object>> items = (List<Map<String, Object>>) targetCreditor.get("items");
                             Map<String, Object> item = new HashMap<>();
                             item.put("title", expense.getTitle() != null ? expense.getTitle() : "ไม่มีชื่อรายการ");
-                            item.put("amount", remaining);
-                            item.put("owed", split.getAmountOwed());
-                            item.put("paid", split.paidSoFar());
+                            item.put("amount", split.getAmountOwed());
                             items.add(item);
                         }
                     }

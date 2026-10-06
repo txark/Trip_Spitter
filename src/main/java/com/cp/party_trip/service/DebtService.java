@@ -24,7 +24,8 @@ public class DebtService {
         this.settlementRepo = settlementRepo;
     }
 
-    // ใช้ TripMember เป็น key ของ Map ได้เพราะอยู่ใน transaction เดียวกัน (ได้ object ตัวเดิมเสมอ)
+    // ใช้ TripMember เป็น key ของ Map ได้เพราะอยู่ใน transaction เดียวกัน (ได้
+    // object ตัวเดิมเสมอ)
     // และโหลด expenseSplits แบบ lazy ได้โดยไม่ต้องพึ่ง open-in-view
     @Transactional(readOnly = true)
     public List<DebtTransfer> calculateDebtSimplification(Long tripId) {
@@ -44,13 +45,12 @@ public class DebtService {
                 TripMember owedby = split.getTripMember();
                 if (owedby == null || split.getAmountOwed() == null)
                     continue;
-                // ส่วนที่จ่ายคืนแล้ว (ครบหรือบางส่วน) ไม่นับเป็นหนี้ เหลือแค่ยอดที่ยังค้าง
-                BigDecimal paid = owedby.equals(paidBy) ? BigDecimal.ZERO : split.paidSoFar();
-                if (paid.signum() > 0) {
-                    balances.put(paidBy, balances.get(paidBy).subtract(paid));
+                // ส่วนที่ผู้จ่ายยืนยันแล้วว่าได้รับเงิน ถือว่าชำระแล้ว ไม่นับเป็นหนี้
+                if (split.isPaid() && !owedby.equals(paidBy)) {
+                    balances.put(paidBy, balances.get(paidBy).subtract(split.getAmountOwed()));
+                    continue;
                 }
-                balances.put(owedby, balances.getOrDefault(owedby, BigDecimal.ZERO)
-                        .subtract(split.getAmountOwed().subtract(paid)));
+                balances.put(owedby, balances.getOrDefault(owedby, BigDecimal.ZERO).subtract(split.getAmountOwed()));
             }
         }
 
