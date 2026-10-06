@@ -1,4 +1,4 @@
-package com.cp.party_trip.service;
+package com.cp.party_trip.service.impl;
 
 import com.cp.party_trip.dto.PollRequest;
 import com.cp.party_trip.dto.PollSummaryDTO;
@@ -25,13 +25,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class PollServiceTest {
+class PollServiceImplTest {
 
     private PollRepo pollRepo;
     private PollOptionRepo pollOptionRepo;
     private PollVoteRepo pollVoteRepo;
     private TripMemberRepo tripMemberRepo;
-    private PollService service;
+    private PollServiceImpl service;
 
     private final Trip trip = new Trip();
     private final Trip otherTrip = new Trip();
@@ -43,7 +43,7 @@ class PollServiceTest {
         pollOptionRepo = mock(PollOptionRepo.class);
         pollVoteRepo = mock(PollVoteRepo.class);
         tripMemberRepo = mock(TripMemberRepo.class);
-        service = new PollService(pollRepo, pollOptionRepo, pollVoteRepo, tripMemberRepo);
+        service = new PollServiceImpl(pollRepo, pollOptionRepo, pollVoteRepo, tripMemberRepo);
         service.setClock(Clock.fixed(Instant.parse("2026-10-01T05:00:00Z"), ZoneId.of("Asia/Bangkok")));
 
         trip.setId(1L);

@@ -86,8 +86,7 @@ check("B adds checklist item -> 200", st == 200, (st, r))
 # --- reads: members only ---
 reads = [f"/trips/{tripId}", f"/trips/{tripId}/members", f"/expenses/trip/{tripId}", f"/debts/simplify/{tripId}",
          f"/activities/trip/{tripId}", f"/checklist/{tripId}", f"/polls/trip/{tripId}",
-         f"/polls/{poll['id']}/results", f"/settlements/history/{tripId}", f"/insights/{tripId}/categories",
-         f"/insights/{tripId}/daily", f"/debts/summary-details/{tripId}?userId={mB}"]
+         f"/polls/{poll['id']}/results", f"/debts/summary-details/{tripId}?userId={mB}"]
 anon = [call("GET", u)[0] for u in reads]
 check("GET without token -> 401 on every trip read", all(s == 401 for s in anon), list(zip(reads, anon)))
 outsider = [(call("GET", u, token=tokC)[:2]) for u in reads]

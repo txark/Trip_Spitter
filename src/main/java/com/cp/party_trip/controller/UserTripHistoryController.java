@@ -3,7 +3,6 @@ package com.cp.party_trip.controller;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.model.User;
 import com.cp.party_trip.model.UserTripHistory;
-import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.service.UserTripHistoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +17,10 @@ public class UserTripHistoryController {
 
     private final UserTripHistoryService historyService;
     private final AuthGuard guard;
-    private final TripMemberRepo tripMemberRepo;
 
-    public UserTripHistoryController(UserTripHistoryService historyService, AuthGuard guard,
-            TripMemberRepo tripMemberRepo) {
+    public UserTripHistoryController(UserTripHistoryService historyService, AuthGuard guard) {
         this.historyService = historyService;
         this.guard = guard;
-        this.tripMemberRepo = tripMemberRepo;
     }
 
     // ประวัติทริปล่าสุดของเจ้าของ token (userId ในลิงก์ต้องเป็นตัวเอง)
@@ -34,11 +30,7 @@ public class UserTripHistoryController {
         if (!me.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        List<UserTripHistory> historyList = historyService.getRecentTrips(userId).stream()
-                .filter(h -> tripMemberRepo
-                        .findFirstByTripIdAndGuestNameOrderByIdAsc(h.getTripId(), me.getUsername()).isPresent())
-                .toList();
-        return ResponseEntity.ok(historyList);
+        return ResponseEntity.ok(historyService.getRecentTrips(me));
     }
 
     // บันทึกประวัติเมื่อผู้ใช้กดเข้าดูทริป
