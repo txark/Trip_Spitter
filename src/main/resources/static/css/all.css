@@ -1,0 +1,1252 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ธีมมินิมอล: พื้นเทาอ่อน การ์ดขาว เส้นบาง เงาน้อย
+   สีหลักมีสีเดียว (indigo) ใช้เฉพาะจุดที่ active/ลิงก์, ปุ่มหลักเป็นสีดำ
+   แดง/เขียวใช้เฉพาะความหมาย (ค้างจ่าย/จ่ายแล้ว) */
+:root {
+    --primary: #4F46E5;       /* Indigo — accent เดียวของทั้งแอป */
+    --primary-hover: #4338CA;
+    --primary-soft: #EEF2FF;
+    --secondary: #18181B;     /* ปุ่มหลัก (เดิม coral) */
+    --secondary-hover: #27272A;
+    --success: #16A34A;
+    --danger: #DC2626;
+    --background: #FAFAFA;
+    --surface: #FFFFFF;
+    --surface-muted: #F4F4F5; /* พื้นช่องกรอก/ไอคอน/ป้าย */
+    --text-main: #18181B;
+    --text-muted: #71717A;
+    --border: #EBEBEB;
+    --border-strong: #D4D4D8;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'Sarabun', monospace; /* ตัวเลขเงิน/รหัส แบบใบเสร็จ */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    /* Plus Jakarta Sans ไม่มีอักษรไทย -> ภาษาไทยใช้ Sarabun (โหลดไว้ในทุกหน้าแล้ว) */
+    font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    /* เก็บ padding เป็นตัวแปร ให้ .page-header ใช้ margin ติดลบเท่ากันพอดีทุกขนาดจอ */
+    --container-pad-y: 24px;
+    --container-pad-x: 20px;
+    width: 100%;
+    max-width: 480px; /* Mobile-First */
+    margin: 0 auto;
+    padding: var(--container-pad-y) var(--container-pad-x);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 680px; /* แท็บเล็ต */
+        --container-pad-y: 32px;
+        --container-pad-x: 32px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width: 768px; /* เดสก์ท็อป */
+        --container-pad-y: 40px;
+        --container-pad-x: 20px;
+    }
+}
+
+/* หัวหน้า (มินิมอล): ชื่อหน้าตัวใหญ่บนพื้นหลัง ไม่มีแถบสี/เงา
+   แต่ละหน้ากำหนดแค่ layout ภายใน (.expense-header ฯลฯ) */
+.page-header {
+    margin: 8px 0 20px;
+    padding: 0;
+    background: none;
+    color: var(--text-main);
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.page-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* ลิงก์ย้อนกลับในหัวหน้า */
+.page-header .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: color 0.15s;
+}
+
+.page-header .back-link:hover {
+    color: var(--text-main);
+}
+
+/* --- Layout สำหรับจอใหญ่ ---
+   .container--wide : หน้าที่มีหลายคอลัมน์ ขยายความกว้างบนเดสก์ท็อป
+   .two-col         : มือถือ/แท็บเล็ตเรียงลงมา, เดสก์ท็อปแบ่งซ้าย-ขวา (ซ้ายแคบกว่า)
+   .two-col--even   : แบ่งซ้าย-ขวาเท่ากัน
+   .sticky-col      : คอลัมน์ที่ค้างอยู่กับที่เวลาเลื่อนหน้า (เช่น ฟอร์ม)
+   .card-grid       : รายการการ์ด เดสก์ท็อปเรียง 2 คอลัมน์ */
+.two-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* .container นำหน้าเพื่อให้ชนะ margin ที่แต่ละหน้ากำหนดเอง (เช่น .form-card) */
+.container .two-col > * {
+    margin-top: 0;
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+@media (min-width: 1024px) {
+    .container.container--wide {
+        max-width: 1100px;
+        --container-pad-x: 32px;
+    }
+
+    .two-col {
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        align-items: start;
+    }
+
+    .two-col--even {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    /* เหลือคอลัมน์เดียว (เช่น ซ่อนฟอร์มเมื่อดูได้อย่างเดียว) ให้รายการกว้างเต็ม */
+    .two-col.single {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sticky-col {
+        position: sticky;
+        top: 20px;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .container .card-grid > * {
+        margin-bottom: 0;
+    }
+
+    /* ข้อความว่าง/กำลังโหลด ให้กินเต็มแถว */
+    .card-grid > .empty-box {
+        grid-column: 1 / -1;
+    }
+}
+
+/* --- เมาส์และคีย์บอร์ด --- */
+.feed-card,
+.debt-card {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.clickable-field {
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.small-action-btn {
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.small-action-btn:active {
+    transform: scale(0.97);
+}
+
+/* hover เฉพาะอุปกรณ์ที่มีเมาส์ จอสัมผัสจะได้ไม่ค้างสถานะ hover หลังแตะ */
+@media (hover: hover) and (pointer: fine) {
+    .feed-card:hover,
+    .debt-card:hover {
+        border-color: var(--border-strong);
+    }
+
+    .clickable-field:hover {
+        border-color: var(--primary) !important;
+    }
+
+    .small-action-btn:hover {
+        background-color: var(--secondary-hover) !important;
+    }
+}
+
+/* --- แท็บเล็ต (768–1023px): คอลัมน์เดียว แต่ตัวอักษรใหญ่ขึ้นและปุ่มกดด้วยนิ้วง่ายขึ้น ---
+   ขนาดตัวอักษรส่วนใหญ่ใช้ rem จึงขยายทั้งหน้าได้จาก html ที่เดียว
+   ปุ่มเล็กให้สูงอย่างน้อย 44px ตามแนวทาง touch target
+   บางตัวกำหนดขนาดไว้ใน style="" ของ HTML จึงต้องใช้ !important */
+@media (min-width: 768px) and (max-width: 1023px) {
+    html {
+        font-size: 17px;
+    }
+
+    /* ช่องกรอกและปุ่มหลักในฟอร์ม */
+    .container .input-group input,
+    .container .input-group select {
+        height: 52px;
+    }
+
+    .container .submit-btn {
+        height: 54px;
+    }
+
+    .container .category-chip {
+        padding: 12px 6px;
+    }
+
+    #participant-select-btn {
+        min-height: 52px;
+    }
+
+    /* Modal เลือกผู้ร่วมหาร */
+    /* body นำหน้าเพื่อชนะ .modal-content ในหน้า (modal อยู่นอก .container) */
+    body .modal-content {
+        max-width: 420px;
+        padding: 20px;
+    }
+
+    .modal-content button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    #modal-participants-container label {
+        min-height: 40px;
+    }
+
+    #modal-participants-container input[type="checkbox"] {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    /* ปุ่มเล็ก: ยืนยันว่าจ่ายแล้ว, คัดลอกรหัสเชิญ, ปิดแถบเตือน */
+    .small-action-btn {
+        min-height: 40px;
+        padding: 8px 14px !important;
+        font-size: 0.85rem !important;
+    }
+
+    .container .copy-btn,
+    .container .btn-copy {
+        min-height: 40px;
+        padding: 8px 14px;
+    }
+
+    #warning-banner button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* ลิงก์ Back to Dashboard บนหัวหน้า */
+    .page-header > a {
+        padding: 10px 0;
+    }
+
+    /* เมนูลัดบน dashboard */
+    .container .nav-item {
+        padding: 16px 8px;
+    }
+}
+
+/* กรอบโฟกัสเวลาใช้ Tab บนคีย์บอร์ด (ไม่แสดงตอนคลิกเมาส์) */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+.category-chip:has(input:focus-visible) {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ปุ่มกดหลัก */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--secondary);
+    color: #FFFFFF;
+}
+
+.btn-primary:hover {
+    background: var(--secondary-hover);
+}
+
+.btn-outline {
+    background-color: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-strong);
+}
+
+.btn-outline:hover {
+    background-color: var(--surface-muted);
+}
+
+.btn-google {
+    background-color: #FFFFFF;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.btn-google:hover {
+    background-color: var(--surface-muted);
+}
+
+/* Custom Pop-up Modal สไตล์เข้ากับเว็บไซต์ */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.custom-alert-box {
+    background: var(--surface, #1e293b);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    padding: 24px;
+    border-radius: var(--radius-lg, 16px);
+    width: 320px;
+    text-align: center;
+    box-shadow: var(--shadow-lg, 0 10px 25px rgba(0, 0, 0, 0.5));
+    color: var(--text-main, #ffffff);
+    animation: scaleUp 0.2s ease-in-out;
+}
+
+.custom-alert-box p {
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    color: var(--text-main, #e2e8f0);
+    line-height: 1.5;
+}
+
+.custom-alert-btn {
+    background: var(--primary, #6366f1);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 100%;
+}
+
+.custom-alert-btn:hover {
+    opacity: 0.9;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+/* =====================================================================
+   ส่วนประกอบ UI ที่ใช้ร่วมกัน (คู่กับ js/ui.js) — expenses, debts
+   ===================================================================== */
+
+/* สีประจำหมวดหมู่ — ใช้แบบอ่อน (พื้น 10%) ให้แยกหมวดด้วยตาได้เร็ว */
+.cat-FOOD { --cat: #ea580c; }
+.cat-ACCOMMODATION { --cat: #7c3aed; }
+.cat-TRANSPORT { --cat: #0284c7; }
+.cat-SHOPPING { --cat: #d97706; }
+.cat-SIGHTSEEING { --cat: #16a34a; }
+.cat-ACTIVITY { --cat: #db2777; }
+.cat-OTHER { --cat: #71717a; }
+
+/* โทนสีของไอคอนในแถบสรุป: ใส่ class tone-* ที่ไอคอน */
+.tone-primary { --tone: var(--primary); }
+.tone-success { --tone: var(--success); }
+.tone-danger { --tone: var(--danger); }
+.tone-amber { --tone: #d97706; }
+
+/* แถบสรุปตัวเลขใต้หัวหน้า */
+.stat-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    min-width: 0;
+    /* ให้ตัวเลขด้านในอ้างอิงความกว้างของกล่องได้ (หน่วย cqi) */
+    container-type: inline-size;
+}
+
+.stat-tile.highlight {
+    background: var(--surface);
+}
+
+.stat-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+/* ไอคอนในแถบสรุป: กล่องเล็กพื้นอ่อนตามโทน (tone-*) */
+.stat-label i {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    color: var(--tone, var(--text-muted));
+    background: color-mix(in srgb, var(--tone, #71717a) 12%, white);
+}
+
+/* ขนาดตัวเลขย่อตามความกว้างกล่อง: 13cqi พอสำหรับ "-฿139,213.33" ไม่ใหญ่เกิน 1.25rem
+   (ตัวเลขยาวกว่านี้ ui.js fitStatValues จะย่อต่อให้อีก) */
+.stat-value {
+    font-size: min(1.25rem, 13cqi);
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 420px) {
+    .stat-value {
+        font-size: min(1.05rem, 13cqi);
+    }
+
+    .stat-tile {
+        padding: 12px 10px;
+    }
+}
+
+.text-danger {
+    color: var(--danger);
+}
+
+.text-success {
+    color: var(--success);
+}
+
+/* หัวข้อส่วน + ป้ายจำนวน */
+.count-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--text-muted);
+}
+
+/* ซ่อนองค์ประกอบ (ใช้สลับด้วย JS: classList.toggle("hidden")) */
+.hidden {
+    display: none !important;
+}
+
+/* ปุ่มกรองแบบเม็ดยา (expenses: หมวดหมู่, debts: สถานะการจ่าย)
+   ไอคอนใช้สีจาก .tone-* หรือ .cat-* ที่ปุ่ม */
+.filter-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+    scrollbar-width: none;
+}
+
+.filter-chip {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.filter-chip i {
+    color: var(--tone, var(--cat, var(--text-muted)));
+}
+
+.filter-chip .chip-count {
+    opacity: 0.7;
+}
+
+.filter-chip.active {
+    background: var(--text-main);
+    border-color: var(--text-main);
+    color: #ffffff;
+}
+
+.filter-chip.active i {
+    color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .filter-chip:not(.active):hover {
+        border-color: var(--border-strong);
+        color: var(--text-main);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .filter-chip {
+        min-height: 40px;
+        padding: 8px 14px;
+    }
+}
+
+/* วงกลมตัวอักษรแรก / ไอคอน
+   สีมาจาก --av (ui.js) ใช้แบบพาสเทล: พื้นอ่อน ตัวอักษรสีเข้ม */
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    background: color-mix(in srgb, var(--av, #71717a) 14%, white);
+    color: var(--av, #71717a);
+}
+
+.avatar.sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+}
+
+.avatar.icon {
+    border-radius: 10px;
+    background: var(--surface-muted);
+    color: var(--text-muted);
+}
+
+/* กล่องข้อความว่าง/ผิดพลาด (ใช้กับ emptyBox() ใน ui.js) */
+.empty-box i {
+    display: block;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    color: var(--border-strong);
+}
+
+.empty-box.error i {
+    color: var(--danger);
+}
+
+/* skeleton ระหว่างโหลด */
+.skeleton {
+    height: 96px;
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    background: linear-gradient(90deg, var(--border) 25%, #f1f5f9 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+}
+
+.skeleton-line {
+    height: 22px;
+    width: 70%;
+    border-radius: 6px;
+    background: var(--border);
+}
+
+@keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+
+/* toast แจ้งผล (หายเอง) */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translate(-50%, 20px);
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100vw - 32px);
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: var(--text-main);
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 2000;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.toast.success i {
+    color: #34d399;
+}
+
+.toast.error i {
+    color: #fca5a5;
+}
+
+/* toast อยู่กลางพื้นที่เนื้อหา ไม่ทับ sidebar */
+@media (min-width: 1024px) {
+    body.has-sidebar .toast {
+        left: calc(50% + var(--sidebar-w) / 2);
+    }
+}
+
+/* =====================================================================
+   ธีม "ตั๋วเดินทาง + ใบเสร็จ"
+   .receipt      : การ์ดกระดาษใบเสร็จ ขอบล่างเป็นรอยฉีกซิกแซก
+   .paid-stamp   : ตราประทับ PAID (ใส่ .slam เพื่อเล่นอนิเมชันกระแทก)
+   .confetti-piece : กระดาษสีโปรย (สร้างโดย launchConfetti() ใน ui.js)
+   ===================================================================== */
+
+/* เส้นขอบบางๆ ใช้ drop-shadow แทน border เพื่อให้ตามรูปทรงรอยฉีก/รอยปรุได้ */
+.receipt {
+    position: relative;
+    background: var(--surface);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    padding: 16px 16px 14px;
+    margin-bottom: 22px; /* เว้นที่ให้รอยฉีกด้านล่าง */
+    filter: drop-shadow(0 0 0.6px rgba(0, 0, 0, 0.28)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.04));
+}
+
+.receipt::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 8px;
+    background:
+        linear-gradient(135deg, var(--surface) 50%, transparent 50%) 0 0 / 12px 8px repeat-x,
+        linear-gradient(225deg, var(--surface) 50%, transparent 50%) 0 0 / 12px 8px repeat-x;
+}
+
+.receipt-no {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.receipt-divider {
+    border: 0;
+    border-top: 1.5px dashed var(--border-strong);
+    margin: 12px 0;
+}
+
+/* แถวรายการแบบใบเสร็จ: ชื่อ ....... ฿ยอด */
+.receipt-line {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 0.85rem;
+}
+
+.receipt-line .leader {
+    flex: 1;
+    min-width: 12px;
+    border-bottom: 1.5px dotted var(--border-strong);
+    transform: translateY(-3px);
+}
+
+.receipt-line .who {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.receipt-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* ตัวเลขเงิน: ฟอนต์ monospace ความกว้างเท่ากัน ให้ตรงหลักเหมือนใบเสร็จ */
+.money {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ตราประทับ PAID */
+.paid-stamp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    pointer-events: none;
+    padding: 4px 14px 3px;
+    border: 3px double currentColor;
+    border-radius: 8px;
+    color: var(--success);
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1.05;
+    text-align: center;
+    opacity: 0.72;
+    mix-blend-mode: multiply;
+    transform: translate(-50%, -50%) rotate(-12deg);
+}
+
+.paid-stamp small {
+    display: block;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.paid-stamp.slam {
+    animation: stamp-slam 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+
+@keyframes stamp-slam {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(-12deg) scale(2.6);
+    }
+    60% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) rotate(-12deg) scale(0.92);
+    }
+    100% {
+        opacity: 0.72;
+        transform: translate(-50%, -50%) rotate(-12deg) scale(1);
+    }
+}
+
+/* การ์ดสะเทือนตอนโดนประทับ */
+.stamp-shake {
+    animation: stamp-shake 0.3s 0.25s ease-out;
+}
+
+@keyframes stamp-shake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-2px, 1px); }
+    50% { transform: translate(2px, -1px); }
+    75% { transform: translate(-1px, 1px); }
+}
+
+/* ป้ายเด้งขึ้น (เช่น "จ่ายแล้ว" ของเพื่อนแต่ละคน) */
+.pop-in {
+    animation: pop-in 0.35s ease-out;
+}
+
+@keyframes pop-in {
+    0% { opacity: 0; transform: scale(0.6); }
+    70% { transform: scale(1.15); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* ใบเสร็จใหม่ค่อยๆ "พิมพ์" ออกมา */
+.print-in {
+    transform-origin: top;
+    animation: print-in 0.5s ease-out;
+}
+
+@keyframes print-in {
+    from { opacity: 0; transform: translateY(-8px) scaleY(0.6); }
+    to { opacity: 1; transform: none; }
+}
+
+/* กระดาษสีโปรย */
+.confetti-piece {
+    position: fixed;
+    top: -14px;
+    width: 8px;
+    height: 12px;
+    border-radius: 2px;
+    z-index: 3000;
+    pointer-events: none;
+    animation: confetti-fall var(--dur, 2.4s) linear forwards;
+}
+
+@keyframes confetti-fall {
+    to { transform: translate(var(--dx, 0), 105vh) rotate(var(--rot, 360deg)); }
+}
+
+/* ผู้ใช้ที่ตั้งค่าลดการเคลื่อนไหว: ไม่เล่นอนิเมชัน */
+@media (prefers-reduced-motion: reduce) {
+    .paid-stamp.slam,
+    .stamp-shake,
+    .pop-in,
+    .print-in {
+        animation: none;
+    }
+
+    .confetti-piece {
+        display: none;
+    }
+}
+
+/* =====================================================================
+   Sidebar สำหรับจอคอม (≥1024px) — สร้างโดย js/sidebar.js
+   มือถือ/แท็บเล็ตซ่อนไว้ ใช้หัวสีม่วงและเมนูลัดแบบเดิม
+   ===================================================================== */
+.app-sidebar {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    body.has-sidebar {
+        --sidebar-w: 240px;
+        padding-left: var(--sidebar-w);
+    }
+
+    .app-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--sidebar-w);
+        padding: 24px 16px;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        overflow-y: auto;
+        z-index: 50;
+    }
+
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 8px;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .sidebar-label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.8;
+    }
+
+    /* การ์ดทริปปัจจุบัน */
+    /* การ์ดทริปปัจจุบัน: พื้น indigo อ่อน ให้เป็นจุดเด่นเล็กๆ ของ sidebar */
+    .sidebar-trip {
+        background: var(--primary-soft);
+        border: 1px solid #E0E7FF;
+        color: var(--text-main);
+        border-radius: var(--radius-md);
+        padding: 14px;
+    }
+
+    .sidebar-trip-title {
+        display: block;
+        margin: 4px 0 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    .sidebar-invite {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px solid #E0E7FF;
+    }
+
+    .sidebar-invite-code {
+        font-family: monospace;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .sidebar-copy-btn {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color 0.2s, border-color 0.2s;
+    }
+
+    .sidebar-copy-btn:hover {
+        color: var(--text-main);
+        border-color: var(--border-strong);
+    }
+
+    .sidebar-copy-btn.success {
+        color: var(--success);
+        border-color: var(--success);
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        color: var(--text-main);
+        font-size: 0.92rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.15s, color 0.15s;
+    }
+
+    .sidebar-link i {
+        width: 18px;
+        text-align: center;
+        color: var(--text-muted);
+        transition: color 0.15s;
+    }
+
+    .sidebar-link:hover {
+        background: var(--background);
+    }
+
+    .sidebar-link.active {
+        background: var(--surface-muted);
+        color: var(--text-main);
+    }
+
+    .sidebar-link:hover i {
+        color: var(--text-main);
+    }
+
+    /* accent สีเดียวของแอป ใช้ตรงนี้: บอกว่าอยู่หน้าไหน */
+    .sidebar-link.active i {
+        color: var(--primary);
+    }
+
+    .sidebar-footer {
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sidebar-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px 10px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .sidebar-user i {
+        font-size: 1.4rem;
+        color: var(--border-strong);
+    }
+
+    body.has-sidebar .page-header {
+        margin: 0 0 24px;
+    }
+
+    /* สิ่งที่ sidebar มีให้แล้ว ซ่อนไม่ให้ซ้ำ */
+    body.has-sidebar #back-dashboard-btn,
+    body.has-sidebar .quick-nav,
+    body.has-sidebar .dashboard-footer {
+        display: none;
+    }
+}
+
+/* จอแคบมาก (≤400px): ไอคอนอยู่บน ชื่อการ์ดสรุปได้เต็มความกว้าง ไม่ขึ้น 3 บรรทัด */
+@media (max-width: 400px) {
+    .stat-summary {
+        gap: 6px;
+    }
+
+    .stat-tile {
+        padding: 10px 8px;
+    }
+
+    .stat-label {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        line-height: 1.25;
+    }
+
+    .stat-sub {
+        display: none;
+    }
+}
+
+/* สรุปจบทริป: ปุ่มเปิด + กล่องข้อความไว้แชร์ */
+.summary-open-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-main);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.summary-open-btn i {
+    color: var(--primary);
+}
+
+.summary-dialog {
+    width: min(460px, calc(100vw - 32px));
+    max-height: min(86vh, 720px);
+    margin: auto;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--text-main);
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.summary-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.summary-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.summary-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.summary-text {
+    flex: 1;
+    min-height: 120px;
+    overflow: auto;
+    margin: 0 0 14px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--surface-muted);
+    font-family: inherit;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.summary-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.summary-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text-main);
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.summary-btn[hidden] {
+    display: none;
+}
+
+.summary-btn.line {
+    border-color: #06c755;
+    background: #06c755;
+    color: #ffffff;
+}
+
+.summary-btn.line:not([href]) {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* เตือนตั้ง PIN */
+.pin-nudge {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--primary);
+    border-radius: 14px;
+    background: var(--primary-soft);
+    color: var(--text-main);
+}
+
+.pin-nudge > i {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.pin-nudge-text {
+    flex: 1 1 200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.pin-nudge-text strong {
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.pin-nudge-btn,
+.pin-nudge-later {
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.pin-nudge-btn {
+    border: none;
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.pin-nudge-later {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+}

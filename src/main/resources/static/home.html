@@ -1,0 +1,1446 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Party & Trip Expense Splitter Pro</title>
+
+    <!-- CSS กลาง -->
+    <link rel="stylesheet" href="css/all.css" />
+    <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
+    <script src="js/ui.js"></script>
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Momo+Trust+Display&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- FontAwesome สำหรับไอคอน -->
+    <script
+      src="https://kit.fontawesome.com/01502edf06.js"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      .frame {
+        width: 100%;
+        max-width: 480px;
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 20px 20px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      /* --- แถบบน: โลโก้ + โปรไฟล์ --- */
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--primary);
+      }
+
+      .profile-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 60%;
+        height: 42px;
+        padding: 0 14px 0 5px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-main);
+        transition: border-color 0.2s;
+      }
+
+      .profile-pill .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+      }
+
+      .profile-pill .name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .profile-pill .fa-pen {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+      }
+
+      /* --- ป้ายเที่ยวบินออก (นาฬิกา) --- */
+      .departures {
+        background: var(--text-main);
+        color: #ffffff;
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
+        font-family: var(--font-mono);
+      }
+
+      .departures-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #a5b4fc;
+      }
+
+      .departures-time {
+        display: block;
+        font-size: 3.4rem;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: 0.04em;
+        margin: 8px 0 2px;
+      }
+
+      /* เครื่องหมาย : กะพริบเหมือนป้ายสนามบิน */
+      .departures-time .colon {
+        animation: blink 1s steps(1) infinite;
+      }
+
+      @keyframes blink {
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      .departures-date {
+        display: block;
+        font-family: "Sarabun", sans-serif;
+        font-size: 0.95rem;
+        color: #d4d4d8;
+      }
+
+      .departures-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: rgba(74, 222, 128, 0.15);
+        color: #4ade80;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+      }
+
+      .departures-status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      /* --- แนะนำแอป --- */
+      .hero h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.3;
+      }
+
+      .hero h1 em {
+        font-style: normal;
+        color: var(--primary);
+      }
+
+      .hero p {
+        margin-top: 8px;
+        font-size: 0.92rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+      }
+
+      .hero-tagline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-family: "Momo Trust Display", sans-serif;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+      }
+
+      .hero-tagline i {
+        color: var(--primary);
+      }
+
+      .feature-list {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .feature-list li {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
+      .feature-list li i {
+        color: var(--tone);
+      }
+
+      /* --- ปุ่มหลัก --- */
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .big-btn {
+        width: 100%;
+        height: 56px;
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition:
+          background-color 0.2s,
+          border-color 0.2s,
+          transform 0.1s;
+      }
+
+      .big-btn:active {
+        transform: scale(0.98);
+      }
+
+      /* ปุ่มสร้างห้องใหม่: indigo สีหลักของแอป */
+      .big-btn-create {
+        background: var(--primary);
+        border: none;
+        color: #ffffff;
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+      }
+
+      .big-btn-join {
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        color: var(--text-main);
+      }
+
+      /* --- ฟอร์ม (สร้าง/เข้าร่วม) --- */
+      .action-container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+      }
+
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 14px;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .tab-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        padding: 4px;
+        margin-bottom: 18px;
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .tab-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 40px;
+        border: none;
+        border-radius: 9px;
+        background: transparent;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition:
+          background-color 0.15s,
+          color 0.15s;
+      }
+
+      .tab-btn.active {
+        background: var(--surface);
+        color: var(--text-main);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+
+      .tab-btn.active i {
+        color: var(--primary);
+      }
+
+      .form-section {
+        display: none;
+      }
+
+      .form-section.active {
+        display: block;
+      }
+
+      .input-group {
+        margin-bottom: 14px;
+      }
+
+      .input-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .input-group input {
+        width: 100%;
+        height: 46px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        color: var(--text-main);
+        font-size: 0.95rem;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .input-group input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      }
+
+      .input-group.invalid input {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+      }
+
+      .date-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* ช่องรหัสเชิญตัวใหญ่ แบบรหัสบนตั๋ว */
+
+      .input-group input.code-input {
+        height: 64px;
+        text-align: center;
+        text-transform: uppercase;
+        font-family: var(--font-mono);
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: 0.4em;
+        padding-left: 0.4em; /* ชดเชย letter-spacing ตัวสุดท้าย ให้อยู่กลางจริง */
+      }
+
+      .form-note {
+        display: flex;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 14px;
+      }
+
+      .submit-btn {
+        width: 100%;
+        height: 50px;
+        border-radius: 12px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 6px;
+        transition: background-color 0.15s;
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
+      }
+
+      .btn-create {
+        background: var(--primary);
+      }
+
+      .btn-join {
+        background: var(--secondary);
+      }
+
+      /* --- ประวัติทริปล่าสุด: ตั๋วใบเล็ก --- */
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .history-item {
+        display: flex;
+        align-items: stretch;
+        text-decoration: none;
+        color: var(--text-main);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+
+      .history-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+      }
+
+      .history-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .history-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .history-date {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      /* ต้นขั้วเล็กด้านขวา คั่นด้วยรอยปรุ */
+      .history-stub {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        border-left: 1.5px dashed var(--border-strong);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+      }
+
+      .history-empty {
+        text-align: center;
+        padding: 22px;
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .history-skeleton {
+        height: 62px;
+        margin: 0;
+      }
+
+      /* --- Modal เปลี่ยนชื่อเล่น --- */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.2s ease,
+          visibility 0.2s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-box {
+        background-color: var(--surface);
+        width: 100%;
+        max-width: 380px;
+        border-radius: var(--radius-lg);
+        padding: 22px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+      }
+
+      .modal-box h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .modal-box p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
+
+      /* PIN: ไว้เข้าชื่อเดิมจากเครื่องอื่น */
+      .pin-field {
+        margin-top: 4px;
+      }
+
+      .pin-field label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+
+      .pin-field input {
+        letter-spacing: 0.3em;
+        font-family: var(--font-mono);
+      }
+
+      /* ช่อง PIN + ปุ่มดู/ซ่อน */
+      .pin-wrap {
+        position: relative;
+      }
+
+      .pin-wrap input {
+        padding-right: 44px;
+      }
+
+      .pin-eye {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .pin-eye:hover {
+        background: var(--surface-muted);
+      }
+
+      .pin-status {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .pin-status.ok {
+        color: var(--success, #16a34a);
+      }
+
+      .pin-error {
+        min-height: 1.1em;
+        margin: -6px 0 12px;
+        font-size: 0.8rem;
+        color: var(--danger);
+      }
+
+      .modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .modal-actions button {
+        height: 44px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .btn-ghost {
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        color: var(--text-main);
+      }
+
+      .btn-solid {
+        background: var(--primary);
+        border: none;
+        color: #ffffff;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .profile-pill:hover,
+        .history-item:hover {
+          border-color: var(--border-strong);
+        }
+
+        .big-btn-create:hover,
+        .btn-create:not(:disabled):hover,
+        .btn-solid:hover {
+          background: var(--primary-hover);
+        }
+
+        .big-btn-join:hover,
+        .btn-ghost:hover {
+          background: var(--surface-muted);
+        }
+
+        .btn-join:not(:disabled):hover {
+          background: var(--secondary-hover);
+        }
+
+        .back-btn:hover {
+          color: var(--text-main);
+        }
+      }
+
+      /* --- จอคอม: ซ้ายป้ายเวลา+แนะนำแอป / ขวาปุ่ม+ฟอร์ม+ประวัติ --- */
+      @media (min-width: 1024px) {
+        .frame {
+          max-width: 1040px;
+          padding: 28px 32px 48px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 420px;
+          grid-template-areas:
+            "top top"
+            "intro panel";
+          column-gap: 56px;
+          row-gap: 40px;
+          align-items: start;
+          align-content: start; /* ไม่ให้แถวยืดเต็ม min-height จนเกิดช่องว่างใต้แถบบน */
+        }
+
+        .topbar {
+          grid-area: top;
+        }
+
+        .intro {
+          grid-area: intro;
+          position: sticky;
+          top: 28px;
+        }
+
+        .panel {
+          grid-area: panel;
+        }
+
+        .hero h1 {
+          font-size: 2.4rem;
+        }
+
+        .departures-time {
+          font-size: 4.2rem;
+        }
+      }
+
+      .intro,
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <!-- แถบบน: โลโก้ + โปรไฟล์ (คลิกเพื่อเปลี่ยนชื่อเล่น) -->
+      <div class="topbar">
+        <span class="brand"
+          ><i class="fa-solid fa-suitcase-rolling"></i> Trip Splitter</span
+        >
+        <button
+          type="button"
+          class="profile-pill"
+          onclick="openUsernameModal()"
+          title="คลิกเพื่อเปลี่ยนชื่อเล่น"
+          aria-label="เปลี่ยนชื่อเล่น"
+        >
+          <span id="profile-avatar"></span>
+          <span class="name" id="username-display">Loading...</span>
+          <i class="fa-solid fa-pen" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="intro">
+        <!-- ป้ายเที่ยวบินออก: วันที่และเวลาแบบเรียลไทม์ -->
+        <header class="departures" aria-label="วันและเวลาปัจจุบัน">
+          <div class="departures-top">
+            <span>Departures</span>
+            <i class="fa-solid fa-plane-departure" aria-hidden="true"></i>
+          </div>
+          <time class="departures-time" id="current-time">--:--</time>
+          <time class="departures-date" id="current-date">--</time>
+          <span class="departures-status">ON TIME</span>
+        </header>
+
+        <section class="hero">
+          <div class="hero-tagline">
+            <i class="fa-solid fa-route"></i> Enjoy Your Time
+          </div>
+          <h1>หารค่าทริปกับเพื่อน<br />ง่าย<em>เหมือนเช็คอิน</em></h1>
+          <p>
+            สร้างห้องทริป ชวนเพื่อนด้วยรหัสเชิญ บันทึกบิลระหว่างเที่ยว
+            แล้วให้ระบบสรุปว่าใครต้องโอนให้ใคร
+          </p>
+          <ul class="feature-list">
+            <li class="tone-primary">
+              <i class="fa-solid fa-receipt"></i> บันทึกบิล
+            </li>
+            <li class="tone-amber">
+              <i class="fa-solid fa-sliders"></i> หารเท่า/ไม่เท่า
+            </li>
+            <li class="tone-success">
+              <i class="fa-solid fa-scale-balanced"></i> สรุปหนี้อัตโนมัติ
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="panel">
+        <!-- วิวเริ่มต้น: ปุ่มใหญ่ 2 ปุ่ม -->
+        <div id="initial-view" class="actions">
+          <button
+            type="button"
+            class="big-btn big-btn-create"
+            onclick="openTabMode('create')"
+          >
+            <i class="fa-solid fa-circle-plus"></i> สร้างห้องใหม่
+          </button>
+          <button
+            type="button"
+            class="big-btn big-btn-join"
+            onclick="openTabMode('join')"
+          >
+            <i class="fa-solid fa-ticket"></i> เข้าร่วมด้วยรหัสเชิญ
+          </button>
+        </div>
+
+        <!-- วิวฟอร์ม: แสดงเมื่อกดปุ่มใหญ่ -->
+        <div class="action-container hidden" id="tabbed-view">
+          <button type="button" class="back-btn" onclick="closeTabMode()">
+            <i class="fa-solid fa-arrow-left"></i> กลับ
+          </button>
+          <div class="tab-buttons" role="tablist">
+            <button
+              type="button"
+              class="tab-btn"
+              id="btn-tab-create"
+              role="tab"
+              onclick="switchTab('create')"
+            >
+              <i class="fa-solid fa-circle-plus"></i> สร้างห้องใหม่
+            </button>
+            <button
+              type="button"
+              class="tab-btn"
+              id="btn-tab-join"
+              role="tab"
+              onclick="switchTab('join')"
+            >
+              <i class="fa-solid fa-ticket"></i> รหัสเชิญ
+            </button>
+          </div>
+
+          <!-- ฟอร์มสร้างทริปใหม่ -->
+          <div class="form-section" id="section-create" role="tabpanel">
+            <div class="input-group" id="group-title">
+              <label for="trip-title">ชื่อห้อง</label>
+              <input
+                type="text"
+                id="trip-title"
+                placeholder="เช่น เที่ยวทะเลแก๊งเพื่อน"
+                autocomplete="off"
+              />
+            </div>
+            <div class="date-row">
+              <div class="input-group" id="group-start">
+                <label for="trip-start-date">วันออกเดินทาง</label>
+                <input type="date" id="trip-start-date" />
+              </div>
+              <div class="input-group" id="group-end">
+                <label for="trip-end-date">วันกลับ</label>
+                <input type="date" id="trip-end-date" />
+              </div>
+            </div>
+            <button
+              type="button"
+              class="submit-btn btn-create"
+              id="create-btn"
+              onclick="submitCreateTrip()"
+            >
+              <i class="fa-solid fa-plane-departure"></i>
+              <span>ยืนยันสร้างห้อง</span>
+            </button>
+          </div>
+
+          <!-- ฟอร์มเข้าร่วมทริปด้วยรหัสเชิญ -->
+          <div class="form-section" id="section-join" role="tabpanel">
+            <div class="input-group" id="group-code">
+              <label for="join-invite-code">รหัสเชิญห้องทริป (6 หลัก)</label>
+              <input
+                type="text"
+                id="join-invite-code"
+                class="code-input"
+                placeholder="A7B9X2"
+                maxlength="6"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+              />
+            </div>
+            <div class="form-note">
+              <i class="fa-solid fa-circle-info" style="margin-top: 3px"></i>
+              <span>เพื่อนในห้องจะเห็นคุณด้วยชื่อเล่นที่มุมขวาบน</span>
+            </div>
+            <button
+              type="button"
+              class="submit-btn btn-join"
+              id="join-btn"
+              onclick="submitJoinTrip()"
+            >
+              <i class="fa-solid fa-right-to-bracket"></i>
+              <span>เข้าร่วมห้องทริป</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ประวัติทริปที่เคยเปิดดูล่าสุด -->
+        <section aria-labelledby="history-title">
+          <div class="section-title">
+            <span id="history-title">ทริปล่าสุดของคุณ</span>
+          </div>
+          <div class="history-list" id="recent-trips-container">
+            <div class="skeleton history-skeleton"></div>
+            <div class="skeleton history-skeleton"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Modal เปลี่ยนชื่อเล่น -->
+    <div
+      class="modal-overlay"
+      id="username-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="username-modal-title"
+    >
+      <div class="modal-box">
+        <h3 id="username-modal-title">เปลี่ยนชื่อเล่นของคุณ</h3>
+        <p>ชื่อที่เพื่อนๆ จะเห็นในห้องทริป</p>
+        <div class="input-group">
+          <input
+            type="text"
+            id="username-input"
+            maxlength="40"
+            autocomplete="off"
+          />
+        </div>
+        <div class="input-group pin-field">
+          <label for="pin-input">PIN ไว้เข้าชื่อนี้จากเครื่องอื่น (ตัวเลข 4–6 หลัก)</label>
+          <div class="pin-wrap">
+            <input
+              type="password"
+              id="pin-input"
+              inputmode="numeric"
+              maxlength="6"
+              autocomplete="new-password"
+              placeholder="••••"
+            />
+            <button type="button" class="pin-eye" data-target="pin-input" aria-label="แสดง PIN">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <small class="pin-status" id="pin-status"></small>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" onclick="closeUsernameModal()">
+            ยกเลิก
+          </button>
+          <button type="button" class="btn-solid" onclick="saveUsername()">
+            บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal ใส่ PIN: ชื่อนี้มีเจ้าของในเครื่องอื่นแล้ว -->
+    <div class="modal-overlay" id="pin-modal" role="dialog" aria-modal="true" aria-labelledby="pin-modal-title">
+      <div class="modal-box">
+        <h3 id="pin-modal-title">ใส่ PIN ของชื่อนี้</h3>
+        <p id="pin-modal-text"></p>
+        <div class="input-group pin-field">
+          <div class="pin-wrap">
+            <input type="password" id="pin-login-input" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="••••" aria-label="PIN" />
+            <button type="button" class="pin-eye" data-target="pin-login-input" aria-label="แสดง PIN">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="pin-error" id="pin-modal-error" role="alert"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" id="pin-cancel-btn">ใช้ชื่ออื่น</button>
+          <button type="button" class="btn-solid" id="pin-ok-btn">เข้าสู่ระบบ</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = API_BASE; // ตั้งที่ ui.js
+      let currentUserId = localStorage.getItem("userId");
+
+      // --- สลับวิวปุ่มใหญ่ <-> ฟอร์ม ---
+      function openTabMode(tabName) {
+        document.getElementById("initial-view").classList.add("hidden");
+        document.getElementById("tabbed-view").classList.remove("hidden");
+        switchTab(tabName);
+      }
+
+      function closeTabMode() {
+        document.getElementById("tabbed-view").classList.add("hidden");
+        document.getElementById("initial-view").classList.remove("hidden");
+      }
+
+      function switchTab(tabName) {
+        const isCreate = tabName === "create";
+        document.getElementById("btn-tab-create").classList.toggle("active", isCreate);
+        document.getElementById("btn-tab-join").classList.toggle("active", !isCreate);
+        document.getElementById("btn-tab-create").setAttribute("aria-selected", isCreate);
+        document.getElementById("btn-tab-join").setAttribute("aria-selected", !isCreate);
+        document.getElementById("section-create").classList.toggle("active", isCreate);
+        document.getElementById("section-join").classList.toggle("active", !isCreate);
+        document.getElementById(isCreate ? "trip-title" : "join-invite-code").focus();
+      }
+
+      // --- ป้ายเวลา (อัปเดตทุกวินาที) ---
+      function updateDateTime() {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        document.getElementById("current-time").innerHTML =
+          `${hh}<span class="colon">:</span>${mm}`;
+        document.getElementById("current-date").textContent =
+          now.toLocaleDateString("th-TH", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          });
+      }
+      setInterval(updateDateTime, 1000);
+      updateDateTime();
+
+      // --- ชื่อเล่นผู้ใช้ ---
+      function renderProfile(name) {
+        document.getElementById("username-display").textContent = name;
+        document.getElementById("profile-avatar").innerHTML = avatar(name);
+      }
+
+      async function loadUserData() {
+        let savedUsername = localStorage.getItem("username");
+        if (!savedUsername) {
+          savedUsername = "TripGuest_" + Math.floor(Math.random() * 900 + 100);
+        }
+        renderProfile(savedUsername);
+        const ok = await signIn(savedUsername);
+        if (!ok) {
+          // ชื่อเดิมถูกเครื่องอื่นใช้ไปแล้ว: ให้ตั้งชื่อใหม่
+          localStorage.removeItem("userId");
+          currentUserId = null;
+          openUsernameModal();
+        }
+      }
+
+      // เข้าสู่ระบบด้วยชื่อเล่น: ชื่อที่มีเจ้าของในเครื่องอื่นต้องใส่ PIN
+      async function signIn(username) {
+        let result = await loginAs(username);
+        let error = "";
+        let usedCode = false;
+        while (!result.ok && (result.needPin || result.message === "PIN ไม่ถูกต้อง")) {
+          const pin = await askPin(username, error);
+          if (pin == null) return false;
+          usedCode = true;
+          result = await loginAs(username, pin);
+          error = result.message === "PIN ไม่ถูกต้อง" ? "PIN ไม่ถูกต้อง ลองอีกครั้ง" : "";
+        }
+        if (!result.ok) {
+          showToast(result.message || "เข้าสู่ระบบไม่สำเร็จ", "error");
+          return false;
+        }
+        currentUserId = result.user.id;
+        renderProfile(result.user.username);
+        // เข้าด้วยรหัสกู้คืน (ใส่รหัสแล้วแต่บัญชียังไม่มี PIN): ชวนตั้ง PIN ทันที จะได้ไม่ต้องขอรหัสอีก
+        if (usedCode && !result.user.pinSet) {
+          showToast("เข้าชื่อเดิมได้แล้ว ตั้ง PIN ไว้ด้วย ครั้งหน้าเปลี่ยนเครื่องจะได้เข้าเองได้");
+          setTimeout(() => {
+            openUsernameModal();
+            document.getElementById("pin-input").focus();
+          }, 300);
+        }
+        return true;
+      }
+
+      // ถาม PIN (คืนค่า PIN หรือ null ถ้ากดใช้ชื่ออื่น)
+      function askPin(username, error = "") {
+        const modal = document.getElementById("pin-modal");
+        const input = document.getElementById("pin-login-input");
+        document.getElementById("pin-modal-text").textContent =
+          `ชื่อ "${username}" ใช้อยู่ในเครื่องอื่นแล้ว ถ้าเป็นชื่อของคุณ ใส่ PIN ที่ตั้งไว้ หรือรหัสกู้คืนที่ได้จากคนสร้างทริป`;
+        document.getElementById("pin-modal-error").textContent = error;
+        input.value = "";
+        hideAllPins();
+        modal.classList.add("active");
+        setTimeout(() => input.focus(), 50);
+        return new Promise((resolve) => {
+          const done = (value) => {
+            modal.classList.remove("active");
+            ok.removeEventListener("click", onOk);
+            cancel.removeEventListener("click", onCancel);
+            input.removeEventListener("keydown", onKey);
+            resolve(value);
+          };
+          const ok = document.getElementById("pin-ok-btn");
+          const cancel = document.getElementById("pin-cancel-btn");
+          const onOk = () => {
+            const pin = input.value.trim();
+            if (!/^\d{4,6}$/.test(pin)) {
+              document.getElementById("pin-modal-error").textContent = "PIN เป็นตัวเลข 4–6 หลัก";
+              return;
+            }
+            done(pin);
+          };
+          const onCancel = () => done(null);
+          const onKey = (e) => {
+            if (e.key === "Enter" && !e.isComposing) onOk();
+            if (e.key === "Escape") onCancel();
+          };
+          ok.addEventListener("click", onOk);
+          cancel.addEventListener("click", onCancel);
+          input.addEventListener("keydown", onKey);
+        });
+      }
+
+      // ปุ่มตา: แสดง/ซ่อน PIN (เปิดหน้าต่างใหม่ = ซ่อนเสมอ)
+      function setPinVisible(btn, visible) {
+        document.getElementById(btn.dataset.target).type = visible ? "text" : "password";
+        btn.querySelector("i").className = visible ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+        btn.setAttribute("aria-label", visible ? "ซ่อน PIN" : "แสดง PIN");
+      }
+      document.querySelectorAll(".pin-eye").forEach((btn) =>
+        btn.addEventListener("click", () => {
+          setPinVisible(btn, document.getElementById(btn.dataset.target).type === "password");
+          document.getElementById(btn.dataset.target).focus();
+        }),
+      );
+      const hideAllPins = () => document.querySelectorAll(".pin-eye").forEach((btn) => setPinVisible(btn, false));
+
+      function openUsernameModal() {
+        hideAllPins();
+        const input = document.getElementById("username-input");
+        input.value = localStorage.getItem("username") || "";
+        document.getElementById("pin-input").value = "";
+        const pinSet = localStorage.getItem("pinSet") === "1";
+        const status = document.getElementById("pin-status");
+        status.textContent = pinSet
+          ? "ตั้ง PIN แล้ว · กรอกใหม่เพื่อเปลี่ยน"
+          : "ไม่ตั้งก็ได้ · ถ้าไม่ตั้ง ชื่อนี้จะใช้ได้แค่เครื่องนี้";
+        status.classList.toggle("ok", pinSet);
+        document.getElementById("username-modal").classList.add("active");
+        input.focus();
+        input.select();
+      }
+
+      function closeUsernameModal() {
+        document.getElementById("username-modal").classList.remove("active");
+      }
+
+      async function saveUsername() {
+        const newName = document.getElementById("username-input").value.trim();
+        const pin = document.getElementById("pin-input").value.trim();
+        if (!newName) {
+          showToast("กรุณากรอกชื่อเล่น", "error");
+          return;
+        }
+        if (pin && !/^\d{4,6}$/.test(pin)) {
+          showToast("PIN ต้องเป็นตัวเลข 4–6 หลัก", "error");
+          return;
+        }
+        const oldName = localStorage.getItem("username");
+        closeUsernameModal();
+        // เข้าแล้ว = เปลี่ยนชื่อบัญชีเดิม (ทริป/บิล/หนี้ตามไปด้วย)
+        // ชื่อใหม่เป็นบัญชีอื่นอยู่แล้ว = ถามก่อนว่าจะสลับไปใช้บัญชีนั้นไหม (ต้องใส่ PIN)
+        if (newName !== oldName || !currentUserId) {
+          let ok = false;
+          if (currentUserId && oldName && authToken(oldName)) {
+            const result = await renameTo(newName);
+            if (result === "ok") {
+              ok = true;
+              showToast(`เปลี่ยนชื่อเป็น "${newName}" แล้ว ทริปเดิมยังอยู่ครบ`);
+            } else if (
+              result === "taken" &&
+              confirm(
+                `ชื่อ "${newName}" มีบัญชีอยู่แล้ว\nถ้าเป็นบัญชีของคุณเอง กดตกลงเพื่อสลับไปใช้บัญชีนั้น (ใส่ PIN)\nทริปของชื่อ "${oldName}" จะไม่ตามไปด้วย`,
+              )
+            ) {
+              ok = await signIn(newName);
+              if (ok) showToast(`ใช้ชื่อ "${newName}" แล้ว`);
+            }
+          } else {
+            ok = await signIn(newName);
+            if (ok) showToast(`ใช้ชื่อ "${newName}" แล้ว`);
+          }
+          if (!ok) {
+            if (oldName) renderProfile(oldName);
+            openUsernameModal();
+            return;
+          }
+        }
+        if (pin) await savePin(pin);
+        loadRecentTrips();
+      }
+
+      // ผล: "ok" | "taken" (ชื่อเป็นของบัญชีอื่น) | "error" (แจ้งผู้ใช้แล้ว)
+      async function renameTo(newName) {
+        const oldName = localStorage.getItem("username");
+        try {
+          const res = await fetch(`${API_BASE_URL}/users/rename?username=${encodeURIComponent(newName)}`, {
+            method: "POST",
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok) {
+            saveRenamed(oldName, data, data.token);
+            currentUserId = data.id;
+            renderProfile(data.username);
+            return "ok";
+          }
+          if (res.status === 409 && data.message === "NAME_TAKEN") return "taken";
+          showToast(data.message || "เปลี่ยนชื่อไม่สำเร็จ", "error");
+        } catch {
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
+        }
+        return "error";
+      }
+
+      async function savePin(pin) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/users/pin?pin=${encodeURIComponent(pin)}`, { method: "POST" });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || "ตั้ง PIN ไม่สำเร็จ");
+          localStorage.setItem("pinSet", data.pinSet ? "1" : "0");
+          showToast("ตั้ง PIN แล้ว ใช้เข้าชื่อนี้จากเครื่องอื่นได้");
+        } catch (error) {
+          showToast(error.message || "ตั้ง PIN ไม่สำเร็จ", "error");
+        }
+      }
+
+      // Enter = บันทึก, Esc = ปิด, คลิกพื้นหลัง = ปิด
+      ["username-input", "pin-input"].forEach((id) =>
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.isComposing) saveUsername();
+        }),
+      );
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeUsernameModal();
+      });
+      document.getElementById("username-modal").addEventListener("click", (e) => {
+        if (e.target.id === "username-modal") closeUsernameModal();
+      });
+
+      // --- ตรวจฟอร์ม ---
+      function setInvalid(groupId, invalid) {
+        document.getElementById(groupId).classList.toggle("invalid", invalid);
+      }
+
+      [
+        ["trip-title", "group-title"],
+        ["trip-start-date", "group-start"],
+        ["trip-end-date", "group-end"],
+        ["join-invite-code", "group-code"],
+      ].forEach(([inputId, groupId]) =>
+        document.getElementById(inputId).addEventListener("input", () => setInvalid(groupId, false)),
+      );
+
+      // Enter ในฟอร์ม = ส่ง
+      ["trip-title", "trip-start-date", "trip-end-date"].forEach((id) =>
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.isComposing) submitCreateTrip();
+        }),
+      );
+      document.getElementById("join-invite-code").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.isComposing) submitJoinTrip();
+      });
+
+      // กด Back กลับมาหน้านี้ เบราว์เซอร์อาจคืนหน้าเดิมจากแคช (bfcache) ทั้งที่ปุ่มยังหมุนค้าง
+      window.addEventListener("pageshow", (e) => {
+        if (!e.persisted) return;
+        setBusy("create-btn", false);
+        setBusy("join-btn", false);
+      });
+
+      function setBusy(buttonId, busy, label) {
+        const btn = document.getElementById(buttonId);
+        btn.disabled = busy;
+        if (busy) {
+          btn.dataset.html = btn.innerHTML;
+          btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${esc(label)}</span>`;
+        } else if (btn.dataset.html) {
+          btn.innerHTML = btn.dataset.html;
+        }
+      }
+
+      // --- สร้างห้องทริปใหม่ ---
+      async function submitCreateTrip() {
+        const btn = document.getElementById("create-btn");
+        if (btn.disabled) return;
+        const title = document.getElementById("trip-title").value.trim();
+        const startDate = document.getElementById("trip-start-date").value;
+        const endDate = document.getElementById("trip-end-date").value;
+
+        // ตรวจสอบและดึงชื่อเล่น ถ้าไม่มีให้ใช้ Guest
+        const creatorName = localStorage.getItem("username") || "";
+        if (!currentUserId || !authToken()) {
+          showToast("ยังเข้าสู่ระบบไม่สำเร็จ ตั้งชื่อเล่นก่อนแล้วลองใหม่", "error");
+          openUsernameModal();
+          return;
+        }
+
+        const endBeforeStart = startDate && endDate && endDate < startDate;
+        setInvalid("group-title", !title);
+        setInvalid("group-start", !startDate);
+        setInvalid("group-end", !endDate || endBeforeStart);
+        if (!title || !startDate || !endDate) {
+          showToast("กรุณากรอกข้อมูลทริปให้ครบถ้วน", "error");
+          return;
+        }
+        if (endBeforeStart) {
+          showToast("วันกลับต้องไม่ก่อนวันออกเดินทาง", "error");
+          return;
+        }
+
+        setBusy("create-btn", true, "กำลังสร้างห้อง...");
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/trips/create?creatorName=${encodeURIComponent(creatorName)}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ title, startDate, endDate }),
+            },
+          );
+
+          if (response.ok) {
+            const trip = await response.json();
+            // พาไปหน้า Dashboard พร้อมส่ง tripId
+            window.location.href = `dashboard.html?tripId=${trip.id}`;
+            return;
+          }
+          showToast("ไม่สามารถสร้างทริปได้ กรุณาลองใหม่อีกครั้ง", "error");
+        } catch (error) {
+          console.error("Connection error:", error);
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบว่าเปิด Spring Boot หรือยัง", "error");
+        }
+        setBusy("create-btn", false);
+      }
+
+      // --- เข้าร่วมทริปด้วยรหัสเชิญ ---
+      async function submitJoinTrip() {
+        const btn = document.getElementById("join-btn");
+        if (btn.disabled) return;
+        const inviteCode = document
+          .getElementById("join-invite-code")
+          .value.trim()
+          .toUpperCase();
+        const memberName = localStorage.getItem("username") || "Guest";
+
+        if (!inviteCode) {
+          setInvalid("group-code", true);
+          showToast("กรุณากรอกรหัสเชิญห้องทริป", "error");
+          return;
+        }
+        if (!currentUserId || !authToken()) {
+          showToast("ยังเข้าสู่ระบบไม่สำเร็จ ตั้งชื่อเล่นก่อนแล้วลองใหม่", "error");
+          openUsernameModal();
+          return;
+        }
+
+        setBusy("join-btn", true, "กำลังเข้าร่วม...");
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/trips/join/${encodeURIComponent(inviteCode)}?memberName=${encodeURIComponent(memberName)}`,
+            { method: "POST" },
+          );
+
+          if (response.ok) {
+            const trip = await response.json();
+            // พาไปหน้า Dashboard พร้อมส่ง tripId ที่ถูกต้อง
+            window.location.href = `dashboard.html?tripId=${trip.id}`;
+            return;
+          }
+          setInvalid("group-code", true);
+          showToast("รหัสเชิญไม่ถูกต้อง หรือไม่พบห้องทริปนี้", "error");
+        } catch (error) {
+          console.error("Join error:", error);
+          showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
+        }
+        setBusy("join-btn", false);
+      }
+
+      // --- ประวัติทริปล่าสุด ---
+      function historyEmpty(text) {
+        return `<div class="history-empty">${esc(text)}</div>`;
+      }
+
+      // dd/mm – dd/mm/yyyy (ปี พ.ศ.)
+      function formatTripDateRange(startStr, endStr) {
+        if (!startStr || !endStr) return "";
+        const start = new Date(startStr);
+        const end = new Date(endStr);
+        if (isNaN(start) || isNaN(end)) return "";
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(start.getDate())}/${pad(start.getMonth() + 1)} – ${pad(end.getDate())}/${pad(end.getMonth() + 1)}/${end.getFullYear() + 543}`;
+      }
+
+      async function loadRecentTrips() {
+        const container = document.getElementById("recent-trips-container");
+        if (!currentUserId) {
+          container.innerHTML = historyEmpty("ยังไม่มีประวัติการเข้าชมทริป");
+          return;
+        }
+        try {
+          const response = await fetch(`${API_BASE_URL}/history/recent/${currentUserId}`);
+          const historyList = response.ok ? await response.json() : [];
+          if (!historyList || historyList.length === 0) {
+            container.innerHTML = historyEmpty("ยังไม่มีประวัติการเข้าชมทริป ลองสร้างห้องแรกได้เลย");
+            return;
+          }
+
+          // กรอง tripId ที่ซ้ำกันออก เพื่อให้แสดงห้องละ 1 แถว (เอาอันล่าสุด)
+          const seen = new Set();
+          const uniqueHistory = historyList.filter((item) => {
+            if (seen.has(item.tripId)) return false;
+            seen.add(item.tripId);
+            return true;
+          });
+
+          // ดึงชื่อทริปจริงของแต่ละประวัติมาแสดงผล (พร้อมกัน)
+          const rows = await Promise.all(
+            uniqueHistory.map(async (item) => {
+              let title = `ทริปรหัส #${item.tripId}`;
+              let dates = "";
+              try {
+                const tripRes = await fetch(`${API_BASE_URL}/trips/${item.tripId}`);
+                if (tripRes.ok) {
+                  const trip = await tripRes.json();
+                  if (trip && trip.title) title = trip.title;
+                  dates = formatTripDateRange(trip.startDate, trip.endDate);
+                }
+              } catch (e) {
+                console.error("ไม่สามารถดึงชื่อทริปได้:", e);
+              }
+              return `
+                <a href="dashboard.html?tripId=${encodeURIComponent(item.tripId)}" class="history-item">
+                  <div class="history-main">
+                    <div class="history-icon"><i class="fa-solid fa-plane"></i></div>
+                    <div style="min-width: 0">
+                      <div class="history-title">${esc(title)}</div>
+                      <div class="history-date">${esc(dates || "ยังไม่ระบุวันเดินทาง")}</div>
+                    </div>
+                  </div>
+                  <div class="history-stub"><i class="fa-solid fa-chevron-right"></i></div>
+                </a>`;
+            }),
+          );
+          container.innerHTML = rows.join("");
+        } catch (error) {
+          console.error("Error loading history:", error);
+          container.innerHTML = historyEmpty("โหลดประวัติทริปไม่สำเร็จ");
+        }
+      }
+
+      // ต้องรู้ userId ของชื่อเล่นนี้ก่อน จึงค่อยโหลดประวัติ (กันแสดงประวัติของ user อื่น)
+      loadUserData().then(() => {
+        loadRecentTrips();
+        // มาจากแบนเนอร์ "ตั้ง PIN กันลืม": เปิดหน้าต่างตั้งชื่อ/PIN แล้วโฟกัสช่อง PIN
+        if (new URLSearchParams(location.search).get("setPin") === "1" && currentUserId) {
+          history.replaceState(null, "", location.pathname);
+          openUsernameModal();
+          document.getElementById("pin-input").focus();
+        }
+      });
+    </script>
+  </body>
+</html>
