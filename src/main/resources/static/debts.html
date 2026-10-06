@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Debts - Party & Trip Expense Splitter Pro</title>
 
-    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <link rel="stylesheet" href="css/all.css" />
     <!-- Sidebar สำหรับจอคอม (≥1024px) -->
-    <script defer src="/src/main/resources/js/sidebar.js"></script>
+    <script defer src="js/sidebar.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,7 +19,7 @@
       crossorigin="anonymous"
     ></script>
     <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
-    <script src="/src/main/resources/js/ui.js"></script>
+    <script src="js/ui.js"></script>
     <style>
       /* หัวหน้า: ลิงก์ย้อนกลับอยู่บน ชื่อหน้าอยู่ล่าง (สไตล์หลักอยู่ที่ .page-header ใน all.css) */
       .debt-header {
@@ -633,7 +633,7 @@
           subEl.textContent = "คุณต้องจ่ายเพิ่ม";
         } else {
           netEl.className = "stat-value";
-          subEl.textContent = "เคลียร์ครบแล้ว 🎉";
+          subEl.textContent = " "; // ว่างไว้ ให้การ์ดสูงเท่ากัน
         }
       }
 

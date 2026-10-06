@@ -1192,3 +1192,61 @@ a:focus-visible,
     opacity: 0.5;
     pointer-events: none;
 }
+
+/* เตือนตั้ง PIN */
+.pin-nudge {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--primary);
+    border-radius: 14px;
+    background: var(--primary-soft);
+    color: var(--text-main);
+}
+
+.pin-nudge > i {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.pin-nudge-text {
+    flex: 1 1 200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.pin-nudge-text strong {
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.pin-nudge-btn,
+.pin-nudge-later {
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.pin-nudge-btn {
+    border: none;
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.pin-nudge-later {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+}

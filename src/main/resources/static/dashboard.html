@@ -6,11 +6,11 @@
     <title>Trip Dashboard - Party & Trip Expense Splitter Pro</title>
 
     <!-- CSS กลาง -->
-    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <link rel="stylesheet" href="css/all.css" />
     <!-- Sidebar สำหรับจอคอม (≥1024px) -->
-    <script defer src="/src/main/resources/js/sidebar.js"></script>
+    <script defer src="js/sidebar.js"></script>
     <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
-    <script src="/src/main/resources/js/ui.js"></script>
+    <script src="js/ui.js"></script>
 
     <!-- font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -172,6 +172,122 @@
         font-size: 0.68rem;
         font-weight: 600;
         color: var(--text-muted);
+      }
+
+      /* ปุ่มแก้วันเดินทาง (จำนวนวัน + ดินสอ) */
+      .bp-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 28px;
+        padding: 2px 10px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .bp-edit i {
+        font-size: 0.65rem;
+      }
+
+      .bp-edit:hover,
+      .bp-edit:focus-visible {
+        border-color: var(--border);
+        background: var(--surface-muted);
+        color: var(--primary);
+      }
+
+      .dates-dialog {
+        box-sizing: border-box;
+        width: min(400px, calc(100vw - 32px));
+        margin: auto;
+        padding: 20px;
+        overflow-x: hidden;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+        color: var(--text-main);
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+      }
+
+      .dates-dialog::backdrop {
+        background: rgba(15, 23, 42, 0.45);
+      }
+
+      .dates-dialog h3 {
+        margin: 0 0 14px;
+        font-size: 1.05rem;
+      }
+
+      .dates-fields {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .dates-fields label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      .dates-fields input {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        height: 42px;
+        padding: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--text-main);
+        font: inherit;
+      }
+
+      .dates-note {
+        min-height: 1.2em;
+        margin: 10px 0 0;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .dates-note.error {
+        color: var(--danger);
+      }
+
+      .dates-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .dates-actions button {
+        min-height: 40px;
+        padding: 0 16px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--text-main);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .dates-actions .primary {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #ffffff;
+      }
+
+      @media (max-width: 420px) {
+        .dates-fields {
+          grid-template-columns: 1fr;
+        }
       }
 
       .bp-footer {
@@ -798,6 +914,22 @@
         background: var(--primary-soft);
       }
 
+      .member-recover {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        background: var(--surface);
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+
+      .member-recover:hover {
+        color: var(--primary);
+        border-color: var(--primary);
+      }
+
       .member-paid {
         text-align: right;
         font-size: 0.75rem;
@@ -873,9 +1005,12 @@
                 <strong id="bp-start">--</strong>
                 <small id="bp-start-sub">&nbsp;</small>
               </div>
-              <div class="bp-line" aria-hidden="true">
-                <span class="bp-ornament">⋆.° 𓆉 𓆝 𓆡⋆.°</span>
-                <span class="bp-days" id="bp-days"></span>
+              <div class="bp-line">
+                <span class="bp-ornament" aria-hidden="true">⋆.° 𓆉 𓆝 𓆡⋆.°</span>
+                <button type="button" class="bp-edit" id="bp-edit" onclick="openDatesDialog()" aria-label="แก้วันเดินทาง">
+                  <span class="bp-days" id="bp-days"></span>
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
               </div>
               <div class="bp-point end">
                 <span class="bp-label">สิ้นสุด</span>
@@ -911,6 +1046,28 @@
           </div>
         </div>
       </header>
+
+      <!-- แก้วันเดินทาง -->
+      <dialog class="dates-dialog" id="dates-dialog" aria-labelledby="dates-title">
+        <form id="dates-form" method="dialog" novalidate>
+          <h3 id="dates-title">แก้วันเดินทาง</h3>
+          <div class="dates-fields">
+            <div>
+              <label for="dates-start">วันเริ่มต้น</label>
+              <input type="date" id="dates-start" required />
+            </div>
+            <div>
+              <label for="dates-end">วันสิ้นสุด</label>
+              <input type="date" id="dates-end" required />
+            </div>
+          </div>
+          <p class="dates-note" id="dates-note" aria-live="polite"></p>
+          <div class="dates-actions">
+            <button type="button" onclick="closeDatesDialog()">ยกเลิก</button>
+            <button type="submit" class="primary" id="dates-save">บันทึก</button>
+          </div>
+        </form>
+      </dialog>
 
       <!-- แถบสรุปยอด -->
       <div class="stat-summary" aria-live="polite">
@@ -1039,6 +1196,7 @@
       let dashTrip = null;
       let dashMembers = [];
       let dashExpenses = [];
+      let dashMyMemberId = null;
       // รับเฉพาะหมวดที่รู้จัก (ค่าอื่นถือเป็น "อื่นๆ")
       const catKeyOf = (c) => (CATEGORIES[c] ? c : "OTHER");
 
@@ -1048,6 +1206,93 @@
         const d = new Date(str);
         return isNaN(d) ? null : d;
       }
+
+      // --- แก้วันเดินทาง ---
+      const datesDialog = document.getElementById("dates-dialog");
+      const datesStart = document.getElementById("dates-start");
+      const datesEnd = document.getElementById("dates-end");
+      const datesNote = document.getElementById("dates-note");
+      const isoDay = (v) => String(v || "").slice(0, 10);
+
+      function openDatesDialog() {
+        if (!dashTrip) return;
+        datesStart.value = isoDay(dashTrip.startDate);
+        datesEnd.value = isoDay(dashTrip.endDate);
+        datesEnd.min = datesStart.value;
+        updateDatesNote();
+        datesDialog.showModal();
+        datesStart.focus();
+      }
+
+      function closeDatesDialog() {
+        datesDialog.close();
+      }
+
+      function datesProblem() {
+        const start = datesStart.value;
+        const end = datesEnd.value;
+        if (!start || !end) return "กรุณาเลือกทั้งวันเริ่มต้นและวันสิ้นสุด";
+        if (end < start) return "วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น";
+        return "";
+      }
+
+      // บอกจำนวนวัน + เตือนถ้ามีบิล/รายการในแพลนอยู่นอกช่วงใหม่ (ไม่ลบ แค่บอก)
+      function updateDatesNote() {
+        datesEnd.min = datesStart.value || "";
+        const problem = datesProblem();
+        datesNote.classList.toggle("error", !!problem);
+        if (problem) {
+          datesNote.textContent = problem;
+          return;
+        }
+        const start = datesStart.value;
+        const end = datesEnd.value;
+        const days = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
+        const outside = (d) => d && (d < start || d > end);
+        const bills = dashExpenses.filter((e) => outside(isoDay(e.expenseDate))).length;
+        const plans = (planActivities || []).filter((a) => outside(isoDay(a.activityDate))).length;
+        const extra = [bills && `${bills} บิล`, plans && `${plans} รายการในแพลน`].filter(Boolean).join(" และ ");
+        datesNote.textContent = `${days} วัน` + (extra ? ` · มี ${extra} อยู่นอกช่วงนี้ (ยังเก็บไว้ ไม่ถูกลบ)` : "");
+      }
+
+      datesStart.addEventListener("input", () => {
+        // เลื่อนวันเริ่มไปหลังวันสิ้นสุด = เลื่อนวันสิ้นสุดตาม
+        if (datesEnd.value && datesStart.value > datesEnd.value) datesEnd.value = datesStart.value;
+        updateDatesNote();
+      });
+      datesEnd.addEventListener("input", updateDatesNote);
+      datesDialog.addEventListener("click", (e) => {
+        if (e.target === datesDialog) closeDatesDialog();
+      });
+
+      document.getElementById("dates-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const problem = datesProblem();
+        if (problem) {
+          updateDatesNote();
+          return;
+        }
+        const save = document.getElementById("dates-save");
+        save.disabled = true;
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/trips/${tripId}/dates?memberId=${dashMyMemberId ?? ""}&startDate=${datesStart.value}&endDate=${datesEnd.value}`,
+            { method: "PUT" },
+          );
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || "บันทึกวันเดินทางไม่สำเร็จ");
+          dashTrip = data;
+          renderTripDates(data);
+          renderNextCard();
+          closeDatesDialog();
+          showToast("แก้วันเดินทางแล้ว");
+        } catch (error) {
+          datesNote.classList.add("error");
+          datesNote.textContent = error.message;
+        } finally {
+          save.disabled = false;
+        }
+      });
 
       function formatDay(d, withYear = false) {
         return d.toLocaleDateString("th-TH", {
@@ -1159,7 +1404,7 @@
             ? "คุณจะได้รับคืน"
             : net < 0
               ? "คุณต้องจ่ายเพิ่ม"
-              : "เคลียร์ครบแล้ว 🎉";
+              : " "; // ไม่ค้างใคร: ว่างไว้ ให้การ์ดสูงเท่ากัน
       }
 
       // --- ค่าใช้จ่ายล่าสุด: แสดงทีละวัน (เริ่มที่วันนี้ ถ้าวันนี้ยังไม่มีบิล = วันล่าสุดที่มี) ---
@@ -1359,6 +1604,8 @@
           paidBy[id] = (paidBy[id] || 0) + Number(e.totalAmount || 0);
         });
 
+        // คนสร้างทริป: ปุ่มออกรหัสกู้คืนให้เพื่อน (เปลี่ยนเครื่องแล้วเข้าชื่อเดิมไม่ได้)
+        const iAmAdmin = members.some((m) => String(m.id) === String(myMemberId) && m.role === "ADMIN");
         panel.innerHTML = [...members]
           .sort((a, b) => (paidBy[b.id] || 0) - (paidBy[a.id] || 0))
           .map((m) => {
@@ -1374,10 +1621,44 @@
                 ${avatar(name, "sm")}
                 <span class="member-name">${esc(name)}${tag}</span>
                 <span class="member-paid">จ่ายไป<strong>${fmt(paidBy[m.id] || 0)}</strong></span>
+                ${
+                  iAmAdmin && !isMe
+                    ? `<button type="button" class="member-recover" data-id="${m.id}" data-name="${esc(name)}"
+                         title="ออกรหัสกู้คืนให้ ${esc(name)}" aria-label="ออกรหัสกู้คืนให้ ${esc(name)}">
+                         <i class="fa-solid fa-key"></i></button>`
+                    : ""
+                }
               </div>`;
           })
           .join("");
       }
+
+      document.getElementById("members-panel").addEventListener("click", async (e) => {
+        const btn = e.target.closest(".member-recover");
+        if (!btn) return;
+        const name = btn.dataset.name;
+        if (
+          !confirm(
+            `ออกรหัสกู้คืนให้ "${name}"?\nใช้เมื่อ ${name} เปลี่ยนเครื่องหรือล้างเบราว์เซอร์ แล้วเข้าชื่อเดิมไม่ได้\nเครื่องเดิมของ ${name} จะถูกออกจากระบบเมื่อใช้รหัสนี้`,
+          )
+        )
+          return;
+        btn.disabled = true;
+        try {
+          const res = await fetch(`${API_BASE_URL}/trips/${tripId}/members/${btn.dataset.id}/recovery`, {
+            method: "POST",
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || "ออกรหัสไม่สำเร็จ");
+          const text = `รหัสกู้คืนของ ${data.name}: ${data.code}\nเข้าหน้าแรก พิมพ์ชื่อ "${data.name}" แล้วใส่รหัสนี้ในช่อง PIN (ใช้ได้ครั้งเดียว ภายใน ${data.expiresInMinutes} นาที)`;
+          const copied = await copyText(text);
+          alert(text + (copied ? "\n\n(คัดลอกไว้แล้ว ส่งให้เพื่อนในแชทได้เลย)" : ""));
+        } catch (error) {
+          showToast(error.message || "ออกรหัสไม่สำเร็จ", "error");
+        } finally {
+          btn.disabled = false;
+        }
+      });
 
       // --- ถัดไปในแพลน ---
       const PLAN_ICONS = {
@@ -1592,6 +1873,7 @@
           // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) ไม่ใช่ ID
           const myMember = findMyMember(members);
           const myMemberId = myMember ? myMember.id : null;
+          dashMyMemberId = myMemberId;
 
           // 3. หัวหน้า
           document.getElementById("trip-title-display").textContent =
@@ -1613,6 +1895,7 @@
           dashExpenses = expenses;
           renderCategories();
           renderMembers(members, expenses, myMemberId);
+          showPinNudge(document.querySelector(".container"));
         } catch (error) {
           console.error("Error loading dashboard:", error);
           document.getElementById("trip-title-display").textContent =
