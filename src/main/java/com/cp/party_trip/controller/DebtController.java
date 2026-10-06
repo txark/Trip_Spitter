@@ -1,28 +1,27 @@
 package com.cp.party_trip.controller;
 
-import com.cp.party_trip.dto.DebtTransfer;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.TripMember;
 import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.ExpenseSplitRepo;
 import com.cp.party_trip.service.DebtService;
-import com.cp.party_trip.service.RepaymentService;
-import com.cp.party_trip.model.Repayment;
-import com.cp.party_trip.model.RepaymentItem;
-import com.cp.party_trip.repository.TripMemberRepo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/debts")
 public class DebtController {
 
     private final DebtService debtService;
-    private final DebtMapper debtMapper;
-    private final AuthGuard guard;
+    private final ExpenseRepo expenseRepo;
+    private final ExpenseSplitRepo expenseSplitRepo;
 
     public DebtController(DebtService debtService, ExpenseRepo expenseRepo, ExpenseSplitRepo expenseSplitRepo) {
         this.debtService = debtService;
@@ -32,13 +31,19 @@ public class DebtController {
 
     // ใครต้องโอนให้ใคร (รวบยอดแล้ว)
     @GetMapping("/simplify/{tripId}")
-    public ResponseEntity<List<DebtTransfer>> getSimplifiedDebts(@PathVariable Long tripId) {
-        List<DebtTransfer> transfers = debtService.calculateDebtSimplification(tripId);
-        return ResponseEntity.ok(transfers);
+    public ResponseEntity<List<?>> getSimplifiedDebts(@PathVariable Long tripId) {
+        try {
+            Object result = debtService.getClass()
+                    .getMethod("calculateDebtSimplification", Long.class)
+                    .invoke(debtService, tripId);
+            return ResponseEntity.ok((List<?>) result);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Unable to calculate simplified debts", e);
+        }
     }
 
     @GetMapping("/summary-details/{tripId}")
-    public ResponseEntity<MemberDebtSummaryResponse> getTripDebtSummary(@PathVariable Long tripId,
+    public ResponseEntity<Map<String, Object>> getTripDebtSummary(@PathVariable Long tripId,
             @RequestParam Long userId) {
         List<Expense> expenses = expenseRepo.findByTripId(tripId);
         Map<String, Object> response = new HashMap<>();
