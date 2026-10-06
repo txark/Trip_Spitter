@@ -1,6 +1,6 @@
 package com.cp.party_trip.config;
 
-import com.cp.party_trip.service.UserService;
+import com.cp.party_trip.service.AuthTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
@@ -13,10 +13,10 @@ import java.nio.charset.StandardCharsets;
 // การอ่านข้อมูล (GET) ผ่านได้ แต่คอนโทรลเลอร์เช็กเองว่าเป็นสมาชิกทริปนั้น (guard.me) ไม่ใช่สมาชิก = 403
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
-    private final UserService userService;
+    private final AuthTokenService authTokenService;
 
-    public AuthInterceptor(UserService userService) {
-        this.userService = userService;
+    public AuthInterceptor(AuthTokenService authTokenService) {
+        this.authTokenService = authTokenService;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         if ("OPTIONS".equalsIgnoreCase(method)) {
             return true; // CORS preflight
         }
-        userService.findByToken(request.getHeader(AuthGuard.HEADER))
+        authTokenService.findByToken(request.getHeader(AuthGuard.HEADER))
                 .ifPresent(user -> request.setAttribute(AuthGuard.ATTRIBUTE, user));
 
         boolean readOnly = "GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method);
