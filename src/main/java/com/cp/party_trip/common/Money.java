@@ -1,4 +1,4 @@
-package com.cp.party_trip.service;
+package com.cp.party_trip.common;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -9,8 +9,8 @@ import java.util.regex.Pattern;
 
 // สกุลเงินและอัตราแลกเปลี่ยน: เงินหลักของระบบคือบาท (หนี้/งบคิดเป็นบาทเสมอ)
 // ยอดเงินต่างประเทศเก็บคู่กับเรท "1 หน่วย = กี่บาท" ไว้แสดงยอดตามใบเสร็จ
-final class Money {
-    static final String BASE = "THB";
+public final class Money {
+    public static final String BASE = "THB";
     static final BigDecimal MAX_RATE = new BigDecimal("100000");
     private static final Pattern CODE = Pattern.compile("[A-Z]{3}");
 
@@ -18,7 +18,7 @@ final class Money {
     }
 
     // null = บาท, ที่เหลือต้องเป็นรหัส 3 ตัวอักษร (เช่น JPY)
-    static String currency(String code) {
+    public static String currency(String code) {
         if (code == null || code.isBlank()) {
             return null;
         }
@@ -33,7 +33,7 @@ final class Money {
     }
 
     // เรทต้องมากกว่า 0 เก็บทศนิยม 6 ตำแหน่ง (เงินดอง/รูเปียห์ 1 หน่วยไม่ถึง 0.01 บาท)
-    static BigDecimal rate(BigDecimal rate) {
+    public static BigDecimal rate(BigDecimal rate) {
         if (rate == null || rate.signum() <= 0 || rate.compareTo(MAX_RATE) > 0) {
             throw badRequest("อัตราแลกเปลี่ยนต้องมากกว่า 0");
         }
@@ -44,7 +44,7 @@ final class Money {
         return scaled;
     }
 
-    static ResponseStatusException badRequest(String message) {
+    public static ResponseStatusException badRequest(String message) {
         return new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
     }
 }

@@ -1,4 +1,4 @@
-package com.cp.party_trip.service;
+package com.cp.party_trip.service.impl;
 
 import com.cp.party_trip.dto.ActivityRequest;
 import com.cp.party_trip.model.Activity;
@@ -28,14 +28,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class ActivityServiceTest {
+class ActivityServiceImplTest {
 
     private ActivityRepo activityRepo;
     private TripRepo tripRepo;
     private TripMemberRepo tripMemberRepo;
     private ExpenseRepo expenseRepo;
     private PollRepo pollRepo;
-    private ActivityService service;
+    private ActivityServiceImpl service;
     private Trip trip;
 
     @BeforeEach
@@ -45,7 +45,7 @@ class ActivityServiceTest {
         tripMemberRepo = mock(TripMemberRepo.class);
         expenseRepo = mock(ExpenseRepo.class);
         pollRepo = mock(PollRepo.class);
-        service = new ActivityService(activityRepo, tripRepo, tripMemberRepo, expenseRepo, pollRepo);
+        service = new ActivityServiceImpl(activityRepo, tripRepo, tripMemberRepo, expenseRepo, pollRepo);
         when(activityRepo.save(any(Activity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         trip = new Trip();

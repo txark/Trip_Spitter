@@ -3,7 +3,6 @@ package com.cp.party_trip.controller;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;
-import com.cp.party_trip.repository.TripMemberRepo;
 import com.cp.party_trip.service.TripService;
 import com.cp.party_trip.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -19,18 +18,16 @@ import java.util.Map;
 public class TripController {
 
     private final TripService tripService;
-    private final TripMemberRepo tripMemberRepo;
     private final AuthGuard guard;
     private final UserService userService;
     // กดเข้าร่วมซ้ำพร้อมกันหลายเครื่อง: ทำทีละคำขอต่อ (รหัสเชิญ, ชื่อ) จะได้ไม่สร้างสมาชิกซ้ำ
     private final java.util.concurrent.ConcurrentHashMap<String, Object> joinLocks =
             new java.util.concurrent.ConcurrentHashMap<>();
 
-    public TripController(TripService tripService, TripMemberRepo tripMemberRepo, AuthGuard guard,
+    public TripController(TripService tripService, AuthGuard guard,
             UserService userService) {
         this.userService = userService;
         this.tripService = tripService;
-        this.tripMemberRepo = tripMemberRepo;
         this.guard = guard;
     }
 
@@ -106,9 +103,7 @@ public class TripController {
         if (!"ADMIN".equals(me.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "เฉพาะคนสร้างทริปเท่านั้นที่ออกรหัสกู้คืนได้");
         }
-        TripMember target = tripMemberRepo.findById(memberId)
-                .filter(m -> m.getTrip() != null && tripId.equals(m.getTrip().getId()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบสมาชิกคนนี้ในทริป"));
+        TripMember target = tripService.getMember(tripId, memberId);
         if (target.getId().equals(me.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ออกรหัสกู้คืนให้ตัวเองไม่ได้");
         }
@@ -120,7 +115,7 @@ public class TripController {
     @GetMapping("/{tripId}/members")
     public ResponseEntity<java.util.List<TripMember>> getTripMembers(@PathVariable Long tripId) {
         guard.me(tripId);
-        java.util.List<TripMember> members = tripMemberRepo.findByTripId(tripId);
+        java.util.List<TripMember> members = tripService.getMembers(tripId);
         return ResponseEntity.ok(members);
     }
 }

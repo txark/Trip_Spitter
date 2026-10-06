@@ -15,7 +15,6 @@ delete from checklist_items where trip_id in (select id from tt);
 delete from activity_participants where activity_id in (select id from activities where trip_id in (select id from tt));
 delete from activity_stops where activity_id in (select id from activities where trip_id in (select id from tt));
 delete from activities where trip_id in (select id from tt);
-delete from settlements where trip_id in (select id from tt);
 delete from trip_members where trip_id in (select id from tt);
 delete from user_trip_history where trip_id in (select id from tt) or user_id in (select id from uu);
 delete from trips where id in (select id from tt);

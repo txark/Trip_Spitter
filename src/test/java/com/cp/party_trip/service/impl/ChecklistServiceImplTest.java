@@ -1,4 +1,4 @@
-package com.cp.party_trip.service;
+package com.cp.party_trip.service.impl;
 
 import com.cp.party_trip.dto.ChecklistBulkRequest;
 import com.cp.party_trip.model.ChecklistItem;
@@ -20,17 +20,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
-class ChecklistServiceTest {
+class ChecklistServiceImplTest {
 
     private ChecklistItemRepo itemRepo;
     private TripMemberRepo tripMemberRepo;
-    private ChecklistService service;
+    private ChecklistServiceImpl service;
 
     @BeforeEach
     void setUp() {
         itemRepo = mock(ChecklistItemRepo.class);
         tripMemberRepo = mock(TripMemberRepo.class);
-        service = new ChecklistService(itemRepo, tripMemberRepo);
+        service = new ChecklistServiceImpl(itemRepo, tripMemberRepo);
         when(itemRepo.save(any(ChecklistItem.class))).thenAnswer(inv -> inv.getArgument(0));
         when(itemRepo.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
 

@@ -1,4 +1,4 @@
-package com.cp.party_trip.service;
+package com.cp.party_trip.service.impl;
 
 import com.cp.party_trip.model.User;
 import com.cp.party_trip.repository.UserRepo;
@@ -13,17 +13,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class UserServiceTest {
+class UserServiceImplTest {
 
     private UserRepo userRepo;
-    private UserService service;
+    private UserServiceImpl service;
 
     @BeforeEach
     void setUp() {
         userRepo = mock(UserRepo.class);
         when(userRepo.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         when(userRepo.findByUsername(any())).thenReturn(Optional.empty());
-        service = new UserService(userRepo, org.mockito.Mockito.mock(com.cp.party_trip.repository.TripMemberRepo.class));
+        service = new UserServiceImpl(userRepo, org.mockito.Mockito.mock(com.cp.party_trip.repository.TripMemberRepo.class));
     }
 
     private User existing(String name, String token, String pin) {
@@ -31,7 +31,7 @@ class UserServiceTest {
         u.setId(1L);
         u.setUsername(name);
         u.setAuthToken(token);
-        u.setPinHash(pin == null ? null : UserService.hashPin(pin));
+        u.setPinHash(pin == null ? null : UserServiceImpl.hashPin(pin));
         when(userRepo.findByUsername(name)).thenReturn(Optional.of(u));
         return u;
     }
@@ -43,7 +43,7 @@ class UserServiceTest {
 
     @Test
     void newNameCreatesAccountWithToken() {
-        UserService.Login login = service.login("  Joa ", null, null);
+        UserServiceImpl.Login login = service.login("  Joa ", null, null);
         assertEquals("Joa", login.user().getUsername());
         assertNotNull(login.token());
         assertEquals(48, login.token().length());
@@ -80,7 +80,7 @@ class UserServiceTest {
     @Test
     void tooManyWrongPinsLocksTheName() {
         existing("Joa", "tok-1", "1234");
-        for (int i = 0; i < UserService.MAX_PIN_ATTEMPTS; i++) {
+        for (int i = 0; i < UserServiceImpl.MAX_PIN_ATTEMPTS; i++) {
             assertStatus(HttpStatus.UNAUTHORIZED, () -> service.login("Joa", null, "0000"));
         }
         assertStatus(HttpStatus.TOO_MANY_REQUESTS, () -> service.login("Joa", null, "1234"));
@@ -93,8 +93,8 @@ class UserServiceTest {
         assertStatus(HttpStatus.BAD_REQUEST, () -> service.setPin(u, "12"));
         assertStatus(HttpStatus.BAD_REQUEST, () -> service.setPin(u, "abcd"));
         service.setPin(u, "123456");
-        assertTrue(UserService.matchesPin("123456", u.getPinHash()));
-        assertFalse(UserService.matchesPin("123457", u.getPinHash()));
+        assertTrue(UserServiceImpl.matchesPin("123456", u.getPinHash()));
+        assertFalse(UserServiceImpl.matchesPin("123457", u.getPinHash()));
         service.setPin(u, "");
         assertNull(u.getPinHash());
     }
