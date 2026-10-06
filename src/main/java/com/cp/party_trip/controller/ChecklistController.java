@@ -1,10 +1,8 @@
 package com.cp.party_trip.controller;
 
-import com.cp.party_trip.config.AuthGuard;
-import com.cp.party_trip.dto.request.ChecklistBulkRequest;
-import com.cp.party_trip.dto.request.ChecklistDetailsRequest;
-import com.cp.party_trip.dto.response.ChecklistItemResponse;
-import com.cp.party_trip.mapper.ChecklistMapper;
+import com.cp.party_trip.dto.ChecklistBulkRequest;
+import com.cp.party_trip.dto.ChecklistDetailsRequest;
+import com.cp.party_trip.model.ChecklistItem;
 import com.cp.party_trip.service.ChecklistService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,13 +15,9 @@ import java.util.List;
 @RequestMapping("/api/checklist")
 public class ChecklistController {
     private final ChecklistService checklistService;
-    private final ChecklistMapper checklistMapper;
-    private final AuthGuard guard;
 
-    public ChecklistController(ChecklistService checklistService, ChecklistMapper checklistMapper, AuthGuard guard) {
+    public ChecklistController(ChecklistService checklistService) {
         this.checklistService = checklistService;
-        this.checklistMapper = checklistMapper;
-        this.guard = guard;
     }
 
     @GetMapping("/{tripId}")
@@ -31,8 +25,7 @@ public class ChecklistController {
             @PathVariable Long tripId,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search) {
-        guard.me(tripId);
-        return ResponseEntity.ok(checklistMapper.toResponses(checklistService.getChecklistByTrip(tripId, category, search)));
+        return ResponseEntity.ok(checklistService.getChecklistByTrip(tripId, category, search));
     }
 
     @PostMapping
@@ -42,34 +35,47 @@ public class ChecklistController {
             @RequestParam String itemName,
             @RequestParam(required = false) Long assignedToMemberId,
             @RequestParam(required = false) String notes) {
-        guard.me(tripId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(checklistMapper.toResponse(
-                checklistService.addItem(tripId, category, itemName, assignedToMemberId, notes)));
+        try {
+            return ResponseEntity.ok(checklistService.addItem(tripId, category, itemName, assignedToMemberId, notes));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
-    // เพิ่มหลายชิ้นในครั้งเดียว (JSON): หมวด/ผู้รับผิดชอบใช้ร่วมกัน, จำนวน/หน่วย/โน้ตแยกต่อชิ้น
+    // เพิ่มหลายชิ้นในครั้งเดียว (JSON): หมวด/ผู้รับผิดชอบใช้ร่วมกัน,
+    // จำนวน/หน่วย/โน้ตแยกต่อชิ้น
     @PostMapping("/bulk")
-    public ResponseEntity<List<ChecklistItemResponse>> addItems(@Valid @RequestBody ChecklistBulkRequest request) {
-        guard.me(request.getTripId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(checklistMapper.toResponses(checklistService.addItems(
-                request.getTripId(), request.getCategory(), request.getItems(), request.getAssigneeIds())));
+    public ResponseEntity<?> addItems(@RequestBody ChecklistBulkRequest request) {
+        try {
+            return ResponseEntity.ok(checklistService.addItems(
+                    request.getTripId(),
+                    request.getCategory(),
+                    request.getItems(),
+                    request.getAssigneeIds()));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
     // แก้จำนวน/หน่วย/โน้ตของชิ้นนี้ (JSON)
     @PatchMapping("/{itemId}/details")
-    public ResponseEntity<ChecklistItemResponse> updateDetails(@PathVariable Long itemId,
-            @Valid @RequestBody ChecklistDetailsRequest request) {
-        Long me = guard.self(guard.tripOfChecklistItem(itemId), request.getMemberId()).getId();
-        return ResponseEntity.ok(checklistMapper.toResponse(checklistService.updateDetails(itemId,
-                request.getQuantity(), request.getUnit(), request.getNotes(), me)));
+    public ResponseEntity<?> updateDetails(@PathVariable Long itemId, @RequestBody ChecklistDetailsRequest request) {
+        try {
+            return ResponseEntity.ok(checklistService.updateDetails(itemId, request.getQuantity(),
+                    request.getUnit(), request.getNotes(), request.getMemberId()));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
     // ตั้งผู้รับผิดชอบทั้งชุด (JSON array ของ memberId, [] = ยังไม่มีใครรับ)
     @PutMapping("/{itemId}/assignees")
-    public ResponseEntity<ChecklistItemResponse> setAssignees(@PathVariable Long itemId,
-            @RequestBody List<Long> memberIds) {
-        guard.me(guard.tripOfChecklistItem(itemId));
-        return ResponseEntity.ok(checklistMapper.toResponse(checklistService.setAssignees(itemId, memberIds)));
+    public ResponseEntity<?> setAssignees(@PathVariable Long itemId, @RequestBody List<Long> memberIds) {
+        try {
+            return ResponseEntity.ok(checklistService.setAssignees(itemId, memberIds));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
     @PatchMapping("/{itemId}/notes")
@@ -77,31 +83,49 @@ public class ChecklistController {
             @PathVariable Long itemId,
             @RequestParam(required = false) String notes,
             @RequestParam(required = false) Long memberId) {
-        Long me = guard.self(guard.tripOfChecklistItem(itemId), memberId).getId();
-        return ResponseEntity.ok(checklistMapper.toResponse(checklistService.updateNotes(itemId, notes, me)));
+        try {
+            return ResponseEntity.ok(checklistService.updateNotes(itemId, notes, memberId));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
     @PatchMapping("/{itemId}/toggle")
     public ResponseEntity<ChecklistItemResponse> toggleCheck(
             @PathVariable Long itemId,
             @RequestParam(required = false) Long memberId) {
-        Long me = guard.self(guard.tripOfChecklistItem(itemId), memberId).getId();
-        return ResponseEntity.ok(checklistMapper.toResponse(checklistService.toggleCheckStatus(itemId, me)));
+        try {
+            return ResponseEntity.ok(checklistService.toggleCheckStatus(itemId, memberId));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
-    // เปลี่ยนคนรับผิดชอบ ไม่ส่ง memberId = ยกเลิกคนรับผิดชอบ (มอบให้เพื่อนได้ แต่ต้องอยู่ทริปเดียวกัน)
+    // เปลี่ยนคนรับผิดชอบ ไม่ส่ง memberId = ยกเลิกคนรับผิดชอบ (มอบให้เพื่อนได้
+    // แต่ต้องอยู่ทริปเดียวกัน)
     @PatchMapping("/{itemId}/assign")
     public ResponseEntity<ChecklistItemResponse> assignItem(
             @PathVariable Long itemId,
             @RequestParam(required = false) Long memberId) {
-        guard.me(guard.tripOfChecklistItem(itemId));
-        return ResponseEntity.ok(checklistMapper.toResponse(checklistService.assignItem(itemId, memberId)));
+        try {
+            return ResponseEntity.ok(checklistService.assignItem(itemId, memberId));
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
     }
 
     @DeleteMapping("/{itemId}")
-    public ResponseEntity<Void> deleteItem(@PathVariable Long itemId) {
-        guard.me(guard.tripOfChecklistItem(itemId));
-        checklistService.deleteItem(itemId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteItem(@PathVariable Long itemId) {
+        try {
+            checklistService.deleteItem(itemId);
+            return ResponseEntity.ok("ลบรายการสิ่งของสำเร็จ");
+        } catch (ResponseStatusException e) {
+            return error(e);
+        }
+    }
+
+    // ส่งข้อความภาษาไทยกลับไปให้หน้าเว็บแสดงได้ตรง ๆ
+    private ResponseEntity<String> error(ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
     }
 }
