@@ -1,10 +1,10 @@
-package com.cp.party_trip.dto;
+package com.cp.party_trip.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 // โหวตหนึ่งหัวข้อพร้อมผลคะแนน สำหรับหน้า polls.html
-public class PollSummaryDTO {
+public class PollSummaryResponse {
     private Long id;
     private String question;
     private String status;
@@ -15,11 +15,11 @@ public class PollSummaryDTO {
     private Long remainingSeconds; // วินาทีที่เหลือก่อนปิด คำนวณที่เซิร์ฟเวอร์ กันนาฬิกาเครื่องผู้ใช้เพี้ยน (null = ไม่จำกัดเวลา)
     private int totalVotes;
     private Long myOptionId; // ข้อที่สมาชิกคนนี้เลือก (null = ยังไม่โหวต)
-    private List<PollResultDTO> options;
+    private List<PollResultResponse> options;
 
-    public PollSummaryDTO(Long id, String question, String status, Long createdByMemberId, String createdByName,
+    public PollSummaryResponse(Long id, String question, String status, Long createdByMemberId, String createdByName,
             LocalDateTime createdAt, LocalDateTime closesAt, Long remainingSeconds, int totalVotes, Long myOptionId,
-            List<PollResultDTO> options) {
+            List<PollResultResponse> options) {
         this.id = id;
         this.question = question;
         this.status = status;
@@ -73,7 +73,7 @@ public class PollSummaryDTO {
         return myOptionId;
     }
 
-    public List<PollResultDTO> getOptions() {
+    public List<PollResultResponse> getOptions() {
         return options;
     }
 }

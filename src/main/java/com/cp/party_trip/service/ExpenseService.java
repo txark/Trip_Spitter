@@ -1,9 +1,9 @@
 package com.cp.party_trip.service;
 
-import com.cp.party_trip.dto.ExpenseRequest;
+import com.cp.party_trip.dto.response.ExpenseViewResponse;
+import com.cp.party_trip.dto.request.ExpenseRequest;
 import com.cp.party_trip.model.Expense;
 import java.util.List;
-import java.util.Map;
 
 // บิลค่าใช้จ่าย: สร้าง/แก้/ลบบิล แบ่งเงิน และยืนยันการรับเงิน
 // ตัวจริงอยู่ที่ service/impl/ExpenseServiceImpl (Controller ขึ้นกับ interface นี้ ไม่ใช่คลาสจริง)
@@ -32,7 +32,7 @@ public interface ExpenseService {
     List<Expense> getExpensesByTrip(Long tripId);
 
     // บิลทั้งทริป + การแบ่งเงินของแต่ละบิล ในรูปที่หน้าเว็บใช้
-    List<Map<String, Object>> getTripExpenseViews(Long tripId);
+    List<ExpenseViewResponse> getTripExpenseViews(Long tripId);
 
     // คนจ่ายบิล (หรือคนบันทึกแทน) ยืนยันว่าได้รับเงินส่วนของ memberId ครบแล้ว
     // actingMemberId = สมาชิกของเจ้าของ token

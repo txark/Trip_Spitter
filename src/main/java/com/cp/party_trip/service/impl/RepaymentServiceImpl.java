@@ -1,7 +1,7 @@
 package com.cp.party_trip.service.impl;
 
 import com.cp.party_trip.service.RepaymentService;
-import com.cp.party_trip.dto.RepaymentRequest;
+import com.cp.party_trip.dto.request.RepaymentRequest;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.Repayment;

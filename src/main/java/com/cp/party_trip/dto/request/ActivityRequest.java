@@ -1,4 +1,7 @@
-package com.cp.party_trip.dto;
+package com.cp.party_trip.dto.request;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -7,11 +10,14 @@ import java.util.List;
 
 // ข้อมูลกิจกรรมจากหน้าแพลนเที่ยว (ใช้ทั้งเพิ่มและแก้ไข)
 public class ActivityRequest {
+    @Size(max = 100, message = "ชื่อรายการยาวได้ไม่เกิน 100 ตัวอักษร")
     private String title;
     private LocalDate activityDate;
     private LocalTime startTime;
     private LocalTime endTime;
+    @Size(max = 150, message = "สถานที่ยาวได้ไม่เกิน 150 ตัวอักษร")
     private String location;
+    @Size(max = 500, message = "โน้ตยาวได้ไม่เกิน 500 ตัวอักษร")
     private String notes;
     private String category;
     private Long memberId; // คนที่ทำรายการ ต้องเป็นสมาชิกในทริป
@@ -19,8 +25,10 @@ public class ActivityRequest {
     private String origin;
     private String transportMode;
     private String mealType;
+    @Size(max = 100, message = "เลขการจองยาวได้ไม่เกิน 100 ตัวอักษร")
     private String bookingRef;
     private Boolean booked;
+    @DecimalMin(value = "0", message = "ราคาต้องไม่ติดลบ")
     private BigDecimal cost;
     private String costCurrency; // null/THB = บาท
     private BigDecimal costRate;
@@ -29,8 +37,10 @@ public class ActivityRequest {
     private Integer rooms;
     private String bookingMethod;
     private Integer guestsPerRoom;
+    @Size(max = 100, message = "ช่องทางติดต่อยาวได้ไม่เกิน 100 ตัวอักษร")
     private String contact;
     private Long pollId;
+    @Size(max = 5, message = "จุดแวะได้ไม่เกิน 5 จุด")
     private List<com.cp.party_trip.model.ActivityStop> stops; // เครื่องบิน: เมืองต่อเครื่อง // เพิ่มจากผลโหวต (ใช้ตอนเพิ่มเท่านั้น)
     private List<Long> participantIds;
 

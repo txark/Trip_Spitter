@@ -1,21 +1,21 @@
-package com.cp.party_trip.dto;
+package com.cp.party_trip.dto.response;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PollResultDTO {
+public class PollResultResponse {
     private Long optionId;
     private String optionText;
     private int voteCount;
     private List<String> voters = new ArrayList<>(); // ชื่อสมาชิกที่เลือกข้อนี้
 
-    public PollResultDTO(Long optionId, String optionText, int voteCount) {
+    public PollResultResponse(Long optionId, String optionText, int voteCount) {
         this.optionId = optionId;
         this.optionText = optionText;
         this.voteCount = voteCount;
     }
 
-    public PollResultDTO(Long optionId, String optionText, List<String> voters) {
+    public PollResultResponse(Long optionId, String optionText, List<String> voters) {
         this(optionId, optionText, voters.size());
         this.voters = voters;
     }

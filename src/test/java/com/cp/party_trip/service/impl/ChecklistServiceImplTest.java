@@ -1,6 +1,6 @@
 package com.cp.party_trip.service.impl;
 
-import com.cp.party_trip.dto.ChecklistBulkRequest;
+import com.cp.party_trip.dto.request.ChecklistBulkRequest;
 import com.cp.party_trip.model.ChecklistItem;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;

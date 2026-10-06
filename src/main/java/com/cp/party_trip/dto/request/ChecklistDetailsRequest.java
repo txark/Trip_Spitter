@@ -1,11 +1,17 @@
-package com.cp.party_trip.dto;
+package com.cp.party_trip.dto.request;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
 // แก้รายละเอียดของชิ้นหนึ่ง: จำนวน/หน่วย/โน้ต (ค่าว่าง = ล้าง)
 public class ChecklistDetailsRequest {
+    @DecimalMin(value = "0", message = "จำนวนต้องไม่ติดลบ")
     private BigDecimal quantity;
+    @Size(max = 20, message = "หน่วยยาวได้ไม่เกิน 20 ตัวอักษร")
     private String unit;
+    @Size(max = 255, message = "โน้ตยาวได้ไม่เกิน 255 ตัวอักษร")
     private String notes;
     private Long memberId;
 

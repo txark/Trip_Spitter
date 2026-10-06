@@ -15,7 +15,7 @@ call("POST", f"/trips/join/{t1['inviteCode']}", tB)
 mem = {m["guestName"]: m["id"] for m in call("GET", f"/trips/{t1['id']}/members", tA)[1]}
 st, bill = call("POST", f"/expenses/add/{t1['id']}?paidByMemberId={mem[A]}&participantIds={mem[A]},{mem[B]}", tA,
                 {"title": "dinner", "totalAmount": 300, "splitType": "EQUAL", "category": "FOOD", "currency": "THB"})
-check("setup bill", st == 200, (st, bill))
+check("setup bill", st == 201, (st, bill))
 call("POST", f"/history/view?userId=0&tripId={t1['id']}", tA)
 
 st, r = call("POST", "/users/rename?username=x")

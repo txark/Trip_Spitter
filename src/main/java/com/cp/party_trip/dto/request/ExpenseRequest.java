@@ -1,4 +1,10 @@
-package com.cp.party_trip.dto;
+package com.cp.party_trip.dto.request;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -8,19 +14,28 @@ import java.util.List;
 // splitType = CUSTOM -> ใช้ยอดของแต่ละคนจาก splits ผลรวมต้องเท่ากับ totalAmount
 public class ExpenseRequest {
 
+    @NotBlank(message = "กรุณาตั้งชื่อรายการ")
+    @Size(max = 255, message = "ชื่อรายการยาวเกินไป")
     private String title;
+    @NotNull(message = "ยอดบิลต้องมากกว่า 0")
+    @DecimalMin(value = "0.01", message = "ยอดบิลต้องมากกว่า 0")
     private BigDecimal totalAmount;
+    @Size(max = 3, message = "รหัสสกุลเงินต้องเป็นตัวอักษร 3 ตัว")
     private String currency;
+    @Size(max = 10, message = "วิธีหารไม่ถูกต้อง (รองรับ EQUAL หรือ CUSTOM)")
     private String splitType;
+    @Size(max = 30, message = "หมวดหมู่ไม่ถูกต้อง")
     private String category;
     private Long activityId; // บันทึกจากรายการในแพลน (ไม่บังคับ)
     private java.time.LocalDate expenseDate; // วันที่จ่าย (ไม่ส่ง = วันนี้ / วันเดิมของบิล)
     private java.math.BigDecimal originalAmount; // เงินต่างประเทศ: ยอดตามใบเสร็จ
     private java.math.BigDecimal exchangeRate; // 1 หน่วย = กี่บาท
+    @Valid
     private List<SplitAmount> splits;
 
     public static class SplitAmount {
         private Long memberId;
+        @DecimalMin(value = "0", message = "ยอดของแต่ละคนต้องไม่ติดลบ")
         private BigDecimal amount;
 
         public Long getMemberId() {

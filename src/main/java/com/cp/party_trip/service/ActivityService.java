@@ -1,6 +1,6 @@
 package com.cp.party_trip.service;
 
-import com.cp.party_trip.dto.ActivityRequest;
+import com.cp.party_trip.dto.request.ActivityRequest;
 import com.cp.party_trip.model.Activity;
 import java.util.List;
 

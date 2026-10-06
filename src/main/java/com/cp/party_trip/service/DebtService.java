@@ -1,9 +1,9 @@
 package com.cp.party_trip.service;
 
-import com.cp.party_trip.dto.DebtTransfer;
+import com.cp.party_trip.dto.response.MemberDebtSummaryResponse;
+import com.cp.party_trip.model.DebtTransfer;
 
 import java.util.List;
-import java.util.Map;
 
 // สรุปหนี้: ใครต้องโอนให้ใคร และสรุปหนี้ของสมาชิกแต่ละคน
 // ตัวจริงอยู่ที่ service/impl/DebtServiceImpl (Controller ขึ้นกับ interface นี้ ไม่ใช่คลาสจริง)
@@ -12,5 +12,5 @@ public interface DebtService {
     List<DebtTransfer> calculateDebtSimplification(Long tripId);
 
     // สรุปหนี้ของสมาชิกคนนี้ในทริป: myDebts (ต้องจ่ายใคร), myPaidBills (บิลที่สำรองจ่าย), repayments
-    Map<String, Object> getMemberSummary(Long tripId, Long memberId);
+    MemberDebtSummaryResponse getMemberSummary(Long tripId, Long memberId);
 }

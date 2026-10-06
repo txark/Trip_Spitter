@@ -1,8 +1,8 @@
 package com.cp.party_trip.service;
 
-import com.cp.party_trip.dto.PollRequest;
-import com.cp.party_trip.dto.PollResultDTO;
-import com.cp.party_trip.dto.PollSummaryDTO;
+import com.cp.party_trip.dto.request.PollRequest;
+import com.cp.party_trip.dto.response.PollResultResponse;
+import com.cp.party_trip.dto.response.PollSummaryResponse;
 import com.cp.party_trip.model.Poll;
 import com.cp.party_trip.model.PollOption;
 import com.cp.party_trip.model.PollVote;
@@ -16,10 +16,10 @@ public interface PollService {
     // คืนค่า null เมื่อเป็นการยกเลิกโหวต
     PollVote castVote(Long pollId, Long optionId, Long memberId);
 
-    List<PollResultDTO> getPollResults(Long pollId);
+    List<PollResultResponse> getPollResults(Long pollId);
 
     // โหวตทั้งหมดในทริป (ใหม่สุดก่อน) พร้อมผลคะแนนและข้อที่สมาชิกคนนี้เลือก
-    List<PollSummaryDTO> getTripPolls(Long tripId, Long memberId);
+    List<PollSummaryResponse> getTripPolls(Long tripId, Long memberId);
 
     PollOption addOptionToPoll(Long pollId, String newOptionText, Long memberId);
 

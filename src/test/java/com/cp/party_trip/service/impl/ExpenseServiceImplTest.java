@@ -1,6 +1,6 @@
 package com.cp.party_trip.service.impl;
 
-import com.cp.party_trip.dto.ExpenseRequest;
+import com.cp.party_trip.dto.request.ExpenseRequest;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.Trip;
@@ -40,7 +40,8 @@ class ExpenseServiceImplTest {
         tripMemberRepo = mock(TripMemberRepo.class);
         activityRepo = mock(ActivityRepo.class);
         service = new ExpenseServiceImpl(expenseRepo, tripRepo, tripMemberRepo, activityRepo,
-                mock(com.cp.party_trip.repository.ExpenseSplitRepo.class));
+                mock(com.cp.party_trip.repository.ExpenseSplitRepo.class),
+                new com.cp.party_trip.mapper.ExpenseMapper(new com.cp.party_trip.mapper.MemberMapper()));
 
         trip.setId(1L);
         otherTrip.setId(2L);

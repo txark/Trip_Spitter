@@ -1,9 +1,9 @@
 package com.cp.party_trip.service.impl;
 
 import com.cp.party_trip.service.PollService;
-import com.cp.party_trip.dto.PollRequest;
-import com.cp.party_trip.dto.PollResultDTO;
-import com.cp.party_trip.dto.PollSummaryDTO;
+import com.cp.party_trip.dto.request.PollRequest;
+import com.cp.party_trip.dto.response.PollResultResponse;
+import com.cp.party_trip.dto.response.PollSummaryResponse;
 import com.cp.party_trip.model.*;
 import com.cp.party_trip.repository.*;
 import org.springframework.http.HttpStatus;
@@ -77,7 +77,7 @@ public class PollServiceImpl implements PollService {
     }
 
     @Override
-    public List<PollResultDTO> getPollResults(Long pollId) {
+    public List<PollResultResponse> getPollResults(Long pollId) {
         Poll poll = pollRepo.findById(pollId)
                 .orElseThrow(() -> badRequest("ไม่พบหัวข้อโหวตนี้"));
         return buildResults(poll, pollVoteRepo.findByPollId(pollId), memberNames(poll.getTripId()));
@@ -86,9 +86,9 @@ public class PollServiceImpl implements PollService {
     // โหวตทั้งหมดในทริป (ใหม่สุดก่อน) พร้อมผลคะแนนและข้อที่สมาชิกคนนี้เลือก
     @Override
     @Transactional
-    public List<PollSummaryDTO> getTripPolls(Long tripId, Long memberId) {
+    public List<PollSummaryResponse> getTripPolls(Long tripId, Long memberId) {
         Map<Long, String> names = memberNames(tripId);
-        List<PollSummaryDTO> result = new ArrayList<>();
+        List<PollSummaryResponse> result = new ArrayList<>();
 
         LocalDateTime now = LocalDateTime.now(clock);
 
@@ -104,7 +104,7 @@ public class PollServiceImpl implements PollService {
                             .findFirst()
                             .orElse(null);
 
-            result.add(new PollSummaryDTO(
+            result.add(new PollSummaryResponse(
                     poll.getId(),
                     poll.getQuestion(),
                     poll.getStatus(),
@@ -218,7 +218,7 @@ public class PollServiceImpl implements PollService {
         pollRepo.delete(poll);
     }
 
-    private List<PollResultDTO> buildResults(Poll poll, List<PollVote> votes, Map<Long, String> names) {
+    private List<PollResultResponse> buildResults(Poll poll, List<PollVote> votes, Map<Long, String> names) {
         Map<Long, List<String>> votersByOption = votes.stream()
                 .collect(Collectors.groupingBy(
                         PollVote::getOptionId,
@@ -226,7 +226,7 @@ public class PollServiceImpl implements PollService {
                                 Collectors.toList())));
 
         return pollOptionRepo.findByPollIdOrderByIdAsc(poll.getId()).stream()
-                .map(o -> new PollResultDTO(o.getId(), o.getOptionText(),
+                .map(o -> new PollResultResponse(o.getId(), o.getOptionText(),
                         votersByOption.getOrDefault(o.getId(), List.of())))
                 .collect(Collectors.toList());
     }
