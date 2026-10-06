@@ -1,13 +1,12 @@
 package com.cp.party_trip.controller;
 
-import com.cp.party_trip.dto.ChecklistBulkRequest;
-import com.cp.party_trip.dto.ChecklistDetailsRequest;
+import com.cp.party_trip.dto.request.ChecklistBulkRequest;
+import com.cp.party_trip.dto.request.ChecklistDetailsRequest;
 import com.cp.party_trip.model.ChecklistItem;
 import com.cp.party_trip.service.ChecklistService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class ChecklistController {
     }
 
     @GetMapping("/{tripId}")
-    public ResponseEntity<List<ChecklistItemResponse>> getChecklist(
+    public ResponseEntity<List<ChecklistItem>> getChecklist(
             @PathVariable Long tripId,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search) {
@@ -29,7 +28,7 @@ public class ChecklistController {
     }
 
     @PostMapping
-    public ResponseEntity<ChecklistItemResponse> addItem(
+    public ResponseEntity<?> addItem(
             @RequestParam Long tripId,
             @RequestParam(required = false) String category,
             @RequestParam String itemName,
@@ -79,7 +78,7 @@ public class ChecklistController {
     }
 
     @PatchMapping("/{itemId}/notes")
-    public ResponseEntity<ChecklistItemResponse> updateNotes(
+    public ResponseEntity<?> updateNotes(
             @PathVariable Long itemId,
             @RequestParam(required = false) String notes,
             @RequestParam(required = false) Long memberId) {
@@ -91,7 +90,7 @@ public class ChecklistController {
     }
 
     @PatchMapping("/{itemId}/toggle")
-    public ResponseEntity<ChecklistItemResponse> toggleCheck(
+    public ResponseEntity<?> toggleCheck(
             @PathVariable Long itemId,
             @RequestParam(required = false) Long memberId) {
         try {
@@ -104,7 +103,7 @@ public class ChecklistController {
     // เปลี่ยนคนรับผิดชอบ ไม่ส่ง memberId = ยกเลิกคนรับผิดชอบ (มอบให้เพื่อนได้
     // แต่ต้องอยู่ทริปเดียวกัน)
     @PatchMapping("/{itemId}/assign")
-    public ResponseEntity<ChecklistItemResponse> assignItem(
+    public ResponseEntity<?> assignItem(
             @PathVariable Long itemId,
             @RequestParam(required = false) Long memberId) {
         try {
@@ -126,6 +125,6 @@ public class ChecklistController {
 
     // ส่งข้อความภาษาไทยกลับไปให้หน้าเว็บแสดงได้ตรง ๆ
     private ResponseEntity<String> error(ResponseStatusException e) {
-        return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        return ResponseEntity.status(e.getStatusCode()).body(e.getReason().toString());
     }
 }
