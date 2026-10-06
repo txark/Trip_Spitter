@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 public class UserService {
     static final int MAX_PIN_ATTEMPTS = 5;
     static final Duration PIN_LOCK = Duration.ofMinutes(10);
+    public static final Duration RECOVERY_TTL = Duration.ofMinutes(30);
     private static final Pattern PIN = Pattern.compile("\\d{4,6}");
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -87,16 +88,26 @@ public class UserService {
             user.setAuthToken(newToken());
             return new Login(userRepo.save(user), user.getAuthToken());
         }
-        // เครื่องอื่น: ต้องใช้ PIN
-        if (user.getPinHash() == null) {
+        // เครื่องอื่น: ต้องใช้ PIN หรือรหัสกู้คืนจากคนสร้างทริป
+        boolean recovery = user.getRecoveryHash() != null && user.getRecoveryExpiresAt() != null
+                && java.time.LocalDateTime.now().isBefore(user.getRecoveryExpiresAt());
+        if (user.getPinHash() == null && !recovery) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "ชื่อนี้มีคนใช้แล้ว ใช้ชื่ออื่น หรือให้เจ้าของชื่อตั้ง PIN ก่อนแล้วเข้าด้วย PIN");
+                    "ชื่อนี้มีคนใช้แล้ว ใช้ชื่ออื่น หรือถ้าเป็นชื่อของคุณที่เปลี่ยนเครื่องมา ขอรหัสกู้คืนจากคนสร้างทริป");
         }
         if (pin == null || pin.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "PIN_REQUIRED");
         }
         checkNotLocked(name);
-        if (!matchesPin(pin.trim(), user.getPinHash())) {
+        if (recovery && matchesPin(pin.trim(), user.getRecoveryHash())) {
+            // เข้าด้วยรหัสกู้คืน: ออก token ใหม่ (เครื่องเดิมที่หาย/ล้างไปแล้วถูกตัดออก) แล้วใช้รหัสนี้ซ้ำไม่ได้
+            attempts.remove(name);
+            user.setRecoveryHash(null);
+            user.setRecoveryExpiresAt(null);
+            user.setAuthToken(newToken());
+            return new Login(userRepo.save(user), user.getAuthToken());
+        }
+        if (user.getPinHash() == null || !matchesPin(pin.trim(), user.getPinHash())) {
             recordFailure(name);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "PIN ไม่ถูกต้อง");
         }
@@ -138,6 +149,18 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ชื่อเล่นต้องมี 1–40 ตัวอักษร");
         }
         return name;
+    }
+
+    // คนสร้างทริปออกรหัสกู้คืน 6 หลักให้เพื่อน (ใช้แทน PIN ได้ 1 ครั้ง ภายใน 30 นาที)
+    public String issueRecoveryCode(String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบบัญชีของสมาชิกคนนี้"));
+        String code = String.format("%06d", RANDOM.nextInt(1_000_000));
+        user.setRecoveryHash(hashPin(code));
+        user.setRecoveryExpiresAt(java.time.LocalDateTime.now().plus(RECOVERY_TTL));
+        userRepo.save(user);
+        attempts.remove(user.getUsername()); // เริ่มนับครั้งที่ใส่ผิดใหม่
+        return code;
     }
 
     // ตั้ง/เปลี่ยน PIN ของตัวเอง (null/ว่าง = ลบ PIN)

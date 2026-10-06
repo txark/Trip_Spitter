@@ -2,8 +2,9 @@
 // สไตล์ที่คู่กัน (.avatar, .toast, .skeleton, .stat-*) อยู่ใน css/all.css
 
 // ---------- ที่อยู่ backend (ตั้งที่เดียว ทุกหน้าใช้ API_BASE) ----------
-// ลำดับ: localStorage "apiBase" -> <meta name="api-base"> -> host เดียวกับหน้าเว็บ พอร์ต 8090
-// (เปิดผ่าน Live Server จากมือถือด้วย IP ของคอม เช่น 192.168.1.5:5500 ก็จะเรียก 192.168.1.5:8090 ให้เอง)
+// ลำดับ: localStorage "apiBase" -> <meta name="api-base"> -> เดาจากที่อยู่หน้าเว็บ
+// - เปิดจาก Spring Boot เอง (เช่น http://192.168.1.5:8090/home.html) = เรียก /api ของเซิร์ฟเวอร์เดียวกัน
+// - เปิดผ่าน Live Server ตอนพัฒนา (พอร์ต 5500–5599) = host เดียวกัน พอร์ต 8090
 const API_BASE = (() => {
   const clean = (url) => String(url).trim().replace(/\/+$/, "");
   try {
@@ -13,7 +14,9 @@ const API_BASE = (() => {
   const meta = document.querySelector('meta[name="api-base"]');
   if (meta?.content) return clean(meta.content);
   if (location.protocol === "file:" || !location.hostname) return "http://localhost:8090/api";
-  return `${location.protocol}//${location.hostname}:8090/api`;
+  const port = Number(location.port);
+  if (port >= 5500 && port <= 5599) return `${location.protocol}//${location.hostname}:8090/api`;
+  return `${location.origin}/api`;
 })();
 
 // ---------- ตัวตนผู้ใช้: token ต่อเครื่อง (แนบ header X-Auth-Token ให้ทุกคำสั่งที่ไป backend) ----------
@@ -94,6 +97,9 @@ function saveRenamed(oldName, user, token) {
     const res = await nativeFetch(`${API_BASE}/users/me`, { headers: { [AUTH_HEADER]: token } });
     if (!res.ok) return;
     const me = await res.json();
+    try {
+      localStorage.setItem("pinSet", me.pinSet ? "1" : "0"); // ตั้ง/ลบ PIN จากเครื่องอื่น
+    } catch {}
     if (me.username && me.username !== name) {
       saveRenamed(name, me, token);
       location.reload();
@@ -667,4 +673,35 @@ async function openTripSummary(tripId) {
   } catch (error) {
     pre.textContent = error.message || "สรุปไม่สำเร็จ ลองใหม่อีกครั้ง";
   }
+}
+
+// ---------- เตือนตั้ง PIN: ไม่มี PIN แล้วเปลี่ยนเครื่อง/ล้างเบราว์เซอร์ = เข้าชื่อนี้ไม่ได้อีก ----------
+// แสดงบนสุดของ container (กด "ไว้ทีหลัง" = ซ่อน 3 วัน)
+function showPinNudge(container) {
+  let pinSet = "1";
+  let snoozed = 0;
+  try {
+    pinSet = localStorage.getItem("pinSet");
+    snoozed = Number(localStorage.getItem("pinNudgeUntil") || 0);
+  } catch {}
+  if (!container || pinSet !== "0" || Date.now() < snoozed || document.getElementById("pin-nudge")) return;
+  const box = document.createElement("div");
+  box.id = "pin-nudge";
+  box.className = "pin-nudge";
+  box.setAttribute("role", "status");
+  box.innerHTML = `
+    <i class="fa-solid fa-shield-halved"></i>
+    <div class="pin-nudge-text">
+      <strong>ตั้ง PIN กันลืม</strong>
+      <span>ถ้าเปลี่ยนมือถือหรือล้างเบราว์เซอร์ จะใช้ PIN เข้าชื่อนี้และทริปเดิมได้</span>
+    </div>
+    <a class="pin-nudge-btn" href="home.html?setPin=1">ตั้ง PIN</a>
+    <button type="button" class="pin-nudge-later" aria-label="ไว้ทีหลัง">ไว้ทีหลัง</button>`;
+  box.querySelector(".pin-nudge-later").addEventListener("click", () => {
+    try {
+      localStorage.setItem("pinNudgeUntil", String(Date.now() + 3 * 86400000));
+    } catch {}
+    box.remove();
+  });
+  container.prepend(box);
 }
