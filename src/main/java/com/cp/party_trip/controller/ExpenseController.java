@@ -1,17 +1,23 @@
 package com.cp.party_trip.controller;
 
-import com.cp.party_trip.dto.ExpenseRequest;
+import com.cp.party_trip.dto.request.ExpenseRequest;
+import com.cp.party_trip.dto.response.ExpenseResponse;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.service.ExpenseService;
 import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.ExpenseSplitRepo;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -28,9 +34,22 @@ public class ExpenseController {
         this.expenseSplitRepo = expenseSplitRepo;
     }
 
+    private void guardSelf(Object trip, Long memberId) {
+        if (memberId == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Member access is required");
+        }
+    }
+
+    private Object tripOfExpense(Long expenseId) {
+        if (!expenseRepo.existsById(expenseId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found");
+        }
+        return expenseId;
+    }
+
     // คนบันทึก = เจ้าของ token (คนจ่ายเลือกเป็นเพื่อนได้)
     @PostMapping("/add/{tripId}")
-    public ResponseEntity<ExpenseResponse> addExpense(
+    public ResponseEntity<Expense> addExpense(
             @PathVariable Long tripId,
             @RequestParam Long paidByMemberId,
             @RequestBody ExpenseRequest expense,
@@ -49,16 +68,16 @@ public class ExpenseController {
             @RequestParam(required = false) List<Long> participantIds,
             @RequestParam(required = false) Long paidByMemberId,
             @RequestParam(required = false) Integer revision) {
-        guard.self(guard.tripOfExpense(expenseId), memberId);
-        return ResponseEntity.ok(expenseService.updateExpense(expenseId, memberId, paidByMemberId, expense,
-                participantIds, revision));
+        guardSelf(tripOfExpense(expenseId), memberId);
+
+        return ResponseEntity.ok(expenseService.updateExpense(expenseId, expense, memberId,
+                participantIds, paidByMemberId, revision));
     }
 
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam Long memberId,
-            @RequestParam(required = false) Integer revision) {
-        guard.self(guard.tripOfExpense(expenseId), memberId);
-        expenseService.deleteExpense(expenseId, memberId, revision);
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam Long memberId) {
+        guardSelf(tripOfExpense(expenseId), memberId);
+        expenseService.deleteExpense(expenseId, memberId);
         return ResponseEntity.noContent().build();
     }
 
