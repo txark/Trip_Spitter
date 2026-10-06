@@ -1,7 +1,7 @@
 package com.cp.party_trip.service.impl;
 
-import com.cp.party_trip.dto.PollRequest;
-import com.cp.party_trip.dto.PollSummaryDTO;
+import com.cp.party_trip.dto.request.PollRequest;
+import com.cp.party_trip.dto.response.PollSummaryResponse;
 import com.cp.party_trip.model.*;
 import com.cp.party_trip.repository.PollOptionRepo;
 import com.cp.party_trip.repository.PollRepo;
@@ -186,7 +186,7 @@ class PollServiceImplTest {
         when(pollOptionRepo.findByPollIdOrderByIdAsc(5L)).thenReturn(options);
         when(pollVoteRepo.findByPollId(5L)).thenReturn(List.of(vote(1L, 10L), vote(1L, 11L)));
 
-        PollSummaryDTO summary = service.getTripPolls(1L, 11L).get(0);
+        PollSummaryResponse summary = service.getTripPolls(1L, 11L).get(0);
 
         assertEquals(2, summary.getTotalVotes());
         assertEquals(1L, summary.getMyOptionId());
@@ -232,7 +232,7 @@ class PollServiceImplTest {
         expired.setClosesAt(NOW.minusSeconds(1));
         when(pollRepo.findByTripIdOrderByIdDesc(1L)).thenReturn(List.of(open, expired));
 
-        List<PollSummaryDTO> result = service.getTripPolls(1L, 11L);
+        List<PollSummaryResponse> result = service.getTripPolls(1L, 11L);
 
         assertEquals(300L, result.get(0).getRemainingSeconds());
         assertEquals("ACTIVE", result.get(0).getStatus());

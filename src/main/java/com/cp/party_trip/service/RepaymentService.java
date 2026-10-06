@@ -1,6 +1,6 @@
 package com.cp.party_trip.service;
 
-import com.cp.party_trip.dto.RepaymentRequest;
+import com.cp.party_trip.dto.request.RepaymentRequest;
 import com.cp.party_trip.model.Repayment;
 import java.util.List;
 

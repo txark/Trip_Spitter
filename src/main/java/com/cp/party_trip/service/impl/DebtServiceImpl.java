@@ -1,13 +1,13 @@
 package com.cp.party_trip.service.impl;
 
+import com.cp.party_trip.dto.response.MemberDebtSummaryResponse;
 import com.cp.party_trip.service.DebtService;
 import com.cp.party_trip.service.RepaymentService;
-import com.cp.party_trip.dto.DebtTransfer;
+import com.cp.party_trip.model.DebtTransfer;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.TripMember;
 import com.cp.party_trip.model.Repayment;
-import com.cp.party_trip.model.RepaymentItem;
 import com.cp.party_trip.repository.ExpenseRepo;
 import com.cp.party_trip.repository.ExpenseSplitRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
@@ -108,149 +108,91 @@ public class DebtServiceImpl implements DebtService {
     // สรุปหนี้ของสมาชิกคนนี้ในทริป: myDebts (ต้องจ่ายใคร), myPaidBills (บิลที่สำรองจ่าย), repayments
     @Override
     @Transactional(readOnly = true)
-    public Map<String, Object> getMemberSummary(Long tripId, Long memberId) {
-        List<Expense> expenses = expenseRepo.findByTripId(tripId);
-        Map<String, Object> response = new HashMap<>();
+    public MemberDebtSummaryResponse getMemberSummary(Long tripId, Long memberId) {
+        // เจ้าหนี้ -> รายการที่ค้าง (คงลำดับตามบิลที่เจอก่อน)
+        Map<Long, String> creditorNames = new LinkedHashMap<>();
+        Map<Long, List<MemberDebtSummaryResponse.DebtItem>> debtItems = new LinkedHashMap<>();
+        List<MemberDebtSummaryResponse.PaidBill> myPaidBills = new ArrayList<>();
 
-        List<Map<String, Object>> myDebts = new ArrayList<>();
-        List<Map<String, Object>> myPaidBills = new ArrayList<>();
-
-        response.put("repayments", repaymentsOf(tripId, memberId));
-        if (expenses == null || expenses.isEmpty()) {
-            response.put("myDebts", myDebts);
-            response.put("myPaidBills", myPaidBills);
-            return response;
-        }
-
-        // memberId ที่ส่งมาคือ TripMember ID ของผู้ใช้ในทริปนี้
-        Long targetTripMemberId = memberId;
-
-        for (Expense expense : expenses) {
+        for (Expense expense : expenseRepo.findByTripId(tripId)) {
             TripMember payer = expense.getUser();
-            if (payer == null || payer.getId() == null)
+            if (payer == null || payer.getId() == null) {
                 continue;
-
-            boolean isIPaid = payer.getId().equals(targetTripMemberId);
-
+            }
             // ดึง splits จาก repo ตรง (ไม่พึ่ง lazy collection)
             List<ExpenseSplit> splits = expenseSplitRepo.findByExpenseId(expense.getId());
-            if (splits == null)
+            if (splits == null) {
                 continue;
+            }
+            String title = expense.getTitle() != null ? expense.getTitle() : "ไม่มีชื่อรายการ";
 
-            if (isIPaid) {
-                // --- หมวด 2: บิลที่เราสำรองจ่าย ---
-                Map<String, Object> paidBill = new HashMap<>();
-                paidBill.put("expenseId", expense.getId());
-                paidBill.put("title", expense.getTitle() != null ? expense.getTitle() : "ไม่มีชื่อรายการ");
-                paidBill.put("totalAmount",
-                        expense.getTotalAmount() != null ? expense.getTotalAmount() : BigDecimal.ZERO);
-
-                List<Map<String, Object>> splitsInfo = new ArrayList<>();
+            if (payer.getId().equals(memberId)) {
+                // บิลที่เราสำรองจ่าย: ส่วนของเพื่อนแต่ละคน
+                List<MemberDebtSummaryResponse.PaidSplit> others = new ArrayList<>();
                 for (ExpenseSplit split : splits) {
-                    if (split.getTripMember() != null && split.getTripMember().getId() != null
-                            && !split.getTripMember().getId().equals(targetTripMemberId)) {
-                        Map<String, Object> sInfo = new HashMap<>();
-                        sInfo.put("expenseId", expense.getId());
-                        sInfo.put("memberId", split.getTripMember().getId());
-                        sInfo.put("memberName",
-                                split.getTripMember().getGuestName() != null ? split.getTripMember().getGuestName()
-                                        : "สมาชิก #" + split.getTripMember().getId());
-                        sInfo.put("amountOwed",
-                                split.getAmountOwed() != null ? split.getAmountOwed() : BigDecimal.ZERO);
-
-                        boolean paidStatus = false;
-                        try {
-                            paidStatus = split.isPaid();
-                        } catch (Exception e) {
-                            paidStatus = false;
-                        }
-                        sInfo.put("isPaid", paidStatus);
-                        sInfo.put("paidAmount", split.paidSoFar());
-
-                        splitsInfo.add(sInfo);
+                    TripMember m = split.getTripMember();
+                    if (m == null || m.getId() == null || m.getId().equals(memberId)) {
+                        continue;
                     }
+                    others.add(new MemberDebtSummaryResponse.PaidSplit(expense.getId(), m.getId(), nameOf(m),
+                            orZero(split.getAmountOwed()), split.isPaid(), split.paidSoFar()));
                 }
-                paidBill.put("splits", splitsInfo);
-                myPaidBills.add(paidBill);
-            } else {
-                // --- หมวด 1: บิลที่คนอื่นจ่าย (เราต้องร่วมหาร) ---
-                for (ExpenseSplit split : splits) {
-                    if (split.getTripMember() != null && split.getTripMember().getId() != null
-                            && split.getTripMember().getId().equals(targetTripMemberId)) {
-                        // ยอดที่ยังค้าง (หักส่วนที่จ่ายมาบางส่วนแล้ว)
-                        BigDecimal remaining = split.getAmountOwed() == null ? BigDecimal.ZERO : split.remainingAmount();
-                        if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+                myPaidBills.add(new MemberDebtSummaryResponse.PaidBill(expense.getId(), title,
+                        orZero(expense.getTotalAmount()), others));
+                continue;
+            }
 
-                            String creditorName = payer.getGuestName() != null ? payer.getGuestName()
-                                    : "สมาชิก #" + payer.getId();
-
-                            Map<String, Object> targetCreditor = null;
-                            for (Map<String, Object> debtGroup : myDebts) {
-                                if (payer.getId().equals(debtGroup.get("creditorId"))) {
-                                    targetCreditor = debtGroup;
-                                    break;
-                                }
-                            }
-
-                            if (targetCreditor == null) {
-                                targetCreditor = new HashMap<>();
-                                targetCreditor.put("creditorId", payer.getId());
-                                targetCreditor.put("creditorName", creditorName);
-                                targetCreditor.put("totalAmount", BigDecimal.ZERO);
-                                targetCreditor.put("items", new ArrayList<Map<String, Object>>());
-                                myDebts.add(targetCreditor);
-                            }
-
-                            BigDecimal currentTotal = (BigDecimal) targetCreditor.get("totalAmount");
-                            targetCreditor.put("totalAmount", currentTotal.add(remaining));
-
-                            @SuppressWarnings("unchecked")
-                            List<Map<String, Object>> items = (List<Map<String, Object>>) targetCreditor.get("items");
-                            Map<String, Object> item = new HashMap<>();
-                            item.put("title", expense.getTitle() != null ? expense.getTitle() : "ไม่มีชื่อรายการ");
-                            item.put("amount", remaining);
-                            item.put("owed", split.getAmountOwed());
-                            item.put("paid", split.paidSoFar());
-                            items.add(item);
-                        }
-                    }
+            // บิลที่คนอื่นจ่าย: ส่วนของเราที่ยังค้าง (หักที่จ่ายมาบางส่วนแล้ว)
+            for (ExpenseSplit split : splits) {
+                TripMember m = split.getTripMember();
+                if (m == null || !memberId.equals(m.getId())) {
+                    continue;
+                }
+                BigDecimal remaining = split.getAmountOwed() == null ? BigDecimal.ZERO : split.remainingAmount();
+                if (remaining.signum() > 0) {
+                    creditorNames.putIfAbsent(payer.getId(), nameOf(payer));
+                    debtItems.computeIfAbsent(payer.getId(), k -> new ArrayList<>())
+                            .add(new MemberDebtSummaryResponse.DebtItem(title, remaining, split.getAmountOwed(),
+                                    split.paidSoFar()));
                 }
             }
         }
 
-        response.put("myDebts", myDebts);
-        response.put("myPaidBills", myPaidBills);
-        return response;
+        List<MemberDebtSummaryResponse.DebtGroup> myDebts = new ArrayList<>();
+        debtItems.forEach((creditorId, items) -> myDebts.add(new MemberDebtSummaryResponse.DebtGroup(creditorId,
+                creditorNames.get(creditorId),
+                items.stream().map(MemberDebtSummaryResponse.DebtItem::amount).reduce(BigDecimal.ZERO,
+                        BigDecimal::add),
+                items)));
+        return new MemberDebtSummaryResponse(myDebts, myPaidBills, repaymentsOf(tripId, memberId));
     }
 
     // รับเงินเป็นยอดรวมที่เกี่ยวกับเรา (เราได้รับ หรือเราโอนให้คนอื่น)
-    private List<Map<String, Object>> repaymentsOf(Long tripId, Long memberId) {
+    private List<MemberDebtSummaryResponse.RepaymentView> repaymentsOf(Long tripId, Long memberId) {
         Map<Long, String> names = new HashMap<>();
         tripMemberRepo.findByTripId(tripId).forEach(m -> names.put(m.getId(), m.getGuestName()));
-        List<Map<String, Object>> list = new ArrayList<>();
+        List<MemberDebtSummaryResponse.RepaymentView> list = new ArrayList<>();
         for (Repayment r : repaymentService.tripRepayments(tripId)) {
             if (!memberId.equals(r.getFromMemberId()) && !memberId.equals(r.getToMemberId())) {
                 continue;
             }
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", r.getId());
-            map.put("fromMemberId", r.getFromMemberId());
-            map.put("fromName", names.getOrDefault(r.getFromMemberId(), "สมาชิก #" + r.getFromMemberId()));
-            map.put("toMemberId", r.getToMemberId());
-            map.put("toName", names.getOrDefault(r.getToMemberId(), "สมาชิก #" + r.getToMemberId()));
-            map.put("amount", r.getAmount());
-            map.put("createdAt", r.getCreatedAt());
-            List<Map<String, Object>> items = new ArrayList<>();
-            for (RepaymentItem item : r.getItems()) {
-                Map<String, Object> i = new HashMap<>();
-                i.put("expenseId", item.getExpenseId());
-                i.put("title", item.getTitle());
-                i.put("amount", item.getAmount());
-                items.add(i);
-            }
-            map.put("items", items);
-            list.add(map);
+            List<MemberDebtSummaryResponse.RepaymentView.Item> items = r.getItems().stream()
+                    .map(i -> new MemberDebtSummaryResponse.RepaymentView.Item(i.getExpenseId(), i.getTitle(),
+                            i.getAmount()))
+                    .toList();
+            list.add(new MemberDebtSummaryResponse.RepaymentView(r.getId(), r.getFromMemberId(),
+                    names.getOrDefault(r.getFromMemberId(), "สมาชิก #" + r.getFromMemberId()), r.getToMemberId(),
+                    names.getOrDefault(r.getToMemberId(), "สมาชิก #" + r.getToMemberId()), r.getAmount(),
+                    r.getCreatedAt(), items));
         }
         return list;
+    }
+
+    private static String nameOf(TripMember m) {
+        return m.getGuestName() != null ? m.getGuestName() : "สมาชิก #" + m.getId();
+    }
+
+    private static BigDecimal orZero(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
     }
 }

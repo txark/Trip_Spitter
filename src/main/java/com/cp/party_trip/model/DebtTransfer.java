@@ -1,7 +1,6 @@
-package com.cp.party_trip.dto;
+package com.cp.party_trip.model;
 
 import java.math.BigDecimal;
-import com.cp.party_trip.model.TripMember;
 
 public class DebtTransfer {
     private BigDecimal amount;

@@ -1,6 +1,6 @@
 package com.cp.party_trip.service.impl;
 
-import com.cp.party_trip.dto.ActivityRequest;
+import com.cp.party_trip.dto.request.ActivityRequest;
 import com.cp.party_trip.model.Activity;
 import com.cp.party_trip.model.Trip;
 import com.cp.party_trip.model.TripMember;

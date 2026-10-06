@@ -1,8 +1,10 @@
 package com.cp.party_trip.service.impl;
 
+import com.cp.party_trip.dto.response.ExpenseViewResponse;
+import com.cp.party_trip.mapper.ExpenseMapper;
 import com.cp.party_trip.service.ExpenseService;
 import com.cp.party_trip.common.Money;
-import com.cp.party_trip.dto.ExpenseRequest;
+import com.cp.party_trip.dto.request.ExpenseRequest;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
 import com.cp.party_trip.model.Trip;
@@ -20,11 +22,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -35,14 +35,17 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final TripMemberRepo tripMemberRepo;
     private final ActivityRepo activityRepo;
     private final ExpenseSplitRepo expenseSplitRepo;
+    private final ExpenseMapper expenseMapper;
 
     public ExpenseServiceImpl(ExpenseRepo expenseRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo,
-            ActivityRepo activityRepo, ExpenseSplitRepo expenseSplitRepo) {
+            ActivityRepo activityRepo, ExpenseSplitRepo expenseSplitRepo,
+            ExpenseMapper expenseMapper) {
         this.expenseRepo = expenseRepo;
         this.tripRepo = tripRepo;
         this.tripMemberRepo = tripMemberRepo;
         this.activityRepo = activityRepo;
         this.expenseSplitRepo = expenseSplitRepo;
+        this.expenseMapper = expenseMapper;
     }
 
     @Override
@@ -308,68 +311,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     // บิลทั้งทริป + การแบ่งเงินของแต่ละบิล ในรูปที่หน้าเว็บใช้
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getTripExpenseViews(Long tripId) {
-        List<Expense> expenses = expenseRepo.findByTripId(tripId);
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        if (expenses != null) {
-            for (Expense exp : expenses) {
-                Map<String, Object> expMap = new HashMap<>();
-                expMap.put("id", exp.getId());
-                expMap.put("title", exp.getTitle());
-                expMap.put("totalAmount", exp.getTotalAmount());
-                expMap.put("category", exp.getCategory());
-                expMap.put("splitType", exp.getSplitType());
-                expMap.put("expenseDate", exp.getExpenseDate());
-                expMap.put("activityId", exp.getActivityId());
-                expMap.put("recordedById", exp.getRecordedById());
-                expMap.put("revision", exp.getRevision());
-                expMap.put("currency", exp.getCurrency());
-                expMap.put("originalAmount", exp.getOriginalAmount());
-                expMap.put("exchangeRate", exp.getExchangeRate());
-
-                if (exp.getUser() != null) {
-                    Map<String, Object> userMap = new HashMap<>();
-                    userMap.put("id", exp.getUser().getId());
-                    userMap.put("guestName", exp.getUser().getGuestName());
-                    expMap.put("user", userMap);
-                }
-
-                List<ExpenseSplit> splits = expenseSplitRepo.findByExpenseId(exp.getId());
-                List<Map<String, Object>> splitsList = new ArrayList<>();
-
-                if (splits != null) {
-                    for (ExpenseSplit split : splits) {
-                        Map<String, Object> splitMap = new HashMap<>();
-                        splitMap.put("id", split.getId());
-                        splitMap.put("amountOwed", split.getAmountOwed());
-
-                        boolean isPaidStatus = false;
-                        try {
-                            isPaidStatus = split.isPaid();
-                        } catch (Exception e) {
-                            isPaidStatus = false;
-                        }
-                        splitMap.put("isPaid", isPaidStatus);
-                        splitMap.put("paidAmount", split.paidSoFar());
-
-                        if (split.getTripMember() != null) {
-                            Map<String, Object> tmMap = new HashMap<>();
-                            tmMap.put("id", split.getTripMember().getId());
-                            tmMap.put("guestName", split.getTripMember().getGuestName());
-                            splitMap.put("tripMember", tmMap);
-                        }
-                        splitsList.add(splitMap);
-                    }
-                }
-
-                expMap.put("expenseSplits", splitsList);
-                expMap.put("splits", splitsList);
-
-                result.add(expMap);
-            }
-        }
-        return result;
+    public List<ExpenseViewResponse> getTripExpenseViews(Long tripId) {
+        return expenseRepo.findByTripId(tripId).stream()
+                .map(exp -> expenseMapper.toView(exp, expenseSplitRepo.findByExpenseId(exp.getId())))
+                .toList();
     }
 
     // คนจ่ายบิล (หรือคนบันทึกแทน) ยืนยันว่าได้รับเงินส่วนของ memberId ครบแล้ว
