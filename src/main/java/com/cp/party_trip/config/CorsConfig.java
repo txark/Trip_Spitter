@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -30,6 +31,12 @@ public class CorsConfig {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(authInterceptor).addPathPatterns("/api/**");
+            }
+
+            // หน้าเว็บอยู่ใน resources/static (Spring Boot เสิร์ฟเอง): เปิด http://<เครื่อง>:8090/ = หน้าแรก
+            @Override
+            public void addViewControllers(ViewControllerRegistry registry) {
+                registry.addRedirectViewController("/", "/home.html");
             }
         };
     }

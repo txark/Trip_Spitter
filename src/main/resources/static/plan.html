@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trip Plan - Party & Trip Expense Splitter Pro</title>
 
-    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <link rel="stylesheet" href="css/all.css" />
     <!-- Sidebar สำหรับจอคอม (≥1024px) -->
-    <script defer src="/src/main/resources/js/sidebar.js"></script>
+    <script defer src="js/sidebar.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,7 +19,7 @@
       crossorigin="anonymous"
     ></script>
     <!-- ตัวช่วย UI ร่วม: esc, avatar, emptyBox, showToast -->
-    <script src="/src/main/resources/js/ui.js"></script>
+    <script src="js/ui.js"></script>
     <style>
       /* ขนาดตัวอักษรของหน้านี้ (เล็กสุด 12px ให้อ่านสบายตา) */
       :root {
@@ -2800,7 +2800,8 @@
               <div class="pill-grid" id="meal-grid" role="radiogroup" aria-label="มื้อ"></div>
             </div>
 
-            <div class="input-group" id="group-title">
+            <!-- เดินทาง: ไม่มีช่องชื่อ ตั้งจากวิธีเดินทาง + เส้นทางให้เอง (travelTitle) -->
+            <div class="input-group" id="group-title" data-cats="FOOD STAY SIGHTSEEING ACTIVITY OTHER">
               <label for="title-input"
                 ><span class="label-text" id="title-label">ชื่อกิจกรรม</span>
                 <span id="title-hint"></span
@@ -3235,9 +3236,6 @@
       // ฟอร์มของแต่ละประเภท: ข้อความ/ตัวอย่าง และช่องที่ต้องใช้ (ช่องที่มี data-cats จะโชว์เฉพาะประเภทนั้น)
       const FORM_TEXT = {
         TRAVEL: {
-          title: "ชื่อรายการ",
-          titleHint: "ไม่ใส่ = ตั้งให้อัตโนมัติ",
-          titlePh: "เช่น รถตู้ไปเขาใหญ่",
           date: "วันออกเดินทาง",
           time: "เวลาออก – ถึง",
           cost: "ค่าเดินทางต่อคน",
@@ -4858,7 +4856,7 @@
           renderCheckoutOptions();
         }
 
-        $("title-label").textContent = text.title;
+        $("title-label").textContent = text.title || "";
         $("title-hint").textContent = text.titleHint || "";
         $("date-label").textContent = text.date || "วัน";
         $("time-label").textContent = text.time || "เวลา";
@@ -4876,8 +4874,7 @@
           cat === "TRAVEL" ? "เลือกคนที่เดินทางอย่างน้อย 1 คน" : "เลือกผู้ร่วมกิจกรรมอย่างน้อย 1 คน";
         $("method-label").textContent = text.method || "การจอง";
         $("notes-input").placeholder = text.notesPh || "";
-        $("title-error").textContent =
-          cat === "TRAVEL" ? "กรอกชื่อ หรือเลือกวิธีเดินทาง/ปลายทาง" : `กรุณากรอก${text.title}`;
+        $("title-error").textContent = `กรุณากรอก${text.title || "ชื่อ"}`;
         renderMethods();
         syncBooking();
         renderPeople();
@@ -5655,7 +5652,8 @@
         // เดินทาง: เวลาอยู่ในการ์ดเส้นทาง ข้อความ error ไปขึ้นที่การ์ด
         const timeGroup = cat === "TRAVEL" ? ["group-route", "route-error"] : ["group-time", "time-error"];
 
-        const title = $("title-input").value.trim() || (cat === "TRAVEL" ? travelTitle() : "");
+        // เดินทาง: ชื่อตามเส้นทางเสมอ (แก้เส้นทางแล้วชื่อเปลี่ยนตาม)
+        const title = cat === "TRAVEL" ? travelTitle() || "เดินทาง" : $("title-input").value.trim();
         if (!title) problems.push(invalid("group-title", null, null, $("title-input")));
 
         const day = dateValue();

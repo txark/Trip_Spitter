@@ -16,7 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -163,6 +165,38 @@ public class TripService {
                 .orElse(false);
         if (!member) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
+        }
+    }
+
+    static final int MAX_TRIP_DAYS = 365;
+
+    // แก้วันเริ่ม/วันสิ้นสุดของทริป: สมาชิกคนไหนก็แก้ได้ (บิล/แพลนเดิมไม่ถูกลบ แม้อยู่นอกช่วงใหม่)
+    @Transactional
+    public Trip updateDates(Long tripId, Long memberId, String start, String end) {
+        Trip trip = getTripById(tripId);
+        requireMember(tripId, memberId, "เฉพาะสมาชิกในทริปเท่านั้นที่แก้วันเดินทางได้");
+        LocalDate startDate = parseDate(start, "วันเริ่มต้น");
+        LocalDate endDate = parseDate(end, "วันสิ้นสุด");
+        if (endDate.isBefore(startDate)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "วันสิ้นสุดต้องไม่ก่อนวันเริ่มต้น");
+        }
+        if (ChronoUnit.DAYS.between(startDate, endDate) + 1 > MAX_TRIP_DAYS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ทริปยาวได้ไม่เกิน " + MAX_TRIP_DAYS + " วัน");
+        }
+        trip.setStartDate(startDate);
+        trip.setEndDate(endDate);
+        return tripRepo.save(trip);
+    }
+
+    private static LocalDate parseDate(String value, String label) {
+        try {
+            LocalDate date = LocalDate.parse(value == null ? "" : value.trim());
+            if (date.getYear() < 2000 || date.getYear() > 2100) {
+                throw new DateTimeException(value);
+            }
+            return date;
+        } catch (DateTimeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, label + "ไม่ถูกต้อง");
         }
     }
 

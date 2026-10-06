@@ -28,6 +28,31 @@ public class User {
     @Column(name = "pin_hash", length = 120)
     private String pinHash;
 
+    // รหัสกู้คืนที่คนสร้างทริปออกให้ (เปลี่ยนเครื่อง/ล้างเบราว์เซอร์แล้วไม่มี PIN) ใช้ได้ครั้งเดียว มีวันหมดอายุ
+    @JsonIgnore
+    @Column(name = "recovery_hash", length = 120)
+    private String recoveryHash;
+
+    @JsonIgnore
+    @Column(name = "recovery_expires_at")
+    private LocalDateTime recoveryExpiresAt;
+
+    public String getRecoveryHash() {
+        return recoveryHash;
+    }
+
+    public void setRecoveryHash(String recoveryHash) {
+        this.recoveryHash = recoveryHash;
+    }
+
+    public LocalDateTime getRecoveryExpiresAt() {
+        return recoveryExpiresAt;
+    }
+
+    public void setRecoveryExpiresAt(LocalDateTime recoveryExpiresAt) {
+        this.recoveryExpiresAt = recoveryExpiresAt;
+    }
+
     // Getters & Setters
     public Long getId() {
         return id;
