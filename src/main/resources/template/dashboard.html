@@ -611,102 +611,6 @@
         font-weight: 700;
       }
 
-      /* แผน vs จ่ายจริง */
-      .pva-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        gap: 12px;
-        margin-bottom: 10px;
-      }
-
-      .pva-label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--text-muted);
-      }
-
-      .pva-total {
-        font-size: 1.35rem;
-        font-weight: 800;
-      }
-
-      .pva-target {
-        text-align: right;
-        font-size: 0.78rem;
-        color: var(--text-muted);
-        line-height: 1.5;
-      }
-
-      .pva-target .money {
-        color: var(--text-main);
-        font-weight: 700;
-      }
-
-      .pva-track,
-      .pva-bar {
-        height: 8px;
-        border-radius: 999px;
-        background: var(--surface-muted);
-        overflow: hidden;
-      }
-
-      .pva-track span,
-      .pva-bar span {
-        display: block;
-        height: 100%;
-        border-radius: inherit;
-        background: var(--primary);
-        transition: width 0.4s ease;
-      }
-
-      .pva-track.over span,
-      .pva-bar.over span {
-        background: var(--danger);
-      }
-
-      .pva-note {
-        margin: 6px 0 12px;
-        font-size: 0.78rem;
-        color: var(--text-muted);
-      }
-
-      .pva-row {
-        padding: 8px 0;
-        font-size: 0.85rem;
-      }
-
-      .pva-row + .pva-row {
-        border-top: 1px solid var(--border);
-      }
-
-      .pva-row-top {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .pva-row .pva-bar {
-        height: 5px;
-        margin: 6px 0 0 18px;
-      }
-
-      .pva-row .pva-bar span {
-        background: var(--cat);
-      }
-
-      .pva-row .pva-bar.over span {
-        background: var(--danger);
-      }
-
-      .pva-plan {
-        min-width: 64px;
-        text-align: right;
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        white-space: nowrap;
-      }
-
       /* แยกตามหมวดหมู่ */
       .cat-bar {
         display: flex;
@@ -984,12 +888,7 @@
         <div class="side-stack">
           <!-- แยกตามหมวดหมู่ -->
           <section>
-            <div class="section-title">
-              <span>แผน vs จ่ายจริง</span>
-              <button type="button" class="summary-open-btn" onclick="openTripSummary(tripId)">
-                <i class="fa-solid fa-share-nodes"></i> แชร์สรุปทริป
-              </button>
-            </div>
+            <div class="section-title"><span>แยกตามหมวดหมู่</span></div>
             <div class="panel" id="category-panel">
               <div class="skeleton" style="height: 120px; margin: 0"></div>
             </div>
@@ -1033,12 +932,13 @@
           a.href = `${a.getAttribute("href")}?tripId=${encodeURIComponent(tripId)}`;
         });
 
-      // หมวดหมู่ใช้ร่วมกับหน้าค่าใช้จ่าย/แพลน (ui.js)
-      const CATEGORIES = Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c.value, c]));
-      // ข้อมูลล่าสุดของหน้า (การ์ดแผน vs จ่ายจริงต้องใช้ทั้งบิลและแพลน ซึ่งโหลดแยกกัน)
-      let dashTrip = null;
-      let dashMembers = [];
-      let dashExpenses = [];
+      const CATEGORIES = {
+        FOOD: { label: "อาหาร", icon: "fa-solid fa-utensils" },
+        ACCOMMODATION: { label: "ที่พัก", icon: "fa-solid fa-hotel" },
+        TRANSPORT: { label: "เดินทาง", icon: "fa-solid fa-car" },
+        SHOPPING: { label: "ช้อปปิ้ง", icon: "fa-solid fa-shopping-bag" },
+        OTHER: { label: "อื่นๆ", icon: "fa-solid fa-star" },
+      };
       // รับเฉพาะหมวดที่รู้จัก (ค่าอื่นถือเป็น "อื่นๆ")
       const catKeyOf = (c) => (CATEGORIES[c] ? c : "OTHER");
 
@@ -1262,83 +1162,42 @@
         }
       });
 
-      // --- แผน vs จ่ายจริง แยกตามหมวด (หมวดเดียวกับในแพลน) ---
-      function renderCategories() {
+      // --- แยกตามหมวดหมู่ ---
+      function renderCategories(expenses) {
         const panel = document.getElementById("category-panel");
-        const actual = {};
-        const planned = {};
-        dashExpenses.forEach((e) => {
+        const totals = {};
+        expenses.forEach((e) => {
           const key = catKeyOf(e.category);
-          actual[key] = (actual[key] || 0) + Number(e.totalAmount || 0);
+          totals[key] = (totals[key] || 0) + Number(e.totalAmount || 0);
         });
-        (planActivities || []).forEach((a) => {
-          const key = catKeyOf(PLAN_TO_EXPENSE_CATEGORY[a.category] || "OTHER");
-          const est = planEstimateBaht(a, dashTrip, dashMembers.length);
-          if (est > 0) planned[key] = (planned[key] || 0) + est;
-        });
-        const totalActual = Object.values(actual).reduce((a, b) => a + b, 0);
-        const totalPlan = Object.values(planned).reduce((a, b) => a + b, 0);
-        const budget = (Number(dashTrip?.budgetPerPerson) || 0) * Math.max(dashMembers.length, 1);
-        if (totalActual === 0 && totalPlan === 0) {
-          panel.innerHTML = emptyBox("fa-solid fa-chart-pie", "ยังไม่มีบิลหรือราคาในแพลน");
+        const grand = Object.values(totals).reduce((a, b) => a + b, 0);
+        if (grand === 0) {
+          panel.innerHTML = emptyBox("fa-solid fa-chart-pie", "ยังไม่มีข้อมูล");
           return;
         }
+        const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+        const pct = (v) => (v / grand) * 100;
 
-        // เป้าที่เทียบ: งบทริป (ถ้าตั้งไว้) ไม่งั้นยอดตามแผน
-        const target = budget || totalPlan;
-        const pctOf = (v, of) => (of > 0 ? Math.min((v / of) * 100, 100) : 0);
-        const over = target > 0 && totalActual > target;
-        const keys = EXPENSE_CATEGORIES.map((c) => c.value)
-          .filter((k) => actual[k] > 0 || planned[k] > 0)
-          .sort((a, b) => (actual[b] || 0) - (actual[a] || 0) || (planned[b] || 0) - (planned[a] || 0));
-
-        const head = `
-          <div class="pva-head">
-            <div>
-              <div class="pva-label">จ่ายจริงแล้ว</div>
-              <div class="pva-total money${over ? " text-danger" : ""}">${fmt(totalActual)}</div>
-            </div>
-            <div class="pva-target">
-              ${totalPlan > 0 ? `<div>แผน <span class="money">${fmt(Math.round(totalPlan))}</span></div>` : ""}
-              ${budget > 0 ? `<div>งบทริป <span class="money">${fmt(budget)}</span></div>` : ""}
-            </div>
+        panel.innerHTML = `
+          <div class="cat-bar" role="img" aria-label="สัดส่วนค่าใช้จ่ายแยกตามหมวดหมู่">
+            ${rows
+              .map(
+                ([k, v]) =>
+                  `<span class="cat-${k}" style="width:${pct(v)}%"></span>`,
+              )
+              .join("")}
           </div>
-          ${
-            target > 0
-              ? `<div class="pva-track${over ? " over" : ""}" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                   aria-valuenow="${Math.round(pctOf(totalActual, target))}">
-                   <span style="width:${pctOf(totalActual, target)}%"></span>
-                 </div>
-                 <div class="pva-note${over ? " text-danger" : ""}">${
-                   over
-                     ? `เกิน${budget ? "งบ" : "แผน"}ไป ${fmt(Math.round(totalActual - target))}`
-                     : `เหลืออีก ${fmt(Math.round(target - totalActual))} จาก${budget ? "งบ" : "แผน"}`
-                 }</div>`
-              : ""
-          }`;
-
-        const rows = keys
-          .map((k) => {
-            const a = actual[k] || 0;
-            const p = Math.round(planned[k] || 0);
-            const catOver = p > 0 && a > p;
-            return `
-              <div class="pva-row cat-${k}">
-                <div class="pva-row-top">
-                  <span class="legend-dot"></span>
+          ${rows
+            .map(
+              ([k, v]) => `
+                <div class="legend-row">
+                  <span class="legend-dot cat-${k}"></span>
                   <span class="legend-name">${CATEGORIES[k].label}</span>
-                  <span class="legend-amount${catOver ? " text-danger" : ""}">${fmt(a)}</span>
-                  <span class="pva-plan">${p > 0 ? `/ ${fmt(p)}` : "ไม่มีในแผน"}</span>
-                </div>
-                ${
-                  p > 0
-                    ? `<div class="pva-bar${catOver ? " over" : ""}"><span style="width:${pctOf(a, p)}%"></span></div>`
-                    : ""
-                }
-              </div>`;
-          })
-          .join("");
-        panel.innerHTML = head + rows;
+                  <span class="legend-pct">${Math.round(pct(v))}%</span>
+                  <span class="legend-amount">${fmt(v)}</span>
+                </div>`,
+            )
+            .join("")}`;
       }
 
       // --- สมาชิก + ยอดที่แต่ละคนจ่ายไป ---
@@ -1562,7 +1421,6 @@
           // โหลดรอบหลังไม่สำเร็จ: ใช้ข้อมูลเดิมไปก่อน
         }
         renderNextCard();
-        if (dashTrip) renderCategories();
       }
 
       async function loadTripDashboard() {
@@ -1608,10 +1466,7 @@
           // 4. เนื้อหา
           renderStats(expenses, myMemberId, Number(trip.budgetPerPerson) || 0);
           renderRecent(expenses);
-          dashTrip = trip;
-          dashMembers = members;
-          dashExpenses = expenses;
-          renderCategories();
+          renderCategories(expenses);
           renderMembers(members, expenses, myMemberId);
         } catch (error) {
           console.error("Error loading dashboard:", error);

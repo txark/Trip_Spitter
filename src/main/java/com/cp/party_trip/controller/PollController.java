@@ -32,7 +32,6 @@ public class PollController {
     public ResponseEntity<List<PollSummaryDTO>> getTripPolls(
             @PathVariable Long tripId,
             @RequestParam(required = false) Long memberId) {
-        guard.self(tripId, memberId);
         return ResponseEntity.ok(pollService.getTripPolls(tripId, memberId));
     }
 
@@ -56,7 +55,6 @@ public class PollController {
     @GetMapping("/{pollId}/results")
     public ResponseEntity<?> getResults(@PathVariable Long pollId) {
         try {
-            guard.me(guard.tripOfPoll(pollId));
             List<PollResultDTO> results = pollService.getPollResults(pollId);
             return ResponseEntity.ok(results);
         } catch (ResponseStatusException e) {

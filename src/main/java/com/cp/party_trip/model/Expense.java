@@ -40,10 +40,6 @@ public class Expense {
     @Column(name = "recorded_by_member_id")
     private Long recordedById;
 
-    // เลขรุ่นของบิล เพิ่มทุกครั้งที่แก้: เปิดฟอร์มแก้จากเครื่องหนึ่ง แล้วอีกเครื่องแก้ไปก่อน = บันทึกทับไม่ได้
-    @Column(name = "revision")
-    private Integer revision;
-
     @Column(name = "category")
     private String category; // FOOD, TRANSPORT, ACCOMMODATION, SHOPPING
 
@@ -113,14 +109,6 @@ public class Expense {
 
     public void setSplitType(String splitType) {
         this.splitType = splitType;
-    }
-
-    public int getRevision() {
-        return revision == null ? 0 : revision;
-    }
-
-    public void setRevision(Integer revision) {
-        this.revision = revision;
     }
 
     public Long getRecordedById() {

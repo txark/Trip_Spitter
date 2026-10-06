@@ -39,21 +39,6 @@ public class UserController {
         return ResponseEntity.ok(userJson(userService.setPin(guard.user(), pin)));
     }
 
-    // ชื่อปัจจุบันของเจ้าของ token (เครื่องอื่นของเราใช้เช็กว่าชื่อถูกเปลี่ยนไปแล้วหรือยัง)
-    @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> me() {
-        return ResponseEntity.ok(userJson(guard.user()));
-    }
-
-    // เปลี่ยนชื่อเล่นของตัวเอง (ต้องมี token) ทริปเดิมตามไปด้วย
-    @PostMapping("/rename")
-    public ResponseEntity<Map<String, Object>> rename(@RequestParam String username) {
-        User user = userService.rename(guard.user(), username);
-        Map<String, Object> body = userJson(user);
-        body.put("token", user.getAuthToken());
-        return ResponseEntity.ok(body);
-    }
-
     private Map<String, Object> userJson(User user) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", user.getId());

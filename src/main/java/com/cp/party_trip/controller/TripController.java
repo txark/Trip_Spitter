@@ -19,9 +19,6 @@ public class TripController {
     private final TripService tripService;
     private final TripMemberRepo tripMemberRepo;
     private final AuthGuard guard;
-    // กดเข้าร่วมซ้ำพร้อมกันหลายเครื่อง: ทำทีละคำขอต่อ (รหัสเชิญ, ชื่อ) จะได้ไม่สร้างสมาชิกซ้ำ
-    private final java.util.concurrent.ConcurrentHashMap<String, Object> joinLocks =
-            new java.util.concurrent.ConcurrentHashMap<>();
 
     public TripController(TripService tripService, TripMemberRepo tripMemberRepo, AuthGuard guard) {
         this.tripService = tripService;
@@ -31,7 +28,6 @@ public class TripController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Trip> getTripById(@PathVariable Long id) {
-        guard.me(id); // ข้อมูลทริปมีรหัสเชิญ: ดูได้เฉพาะสมาชิก
         Trip trip = tripService.getTripById(id);
         return ResponseEntity.ok(trip);
     }
@@ -47,12 +43,7 @@ public class TripController {
     @PostMapping("/join/{inviteCode}")
     public ResponseEntity<Trip> joinTrip(@PathVariable String inviteCode,
             @RequestParam(required = false) String memberName) {
-        String name = guard.user().getUsername();
-        String key = inviteCode.trim().toUpperCase() + "|" + name;
-        TripMember joinedMember;
-        synchronized (joinLocks.computeIfAbsent(key, k -> new Object())) {
-            joinedMember = tripService.joinTrip(inviteCode, name);
-        }
+        TripMember joinedMember = tripService.joinTrip(inviteCode, guard.user().getUsername());
         // ส่งข้อมูล Trip กลับไปตรงๆ ให้หน้าเว็บนำไปใช้งานต่อได้ทันที
         return ResponseEntity.ok(joinedMember.getTrip());
     }
@@ -88,7 +79,6 @@ public class TripController {
 
     @GetMapping("/{tripId}/members")
     public ResponseEntity<java.util.List<TripMember>> getTripMembers(@PathVariable Long tripId) {
-        guard.me(tripId);
         java.util.List<TripMember> members = tripMemberRepo.findByTripId(tripId);
         return ResponseEntity.ok(members);
     }
