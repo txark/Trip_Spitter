@@ -6,9 +6,9 @@
     <title>Party & Trip Expense Splitter Pro</title>
 
     <!-- CSS กลาง -->
-    <link rel="stylesheet" href="/src/main/resources/css/all.css" />
+    <link rel="stylesheet" href="css/all.css" />
     <!-- ตัวช่วย UI ร่วม: fmt, esc, avatar, emptyBox, showToast -->
-    <script src="/src/main/resources/js/ui.js"></script>
+    <script src="js/ui.js"></script>
 
     <!-- font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1029,9 +1029,11 @@
       async function signIn(username) {
         let result = await loginAs(username);
         let error = "";
+        let usedCode = false;
         while (!result.ok && (result.needPin || result.message === "PIN ไม่ถูกต้อง")) {
           const pin = await askPin(username, error);
           if (pin == null) return false;
+          usedCode = true;
           result = await loginAs(username, pin);
           error = result.message === "PIN ไม่ถูกต้อง" ? "PIN ไม่ถูกต้อง ลองอีกครั้ง" : "";
         }
@@ -1041,6 +1043,14 @@
         }
         currentUserId = result.user.id;
         renderProfile(result.user.username);
+        // เข้าด้วยรหัสกู้คืน (ใส่รหัสแล้วแต่บัญชียังไม่มี PIN): ชวนตั้ง PIN ทันที จะได้ไม่ต้องขอรหัสอีก
+        if (usedCode && !result.user.pinSet) {
+          showToast("เข้าชื่อเดิมได้แล้ว ตั้ง PIN ไว้ด้วย ครั้งหน้าเปลี่ยนเครื่องจะได้เข้าเองได้");
+          setTimeout(() => {
+            openUsernameModal();
+            document.getElementById("pin-input").focus();
+          }, 300);
+        }
         return true;
       }
 
@@ -1049,7 +1059,7 @@
         const modal = document.getElementById("pin-modal");
         const input = document.getElementById("pin-login-input");
         document.getElementById("pin-modal-text").textContent =
-          `ชื่อ "${username}" ใช้อยู่ในเครื่องอื่นแล้ว ถ้าเป็นชื่อของคุณ ใส่ PIN ที่ตั้งไว้`;
+          `ชื่อ "${username}" ใช้อยู่ในเครื่องอื่นแล้ว ถ้าเป็นชื่อของคุณ ใส่ PIN ที่ตั้งไว้ หรือรหัสกู้คืนที่ได้จากคนสร้างทริป`;
         document.getElementById("pin-modal-error").textContent = error;
         input.value = "";
         hideAllPins();
@@ -1422,7 +1432,15 @@
       }
 
       // ต้องรู้ userId ของชื่อเล่นนี้ก่อน จึงค่อยโหลดประวัติ (กันแสดงประวัติของ user อื่น)
-      loadUserData().then(loadRecentTrips);
+      loadUserData().then(() => {
+        loadRecentTrips();
+        // มาจากแบนเนอร์ "ตั้ง PIN กันลืม": เปิดหน้าต่างตั้งชื่อ/PIN แล้วโฟกัสช่อง PIN
+        if (new URLSearchParams(location.search).get("setPin") === "1" && currentUserId) {
+          history.replaceState(null, "", location.pathname);
+          openUsernameModal();
+          document.getElementById("pin-input").focus();
+        }
+      });
     </script>
   </body>
 </html>
