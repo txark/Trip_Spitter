@@ -23,7 +23,7 @@ class UserServiceTest {
         userRepo = mock(UserRepo.class);
         when(userRepo.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         when(userRepo.findByUsername(any())).thenReturn(Optional.empty());
-        service = new UserService(userRepo, org.mockito.Mockito.mock(com.cp.party_trip.repository.TripMemberRepo.class));
+        service = new UserService(userRepo);
     }
 
     private User existing(String name, String token, String pin) {

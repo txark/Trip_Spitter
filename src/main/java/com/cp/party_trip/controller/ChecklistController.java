@@ -27,7 +27,6 @@ public class ChecklistController {
             @PathVariable Long tripId,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search) {
-        guard.me(tripId);
         return ResponseEntity.ok(checklistService.getChecklistByTrip(tripId, category, search));
     }
 

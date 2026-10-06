@@ -30,14 +30,6 @@
         padding-top: 12px;
       }
 
-      .debt-title-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        width: 100%;
-      }
-
       /* --- หัวข้อแต่ละส่วน --- */
       .section-title {
         font-size: 1.05rem;
@@ -503,12 +495,7 @@
   <body>
     <div class="container container--wide">
       <header class="debt-header page-header">
-        <div class="debt-title-row">
-          <h2>สรุปยอดหนี้</h2>
-          <button type="button" class="summary-open-btn" onclick="openTripSummary(tripId)">
-            <i class="fa-solid fa-share-nodes"></i> แชร์สรุปทริป
-          </button>
-        </div>
+        <h2>สรุปยอดหนี้</h2>
         <a id="back-dashboard-btn" class="back-link" href="dashboard.html">
           <i class="fa-solid fa-arrow-left"></i> ภาพรวมทริป
         </a>

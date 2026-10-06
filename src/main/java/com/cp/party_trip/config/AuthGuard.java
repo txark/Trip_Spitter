@@ -74,7 +74,8 @@ public class AuthGuard {
     }
 
     public Long tripOfExpense(Long expenseId) {
-        return expenseRepo.findTripIdById(expenseId)
+        return expenseRepo.findById(expenseId)
+                .map(e -> e.getTrip() == null ? null : e.getTrip().getId())
                 .orElseThrow(() -> notFound("ไม่พบบิลนี้"));
     }
 

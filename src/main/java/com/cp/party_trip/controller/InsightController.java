@@ -1,6 +1,5 @@
 package com.cp.party_trip.controller;
 
-import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.CategorySummaryDTO;
 import com.cp.party_trip.dto.DailySummaryDTO;
 import com.cp.party_trip.service.InsightService;
@@ -14,22 +13,18 @@ import java.util.List;
 public class InsightController {
 
     private final InsightService insightService;
-    private final AuthGuard guard;
 
-    public InsightController(InsightService insightService, AuthGuard guard) {
+    public InsightController(InsightService insightService) {
         this.insightService = insightService;
-        this.guard = guard;
     }
 
     @GetMapping("/{tripId}/categories")
     public ResponseEntity<List<CategorySummaryDTO>> getCategorySummary(@PathVariable Long tripId) {
-        guard.me(tripId);
         return ResponseEntity.ok(insightService.getCategoryInsights(tripId));
     }
 
     @GetMapping("/{tripId}/daily")
     public ResponseEntity<List<DailySummaryDTO>> getDailySummary(@PathVariable Long tripId) {
-        guard.me(tripId);
         return ResponseEntity.ok(insightService.getDailyInsights(tripId));
     }
 }

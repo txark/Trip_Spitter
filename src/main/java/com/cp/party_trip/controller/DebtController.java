@@ -1,6 +1,5 @@
 package com.cp.party_trip.controller;
 
-import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.DebtTransfer;
 import com.cp.party_trip.model.Expense;
 import com.cp.party_trip.model.ExpenseSplit;
@@ -30,11 +29,9 @@ public class DebtController {
 
     private final RepaymentService repaymentService;
     private final TripMemberRepo tripMemberRepo;
-    private final AuthGuard guard;
 
     public DebtController(DebtService debtService, ExpenseRepo expenseRepo, ExpenseSplitRepo expenseSplitRepo,
-            RepaymentService repaymentService, TripMemberRepo tripMemberRepo, AuthGuard guard) {
-        this.guard = guard;
+            RepaymentService repaymentService, TripMemberRepo tripMemberRepo) {
         this.debtService = debtService;
         this.expenseRepo = expenseRepo;
         this.expenseSplitRepo = expenseSplitRepo;
@@ -75,7 +72,6 @@ public class DebtController {
 
     @GetMapping("/simplify/{tripId}")
     public ResponseEntity<List<DebtTransfer>> getSimplifiedDebts(@PathVariable Long tripId) {
-        guard.me(tripId);
         List<DebtTransfer> transfers = debtService.calculateDebtSimplification(tripId);
         return ResponseEntity.ok(transfers);
     }
@@ -84,8 +80,6 @@ public class DebtController {
     @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getTripDebtSummary(@PathVariable Long tripId,
             @RequestParam Long userId) {
-        // สรุปหนี้ "ของฉัน": ขอดูของสมาชิกคนอื่นไม่ได้
-        guard.self(tripId, userId);
         List<Expense> expenses = expenseRepo.findByTripId(tripId);
         Map<String, Object> response = new HashMap<>();
 

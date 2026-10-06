@@ -73,16 +73,7 @@ public class ExpenseService {
     @Transactional
     public Expense updateExpense(Long expenseId, Long memberId, Long newPayerId, ExpenseRequest request,
             List<Long> participantIds) {
-        return updateExpense(expenseId, memberId, newPayerId, request, participantIds, null);
-    }
-
-    // expectedRevision = รุ่นของบิลตอนเปิดฟอร์มแก้ (ไม่ตรงกับปัจจุบัน = อีกเครื่องแก้ไปแล้ว -> 409)
-    @Transactional
-    public Expense updateExpense(Long expenseId, Long memberId, Long newPayerId, ExpenseRequest request,
-            List<Long> participantIds, Integer expectedRevision) {
         Expense expense = findEditable(expenseId, memberId);
-        requireRevision(expense, expectedRevision);
-        expense.setRevision(expense.getRevision() + 1);
         Long tripId = expense.getTrip().getId();
         if (newPayerId != null && !newPayerId.equals(expense.getUser().getId())) {
             expense.setUser(findTripMember(tripId, newPayerId));
@@ -99,26 +90,11 @@ public class ExpenseService {
 
     @Transactional
     public void deleteExpense(Long expenseId, Long memberId) {
-        deleteExpense(expenseId, memberId, null);
-    }
-
-    @Transactional
-    public void deleteExpense(Long expenseId, Long memberId, Integer expectedRevision) {
-        Expense expense = findEditable(expenseId, memberId);
-        requireRevision(expense, expectedRevision);
-        expenseRepo.delete(expense);
-    }
-
-    // findEditable ล็อกแถวบิลไว้แล้ว: คำขอที่ 2 จากอีกเครื่องจะรอจนคำขอแรกเสร็จ แล้วเจอรุ่นที่ไม่ตรง
-    private void requireRevision(Expense expense, Integer expectedRevision) {
-        if (expectedRevision != null && expectedRevision != expense.getRevision()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "บิลนี้เพิ่งถูกแก้จากอีกเครื่อง โหลดข้อมูลใหม่แล้วลองอีกครั้ง");
-        }
+        expenseRepo.delete(findEditable(expenseId, memberId));
     }
 
     private Expense findEditable(Long expenseId, Long memberId) {
-        Expense expense = expenseRepo.lockById(expenseId)
+        Expense expense = expenseRepo.findById(expenseId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบบิลนี้"));
         TripMember paidBy = expense.getUser();
         boolean allowed = memberId != null && paidBy != null

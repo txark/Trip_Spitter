@@ -5,9 +5,7 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-// คนเดียวกันอยู่ในทริปเดียวกันได้แถวเดียว (กดเข้าร่วมซ้ำพร้อมกันเคยได้สมาชิกซ้ำ)
-@Table(name = "trip_members", uniqueConstraints = @UniqueConstraint(name = "uk_trip_members_trip_guest",
-        columnNames = { "trip_id", "guest_name" }))
+@Table(name = "trip_members")
 public class TripMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
