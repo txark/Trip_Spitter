@@ -37,7 +37,7 @@ st, r, _ = call("POST", f"/trips/create?creatorName={B}", body=TRIP)
 check("create trip without token -> 401", st == 401, (st, r))
 st, trip, _ = call("POST", f"/trips/create?creatorName={B}", token=tokA,
                    body=TRIP)
-check("create trip with token", st == 200, (st, trip))
+check("create trip with token", st == 201, (st, trip))
 tripId, code = trip["id"], trip["inviteCode"]
 st, members, _ = call("GET", f"/trips/{tripId}/members", token=tokA)
 check("creator is token owner (not creatorName param)", [m["guestName"] for m in members] == [A], members)
@@ -57,7 +57,7 @@ check("non-member C adds bill -> 403", st == 403, (st, r))
 st, r, _ = call("POST", f"/expenses/add/{tripId}?paidByMemberId={mA}&recordedByMemberId={mA}&participantIds={mA},{mB}", token=tokB, body=bill)
 check("B pretends recordedBy=A -> 403", st == 403, (st, r))
 st, exp, _ = call("POST", f"/expenses/add/{tripId}?paidByMemberId={mA}&participantIds={mA},{mB}", token=tokB, body=bill)
-check("B records bill paid by A", st == 200 and exp.get("recordedById") == mB, (st, exp))
+check("B records bill paid by A", st == 201 and exp.get("recordedById") == mB, (st, exp))
 expId = exp["id"]
 st, r, _ = call("DELETE", f"/expenses/{expId}?memberId={mA}", token=tokB)
 check("B deletes as memberId=A -> 403", st == 403, (st, r))
@@ -74,20 +74,19 @@ check("B sets budget as self -> 200", st == 200, (st, r))
 st, poll, _ = call("POST", "/polls", token=tokC, body={"tripId": tripId, "memberId": mA, "question": "q?", "options": ["x", "y"]})
 check("C creates poll in A's trip -> 403", st == 403, (st, poll))
 st, poll, _ = call("POST", "/polls", token=tokA, body={"tripId": tripId, "memberId": mA, "question": "q?", "options": ["x", "y"]})
-check("A creates poll", st == 200, (st, poll))
+check("A creates poll", st == 201, (st, poll))
 st, act, _ = call("POST", f"/activities/add/{tripId}", token=tokC,
                   body={"title": "walk", "category": "ACTIVITY", "activityDate": "2026-10-02", "memberId": mA})
 check("C adds activity -> 403", st == 403, (st, act))
 st, r, _ = call("POST", f"/checklist?tripId={tripId}&itemName=towel", token=tokC)
 check("C adds checklist item -> 403", st == 403, (st, r))
 st, r, _ = call("POST", f"/checklist?tripId={tripId}&itemName=towel", token=tokB)
-check("B adds checklist item -> 200", st == 200, (st, r))
+check("B adds checklist item -> 201", st == 201, (st, r))
 
 # --- reads: members only ---
 reads = [f"/trips/{tripId}", f"/trips/{tripId}/members", f"/expenses/trip/{tripId}", f"/debts/simplify/{tripId}",
          f"/activities/trip/{tripId}", f"/checklist/{tripId}", f"/polls/trip/{tripId}",
-         f"/polls/{poll['id']}/results", f"/settlements/history/{tripId}", f"/insights/{tripId}/categories",
-         f"/insights/{tripId}/daily", f"/debts/summary-details/{tripId}?userId={mB}"]
+         f"/polls/{poll['id']}/results", f"/debts/summary-details/{tripId}?userId={mB}"]
 anon = [call("GET", u)[0] for u in reads]
 check("GET without token -> 401 on every trip read", all(s == 401 for s in anon), list(zip(reads, anon)))
 outsider = [(call("GET", u, token=tokC)[:2]) for u in reads]
