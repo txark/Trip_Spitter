@@ -69,7 +69,7 @@ public class ChecklistServiceImpl implements ChecklistService {
             List<Long> assigneeIds) {
         requireTrip(tripId);
         String cleanCategory = cleanCategory(category);
-        List<Long> assignees = cleanAssignees(tripId, assigneeIds);
+        List<TripMember> assignees = cleanAssignees(tripId, assigneeIds);
 
         List<ChecklistItem> toSave = new ArrayList<>();
         Set<String> seen = new HashSet<>();
@@ -137,7 +137,7 @@ public class ChecklistServiceImpl implements ChecklistService {
     @Transactional
     public ChecklistItem setAssignees(Long itemId, List<Long> memberIds) {
         ChecklistItem item = findItem(itemId);
-        item.setAssigneeIds(cleanAssignees(item.getTripId(), memberIds));
+        item.setAssignees(cleanAssignees(item.getTripId(), memberIds));
         return checklistItemRepo.save(item);
     }
 
@@ -155,13 +155,13 @@ public class ChecklistServiceImpl implements ChecklistService {
     }
 
     private ChecklistItem newItem(Long tripId, String category, String name, BigDecimal quantity, String unit,
-            String notes, List<Long> assignees) {
+            String notes, List<TripMember> assignees) {
         ChecklistItem item = new ChecklistItem();
         item.setTripId(tripId);
         item.setCategory(category);
         item.setItemName(name);
         applyQuantity(item, quantity, unit);
-        item.setAssigneeIds(assignees);
+        item.setAssignees(assignees);
         item.setChecked(false);
         item.setNotes(cleanNotes(notes));
         return item;
@@ -189,13 +189,14 @@ public class ChecklistServiceImpl implements ChecklistService {
     }
 
     // ผู้รับผิดชอบ: ตัดค่าว่าง/ซ้ำ และต้องเป็นสมาชิกของทริปนี้ทุกคน
-    private List<Long> cleanAssignees(Long tripId, List<Long> memberIds) {
+    private List<TripMember> cleanAssignees(Long tripId, List<Long> memberIds) {
         List<Long> ids = new ArrayList<>(new LinkedHashSet<>(
                 memberIds == null ? List.<Long>of() : memberIds.stream().filter(Objects::nonNull).toList()));
+        List<TripMember> members = new ArrayList<>();
         for (Long id : ids) {
-            requireTripMember(tripId, id);
+            members.add(requireTripMember(tripId, id));
         }
-        return ids;
+        return members;
     }
 
     private void requireTrip(Long tripId) {
@@ -209,12 +210,13 @@ public class ChecklistServiceImpl implements ChecklistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบรายการสิ่งของนี้"));
     }
 
-    private void requireTripMember(Long tripId, Long memberId) {
+    private TripMember requireTripMember(Long tripId, Long memberId) {
         TripMember member = tripMemberRepo.findById(memberId)
                 .orElseThrow(() -> badRequest("ไม่พบสมาชิกนี้"));
         if (member.getTrip() == null || !tripId.equals(member.getTrip().getId())) {
             throw badRequest("สมาชิกนี้ไม่ได้อยู่ในทริปนี้");
         }
+        return member;
     }
 
     private String cleanName(String raw) {

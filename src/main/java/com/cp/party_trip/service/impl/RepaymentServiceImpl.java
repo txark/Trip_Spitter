@@ -13,6 +13,8 @@ import com.cp.party_trip.repository.RepaymentRepo;
 import com.cp.party_trip.repository.TripMemberRepo;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import com.cp.party_trip.event.RepaymentRecordedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -35,13 +37,15 @@ public class RepaymentServiceImpl implements RepaymentService {
     private final ExpenseRepo expenseRepo;
     private final ExpenseSplitRepo expenseSplitRepo;
     private final TripMemberRepo tripMemberRepo;
+    private final ApplicationEventPublisher events;
 
     public RepaymentServiceImpl(RepaymentRepo repaymentRepo, ExpenseRepo expenseRepo, ExpenseSplitRepo expenseSplitRepo,
-            TripMemberRepo tripMemberRepo) {
+            TripMemberRepo tripMemberRepo, ApplicationEventPublisher events) {
         this.repaymentRepo = repaymentRepo;
         this.expenseRepo = expenseRepo;
         this.expenseSplitRepo = expenseSplitRepo;
         this.tripMemberRepo = tripMemberRepo;
+        this.events = events;
     }
 
     @Override
@@ -109,7 +113,10 @@ public class RepaymentServiceImpl implements RepaymentService {
             repayment.getItems().add(item);
         }
         expenseSplitRepo.saveAll(open);
-        return repaymentRepo.save(repayment);
+        Repayment saved = repaymentRepo.save(repayment);
+        events.publishEvent(new RepaymentRecordedEvent(tripId, receiver.getId(), receiver.getGuestName(),
+                sender.getGuestName(), amount));
+        return saved;
     }
 
     // ยกเลิก (เช่น กรอกยอดผิด): คืนยอดที่หักไปให้แต่ละรายการ เฉพาะคนที่รับเงิน

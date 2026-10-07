@@ -6,7 +6,9 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "expense_splits")
+@Table(name = "expense_splits", indexes = {
+        @Index(name = "idx_expense_splits_expense", columnList = "expense_id"),
+        @Index(name = "idx_expense_splits_member", columnList = "trip_member_id") })
 public class ExpenseSplit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

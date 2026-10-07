@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "expenses")
+@Table(name = "expenses", indexes = @Index(name = "idx_expenses_trip", columnList = "trip_id"))
 public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
