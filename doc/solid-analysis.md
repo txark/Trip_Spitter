@@ -4,7 +4,7 @@
 ตอนท้ายของแต่ละหัวข้อมี "ข้อจำกัด" ที่ยังไม่สมบูรณ์ เขียนไว้ตรงๆ เพื่อให้ตรวจสอบกับโค้ดได้
 
 - **ที่มาของเลขบรรทัด:** นับจากโค้ด ณ commit `f99b086` (branch `artitaya_6430212592_01`) ถ้าแก้โค้ดภายหลัง เลขบรรทัดอาจเลื่อน ให้ค้นด้วยชื่อคลาส/เมธอดที่ระบุ
-- **path ย่อ:** ทุกไฟล์อยู่ใต้ `src/main/java/com/cp/party_trip/` เช่น `service/impl/ExpenseServiceImpl.java`
+- **path ย่อ:** ทุกไฟล์อยู่ใต้ `code/src/main/java/com/cp/party_trip/` เช่น `service/impl/ExpenseServiceImpl.java`
 
 ## สรุป
 

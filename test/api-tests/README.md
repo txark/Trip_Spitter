@@ -14,16 +14,16 @@
 
 ## วิธีรัน
 
-1. เปิด backend (`./mvnw spring-boot:run`)
+1. เปิด backend (`cd code && ./mvnw spring-boot:run`)
 2. ที่โฟลเดอร์โปรเจกต์:
 
 ```bash
-python scripts/api-tests/run_all.py          # ทุกชุด แล้วลบข้อมูลทดสอบให้
-python scripts/api-tests/run_all.py rename   # เฉพาะชุดที่ชื่อมีคำนี้
-python scripts/api-tests/run_all.py --keep   # ไม่ลบข้อมูลทดสอบ (ไว้เปิดดูในเว็บ)
+python test/api-tests/run_all.py          # ทุกชุด แล้วลบข้อมูลทดสอบให้
+python test/api-tests/run_all.py rename   # เฉพาะชุดที่ชื่อมีคำนี้
+python test/api-tests/run_all.py --keep   # ไม่ลบข้อมูลทดสอบ (ไว้เปิดดูในเว็บ)
 ```
 
-backend อยู่พอร์ตอื่น: ตั้ง `API_BASE` เช่น `API_BASE=http://localhost:8091/api/v1 python scripts/api-tests/run_all.py`
+backend อยู่พอร์ตอื่น: ตั้ง `API_BASE` เช่น `API_BASE=http://localhost:8091/api/v1 python test/api-tests/run_all.py`
 
 ## ข้อมูลทดสอบ
 
@@ -32,4 +32,4 @@ backend อยู่พอร์ตอื่น: ตั้ง `API_BASE` เช�
 - ข้อมูลจริงไม่โดนลบ เพราะลบเฉพาะสองเงื่อนไขข้างบน (อย่าตั้งชื่อเล่นจริงขึ้นต้นด้วย `zt_`)
 - ถ้าลบอัตโนมัติไม่ได้ (ไม่มี psql หรือ `.env`) รัน `cleanup.sql` เองใน pgAdmin
 
-ชุดเดียวรันตรง ๆ ก็ได้ (`python scripts/api-tests/test_auth.py`) แต่จะไม่ลบข้อมูลให้
+ชุดเดียวรันตรง ๆ ก็ได้ (`python test/api-tests/test_auth.py`) แต่จะไม่ลบข้อมูลให้
