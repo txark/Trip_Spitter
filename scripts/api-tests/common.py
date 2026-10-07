@@ -1,6 +1,6 @@
 """ตัวช่วยที่ทุกชุดทดสอบใช้ร่วมกัน (ยิง API จริงของ backend ที่รันอยู่)
 
-- API_BASE: ที่อยู่ API (ค่าเริ่มต้น http://localhost:8090/api) ตั้งผ่าน environment variable ได้
+- API_BASE: ที่อยู่ API (ค่าเริ่มต้น http://localhost:8090/api/v1) ตั้งผ่าน environment variable ได้
 - ข้อมูลทดสอบทุกชิ้นใช้ชื่อขึ้นต้นด้วย USER_PREFIX และทริปชื่อ TRIP_TITLE
   เพื่อให้ cleanup.sql ลบทิ้งได้ทั้งหมดโดยไม่แตะข้อมูลจริง
 """
@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-BASE = os.environ.get("API_BASE", "http://localhost:8090/api").rstrip("/")
+BASE = os.environ.get("API_BASE", "http://localhost:8090/api/v1").rstrip("/")
 USER_PREFIX = "zt_"
 TRIP_TITLE = "[api-test]"
 TRIP = {"title": TRIP_TITLE, "startDate": "2026-10-01", "endDate": "2026-10-05"}

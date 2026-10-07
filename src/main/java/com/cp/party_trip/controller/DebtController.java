@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.response.DebtTransferResponse;
 import com.cp.party_trip.dto.response.MemberDebtSummaryResponse;
@@ -10,8 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Debts - หนี้และการสรุปยอด")
 @RestController
-@RequestMapping("/api/debts")
+@RequestMapping("/api/v1/debts")
 public class DebtController {
 
     private final DebtService debtService;

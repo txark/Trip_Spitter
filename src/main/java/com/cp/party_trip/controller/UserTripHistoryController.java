@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.response.MessageResponse;
 import com.cp.party_trip.dto.response.TripHistoryResponse;
@@ -13,8 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@Tag(name = "History - ทริปที่เปิดล่าสุด")
 @RestController
-@RequestMapping("/api/history")
+@RequestMapping("/api/v1/history")
 public class UserTripHistoryController {
 
     private final UserTripHistoryService historyService;

@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.request.ExpenseRequest;
 import com.cp.party_trip.dto.request.RepaymentRequest;
@@ -12,14 +13,18 @@ import com.cp.party_trip.mapper.ExpenseMapper;
 import com.cp.party_trip.service.ExpenseService;
 import com.cp.party_trip.service.RepaymentService;
 import jakarta.validation.Valid;
+import com.cp.party_trip.dto.response.PageResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Expenses - บิลและการหาร")
 @RestController
-@RequestMapping("/api/expenses")
+@RequestMapping("/api/v1/expenses")
 public class ExpenseController {
 
     private final ExpenseService expenseService;
@@ -92,6 +97,15 @@ public class ExpenseController {
     public ResponseEntity<List<ExpenseViewResponse>> getExpensesByTrip(@PathVariable Long tripId) {
         guard.me(tripId);
         return ResponseEntity.ok(expenseService.getTripExpenseViews(tripId));
+    }
+
+    // แบ่งหน้า: ?page=0&size=10&sort=totalAmount,desc (ไม่ส่ง sort = ใหม่สุดก่อน, size สูงสุด 50)
+    @GetMapping("/trip/{tripId}/page")
+    public ResponseEntity<PageResponse<ExpenseViewResponse>> getExpensesByTripPage(@PathVariable Long tripId,
+            @PageableDefault(size = 10) Pageable pageable) {
+        guard.me(tripId);
+        return ResponseEntity.ok(PageResponse.of(expenseService.getTripExpenseViewsPage(tripId, pageable),
+                view -> view));
     }
 
     // ยืนยันรับเงินได้เฉพาะคนจ่ายบิล (หรือคนที่บันทึกบิลแทน) ตรวจใน service

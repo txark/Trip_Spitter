@@ -3,20 +3,20 @@
 
 // ---------- ที่อยู่ backend (ตั้งที่เดียว ทุกหน้าใช้ API_BASE) ----------
 // ลำดับ: localStorage "apiBase" -> <meta name="api-base"> -> เดาจากที่อยู่หน้าเว็บ
-// - เปิดจาก Spring Boot เอง (เช่น http://192.168.1.5:8090/home.html) = เรียก /api ของเซิร์ฟเวอร์เดียวกัน
+// - เปิดจาก Spring Boot เอง (เช่น http://192.168.1.5:8090/home.html) = เรียก /api/v1 ของเซิร์ฟเวอร์เดียวกัน
 // - เปิดผ่าน Live Server ตอนพัฒนา (พอร์ต 5500–5599) = host เดียวกัน พอร์ต 8090
 const API_BASE = (() => {
   const clean = (url) => String(url).trim().replace(/\/+$/, "");
   try {
-    const saved = localStorage.getItem("apiBase");
+    const saved = (localStorage.getItem("apiBase") || "").replace(/\/api\/?$/, "/api/v1");
     if (saved) return clean(saved);
   } catch {}
   const meta = document.querySelector('meta[name="api-base"]');
   if (meta?.content) return clean(meta.content);
-  if (location.protocol === "file:" || !location.hostname) return "http://localhost:8090/api";
+  if (location.protocol === "file:" || !location.hostname) return "http://localhost:8090/api/v1";
   const port = Number(location.port);
-  if (port >= 5500 && port <= 5599) return `${location.protocol}//${location.hostname}:8090/api`;
-  return `${location.origin}/api`;
+  if (port >= 5500 && port <= 5599) return `${location.protocol}//${location.hostname}:8090/api/v1`;
+  return `${location.origin}/api/v1`;
 })();
 
 // ---------- ตัวตนผู้ใช้: token ต่อเครื่อง (แนบ header X-Auth-Token ให้ทุกคำสั่งที่ไป backend) ----------
