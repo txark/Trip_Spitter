@@ -1,0 +1,19 @@
+# Render Blueprint: Dashboard > New > Blueprint แล้วเลือก repo นี้
+# ฐานข้อมูลใช้ Neon (หรือ Postgres ที่ไหนก็ได้) ใส่ค่า 3 ตัวด้านล่างในหน้า Environment ของ Render ไม่ใส่ในไฟล์นี้
+services:
+  - type: web
+    name: trip-spitter
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /home.html
+    autoDeploy: true
+    envVars:
+      - key: DB_URL          # เช่น jdbc:postgresql://<host>/<db>?sslmode=require
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: SPRING_JPA_SHOW_SQL
+        value: "false"
