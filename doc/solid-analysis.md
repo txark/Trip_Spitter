@@ -36,7 +36,7 @@
 | คำนวณการหาร | `EqualSplitStrategy`, `CustomSplitStrategy` | `service/split/EqualSplitStrategy.java:16`, `service/split/CustomSplitStrategy.java:19` | คลาสละ 1 วิธีหาร ไม่ปนกัน |
 | บันทึกประวัติทริป | `TripEventListener` | `event/TripEventListener.java:11` | แยกออกจากการบันทึกบิล (Service แค่ประกาศ event บรรทัด 91) |
 
-**ข้อจำกัด (ตรงไปตรงมา)**
+**ข้อจำกัด**
 - `ExpenseServiceImpl` ยาว 342 บรรทัด และเมธอด `apply` (เริ่มบรรทัด 175) ยังรวมหลายอย่างไว้ด้วยกัน: ตรวจชื่อ/ยอดบิล, แปลงสกุลเงิน, ตรวจวันที่, ตรวจกิจกรรมที่ผูก และสร้างส่วนแบ่ง ถ้าแยกต่อ ควรดึงส่วนตรวจกฎออกเป็นคลาสเช่น `ExpenseValidator` (ยังไม่ได้ทำ)
 
 ---
@@ -123,7 +123,7 @@ Controller ไม่มีการอ้างถึงคลาส `*ServiceIm
 - ตัวอย่าง: `ExpenseController.java:36`, `ExpenseServiceImpl.java:52`, `AuthGuard.java:23`
 - ผลที่ได้: ทดสอบง่าย `ExpenseServiceImplTest` ส่ง mock เข้า constructor ได้ตรงๆ โดยไม่ต้องเปิด Spring
 
-**ข้อจำกัด (ตรงไปตรงมา)**
+**ข้อจำกัด**
 - **Mapper เป็นคลาสจริง ไม่มี interface:** `ExpenseController.java:32-33` และ `ExpenseServiceImpl.java:48` รับ `ExpenseMapper` / `DebtMapper` เป็นคลาสตรงๆ ใช้ได้เพราะเป็นคลาส stateless ที่ไม่มีหลายแบบให้สลับ แต่ไม่เข้มงวดตาม DIP
 - **`SplitStrategyFactory` เป็นคลาสจริง:** `ExpenseServiceImpl.java:49` (ตัว strategy จริงขึ้นกับ interface `SplitStrategy` แล้ว แต่ตัวเลือกเป็นคลาสตรงๆ)
 - ถ้าจะให้เข้มงวดขึ้น ควรสร้าง interface `ExpenseMapping` และ `SplitStrategyResolver` (ยังไม่ได้ทำ)
