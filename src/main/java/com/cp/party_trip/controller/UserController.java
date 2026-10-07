@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.response.LoginResponse;
 import com.cp.party_trip.dto.response.UserResponse;
@@ -9,8 +10,9 @@ import com.cp.party_trip.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Users - ผู้ใช้และการเข้าสู่ระบบ")
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;

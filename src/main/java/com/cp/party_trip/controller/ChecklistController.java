@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.request.ChecklistBulkRequest;
 import com.cp.party_trip.dto.request.ChecklistDetailsRequest;
@@ -13,8 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Checklist - รายการสิ่งของ")
 @RestController
-@RequestMapping("/api/checklist")
+@RequestMapping("/api/v1/checklist")
 public class ChecklistController {
     private final ChecklistService checklistService;
     private final ChecklistMapper checklistMapper;

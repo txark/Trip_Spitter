@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.request.CreateTripRequest;
 import com.cp.party_trip.dto.response.MemberResponse;
@@ -20,8 +21,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Tag(name = "Trips - ทริปและสมาชิก")
 @RestController
-@RequestMapping("/api/trips")
+@RequestMapping("/api/v1/trips")
 public class TripController {
 
     private final TripService tripService;

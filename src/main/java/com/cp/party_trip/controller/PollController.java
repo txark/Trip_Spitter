@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.request.PollRequest;
 import com.cp.party_trip.dto.response.MessageResponse;
@@ -19,8 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@Tag(name = "Polls - โหวต")
 @RestController
-@RequestMapping("/api/polls")
+@RequestMapping("/api/v1/polls")
 public class PollController {
     private final PollService pollService;
     private final PollMapper pollMapper;
