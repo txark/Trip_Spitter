@@ -5,7 +5,6 @@ target/
 .vscode/
 .env
 *.log
-code/party-trip-frontend/
 code/target/
 test/
 doc/

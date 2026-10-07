@@ -256,11 +256,10 @@ CI (GitHub Actions) รัน build + unit test + build Docker image ทุก�
 │   │   ├── event/                 # Observer
 │   │   ├── config/                # AuthGuard, ErrorHandler, OpenAPI, CORS
 │   │   └── common/
-│   ├── src/main/resources/
-│   │   ├── db/migration/          # Flyway V1-V4
-│   │   ├── static/                # หน้าเว็บ (home, dashboard, plan, expenses, debts, polls, checklist)
-│   │   └── application.properties
-│   └── party-trip-frontend/       # โครง Next.js เริ่มต้น (ไม่ได้ใช้ในระบบ)
+│   └── src/main/resources/
+│       ├── db/migration/          # Flyway V1-V4
+│       ├── static/                # หน้าเว็บ (home, dashboard, plan, expenses, debts, polls, checklist)
+│       └── application.properties
 ├── test/                          # การทดสอบทั้งหมด
 │   ├── java/                      # Unit test (JUnit 5 + Mockito)
 │   └── api-tests/                 # ชุดทดสอบ API (Python)
