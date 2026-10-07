@@ -1,0 +1,34 @@
+# รันทั้งระบบบนเครื่อง: docker compose up --build  แล้วเปิด http://localhost:8090/home.html
+# รหัสผ่านฐานข้อมูลอ่านจากไฟล์ .env (ดู .env.example) ไม่เขียนในไฟล์นี้
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: Trip_Spitter
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?ตั้ง DB_PASSWORD ในไฟล์ .env ก่อน}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Trip_Spitter"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/Trip_Spitter
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
