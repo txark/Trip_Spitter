@@ -16,12 +16,13 @@
 
 ## สมาชิกกลุ่ม
 
-ชื่อ-นามสกุล : นางสาวอาทิตยา โคตรธิสาร
-รหัสนักศึกษา : 643021259-2
-Section : 1
-Branch : `artitaya_6430212592_01` & `artitaya`
-หน้าที่รับผิดชอบ : - ทำทั้งระบบ: Backend (Spring Boot, REST API) 
-               - ออกแบบฐานข้อมูลและ Flyway, Frontend, Unit/API Test, Docker, CI/CD และ Deploy
+- **ชื่อ-นามสกุล :** นางสาวอาทิตยา โคตรธิสาร
+- **รหัสนักศึกษา :** 643021259-2
+- **Section :** 1
+- **Branch :** `artitaya_6430212592_01` & `artitaya`
+- **หน้าที่รับผิดชอบ :**
+  - ทำทั้งระบบ: Backend (Spring Boot, REST API)
+  - ออกแบบฐานข้อมูลและ Flyway, Frontend, Unit/API Test, Docker, CI/CD และ Deploy
 
 ## Tech Stack
 
