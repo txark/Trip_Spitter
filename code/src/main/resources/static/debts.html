@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Debts - Party & Trip Expense Splitter Pro</title>
+    <title>Debts - Trip Expense Splitter</title>
 
     <link rel="stylesheet" href="css/all.css" />
     <!-- Sidebar สำหรับจอคอม (≥1024px) -->
@@ -505,7 +505,11 @@
       <header class="debt-header page-header">
         <div class="debt-title-row">
           <h2>สรุปยอดหนี้</h2>
-          <button type="button" class="summary-open-btn" onclick="openTripSummary(tripId)">
+          <button
+            type="button"
+            class="summary-open-btn"
+            onclick="openTripSummary(tripId)"
+          >
             <i class="fa-solid fa-share-nodes"></i> แชร์สรุปทริป
           </button>
         </div>
@@ -551,9 +555,7 @@
         <!-- ส่วนที่ 1: รายการที่ต้องจ่าย (หนี้ของคุณ) -->
         <section>
           <div class="section-title">
-            <span class="title-text"
-              >รายการที่ต้องชำระ</span
-            >
+            <span class="title-text">รายการที่ต้องชำระ</span>
             <span class="count-pill" id="debts-count" hidden></span>
           </div>
           <div id="my-debts-container">
@@ -565,12 +567,15 @@
         <!-- ส่วนที่ 2: บิลที่คุณสำรองจ่าย -->
         <section>
           <div class="section-title">
-            <span class="title-text"
-              >บิลที่คุณสำรองจ่าย</span
-            >
+            <span class="title-text">บิลที่คุณสำรองจ่าย</span>
             <span class="count-pill" id="bills-count" hidden></span>
           </div>
-          <div class="filter-bar hidden" id="bill-filter-bar" role="group" aria-label="กรองตามสถานะการจ่าย"></div>
+          <div
+            class="filter-bar hidden"
+            id="bill-filter-bar"
+            role="group"
+            aria-label="กรองตามสถานะการจ่าย"
+          ></div>
           <div id="my-paid-bills-container">
             <div class="skeleton"></div>
             <div class="skeleton"></div>
@@ -579,9 +584,12 @@
       </div>
     </div>
 
-
     <!-- รับเงินเป็นยอดรวม (ไม่ระบุรายการ) แล้วหักเคลียร์รายการให้ -->
-    <dialog class="repay-dialog" id="repay-dialog" aria-labelledby="repay-title">
+    <dialog
+      class="repay-dialog"
+      id="repay-dialog"
+      aria-labelledby="repay-title"
+    >
       <form method="dialog">
         <div class="repay-head">
           <span id="repay-title">รับเงินเป็นยอดรวม</span>
@@ -590,15 +598,29 @@
         <div class="repay-sub" id="repay-sub"></div>
         <label class="repay-amount">
           <span aria-hidden="true">฿</span>
-          <input type="number" id="repay-amount" min="0" step="any" inputmode="decimal" placeholder="ยอดที่ได้รับ" aria-label="ยอดที่ได้รับ" />
-          <button type="button" class="repay-full" id="repay-full">เต็มจำนวน</button>
+          <input
+            type="number"
+            id="repay-amount"
+            min="0"
+            step="any"
+            inputmode="decimal"
+            placeholder="ยอดที่ได้รับ"
+            aria-label="ยอดที่ได้รับ"
+          />
+          <button type="button" class="repay-full" id="repay-full">
+            เต็มจำนวน
+          </button>
         </label>
-        <div class="repay-sub">หักเคลียร์รายการที่ติ๊กไว้ ตั้งแต่บิลเก่าสุด</div>
+        <div class="repay-sub">
+          หักเคลียร์รายการที่ติ๊กไว้ ตั้งแต่บิลเก่าสุด
+        </div>
         <div class="repay-items" id="repay-items"></div>
         <div class="repay-summary" id="repay-summary"></div>
         <div class="repay-actions">
           <button type="button" class="cancel" id="repay-cancel">ยกเลิก</button>
-          <button type="button" class="save" id="repay-save">บันทึกรับเงิน</button>
+          <button type="button" class="save" id="repay-save">
+            บันทึกรับเงิน
+          </button>
         </div>
       </form>
     </dialog>
@@ -645,7 +667,9 @@
             (item) => `
               <div class="receipt-line">
                 <span class="who">${esc(item.title)}${
-                  Number(item.paid) > 0 ? ` <small class="text-muted">(จ่ายแล้ว ${fmt(item.paid)} จาก ${fmt(item.owed)})</small>` : ""
+                  Number(item.paid) > 0
+                    ? ` <small class="text-muted">(จ่ายแล้ว ${fmt(item.paid)} จาก ${fmt(item.owed)})</small>`
+                    : ""
                 }</span>
                 <span class="leader"></span>
                 <span class="money">${fmt(item.amount)}</span>
@@ -673,9 +697,13 @@
             ${lines}
             ${(() => {
               const sent = allRepayments.filter(
-                (r) => String(r.fromMemberId) === String(myId) && String(r.toMemberId) === String(debtGroup.creditorId),
+                (r) =>
+                  String(r.fromMemberId) === String(myId) &&
+                  String(r.toMemberId) === String(debtGroup.creditorId),
               );
-              return sent.length ? `<div class="lump-list">${sent.map((r) => lumpHtml(r, { sent: true })).join("")}</div>` : "";
+              return sent.length
+                ? `<div class="lump-list">${sent.map((r) => lumpHtml(r, { sent: true })).join("")}</div>`
+                : "";
             })()}
             <div class="card-hint">
               <i class="fa-solid fa-circle-info" style="margin-top: 3px;"></i>
@@ -687,9 +715,24 @@
       // --- ส่วนที่ 2: การ์ดบิลที่เราสำรองจ่าย + สถานะเพื่อนแต่ละคน ---
       // --- สถานะของบิลที่เราสำรองจ่าย (ดูจากเพื่อนร่วมหาร) ---
       const BILL_STATUS = {
-        UNPAID: { label: "ยังไม่จ่าย", icon: "fa-solid fa-hourglass-half", badgeClass: "status-pending", tone: "tone-danger" },
-        PARTIAL: { label: "จ่ายบางส่วน", icon: "fa-solid fa-circle-half-stroke", badgeClass: "status-partial", tone: "tone-amber" },
-        PAID: { label: "จ่ายครบแล้ว", icon: "fa-solid fa-check-double", badgeClass: "status-paid", tone: "tone-success" },
+        UNPAID: {
+          label: "ยังไม่จ่าย",
+          icon: "fa-solid fa-hourglass-half",
+          badgeClass: "status-pending",
+          tone: "tone-danger",
+        },
+        PARTIAL: {
+          label: "จ่ายบางส่วน",
+          icon: "fa-solid fa-circle-half-stroke",
+          badgeClass: "status-partial",
+          tone: "tone-amber",
+        },
+        PAID: {
+          label: "จ่ายครบแล้ว",
+          icon: "fa-solid fa-check-double",
+          badgeClass: "status-paid",
+          tone: "tone-success",
+        },
       };
       const STATUS_ORDER = ["UNPAID", "PARTIAL", "PAID"];
 
@@ -713,15 +756,27 @@
         bills.forEach((bill) =>
           (bill.splits || []).forEach((sp) => {
             const key = String(sp.memberId);
-            if (!people.has(key)) people.set(key, { memberId: sp.memberId, name: sp.memberName, items: [] });
+            if (!people.has(key))
+              people.set(key, {
+                memberId: sp.memberId,
+                name: sp.memberName,
+                items: [],
+              });
             people.get(key).items.push({
               expenseId: sp.expenseId ?? bill.expenseId,
               title: bill.title,
               billTotal: bill.totalAmount,
               amount: Number(sp.amountOwed || 0),
               // จ่ายมาแล้วเท่าไร (ครบ หรือหักจากยอดรวมมาบางส่วน)
-              paid: sp.isPaid ? Number(sp.amountOwed || 0) : Number(sp.paidAmount || 0),
-              remaining: roundMoney(Number(sp.amountOwed || 0) - (sp.isPaid ? Number(sp.amountOwed || 0) : Number(sp.paidAmount || 0))),
+              paid: sp.isPaid
+                ? Number(sp.amountOwed || 0)
+                : Number(sp.paidAmount || 0),
+              remaining: roundMoney(
+                Number(sp.amountOwed || 0) -
+                  (sp.isPaid
+                    ? Number(sp.amountOwed || 0)
+                    : Number(sp.paidAmount || 0)),
+              ),
               isPaid: !!sp.isPaid,
             });
           }),
@@ -729,7 +784,9 @@
         // ในการ์ด: รายการที่ยังไม่จ่ายขึ้นก่อน แล้วเรียงตามบิลล่าสุด
         people.forEach((person) =>
           person.items.sort(
-            (a, b) => Number(a.isPaid) - Number(b.isPaid) || Number(b.expenseId) - Number(a.expenseId),
+            (a, b) =>
+              Number(a.isPaid) - Number(b.isPaid) ||
+              Number(b.expenseId) - Number(a.expenseId),
           ),
         );
         return [...people.values()];
@@ -741,11 +798,15 @@
       let myId = null;
       const shortDate = (v) => {
         const d = new Date(v);
-        return isNaN(d) ? "" : d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+        return isNaN(d)
+          ? ""
+          : d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
       };
       // บรรทัด "ได้รับแล้ว ฿600 (ไม่ระบุรายการ) · หักค่ารถตู้ ฿500 · ข้าวซอย ฿100"
       function lumpHtml(r, { sent = false, undo = false } = {}) {
-        const used = (r.items || []).map((i) => `${esc(i.title)} ${fmt(i.amount)}`).join(" · ");
+        const used = (r.items || [])
+          .map((i) => `${esc(i.title)} ${fmt(i.amount)}`)
+          .join(" · ");
         return `
           <div class="lump-row${sent ? " sent" : ""}">
             <i class="fa-solid fa-money-bill-transfer"></i>
@@ -765,7 +826,8 @@
           return;
         }
         bar.classList.remove("hidden");
-        const count = (st) => allPeople.filter((person) => personStatus(person) === st).length;
+        const count = (st) =>
+          allPeople.filter((person) => personStatus(person) === st).length;
         const chip = (value, label, icon, tone, n) => `
           <button type="button" class="filter-chip ${tone}${billFilter === value ? " active" : ""}"
             data-filter="${value}" aria-pressed="${billFilter === value}">
@@ -774,42 +836,64 @@
         bar.innerHTML =
           chip("ALL", "ทั้งหมด", "", "", allPeople.length) +
           STATUS_ORDER.map((st) =>
-            chip(st, BILL_STATUS[st].label, BILL_STATUS[st].icon, BILL_STATUS[st].tone, count(st)),
+            chip(
+              st,
+              BILL_STATUS[st].label,
+              BILL_STATUS[st].icon,
+              BILL_STATUS[st].tone,
+              count(st),
+            ),
           ).join("");
       }
 
       function renderPaidBills() {
         const container = document.getElementById("my-paid-bills-container");
         if (allPaidBills.length === 0) {
-          container.innerHTML = emptyBox("fa-solid fa-receipt", "คุณยังไม่มีบิลที่สำรองจ่ายในทริปนี้");
+          container.innerHTML = emptyBox(
+            "fa-solid fa-receipt",
+            "คุณยังไม่มีบิลที่สำรองจ่ายในทริปนี้",
+          );
           return;
         }
         if (allPeople.length === 0) {
-          container.innerHTML = emptyBox("fa-solid fa-user", "บิลที่คุณสำรองจ่ายไม่มีเพื่อนร่วมหาร (จ่ายคนเดียวทั้งหมด)");
+          container.innerHTML = emptyBox(
+            "fa-solid fa-user",
+            "บิลที่คุณสำรองจ่ายไม่มีเพื่อนร่วมหาร (จ่ายคนเดียวทั้งหมด)",
+          );
           return;
         }
         // เรียง: ยังไม่จ่าย -> จ่ายบางส่วน -> จ่ายครบแล้ว, สถานะเดียวกัน = ค้างมากก่อน
-        const unpaidOf = (person) => person.items.reduce((sum, x) => sum + x.remaining, 0);
+        const unpaidOf = (person) =>
+          person.items.reduce((sum, x) => sum + x.remaining, 0);
         const list = allPeople
-          .filter((person) => billFilter === "ALL" || personStatus(person) === billFilter)
+          .filter(
+            (person) =>
+              billFilter === "ALL" || personStatus(person) === billFilter,
+          )
           .sort(
             (a, b) =>
-              STATUS_ORDER.indexOf(personStatus(a)) - STATUS_ORDER.indexOf(personStatus(b)) ||
+              STATUS_ORDER.indexOf(personStatus(a)) -
+                STATUS_ORDER.indexOf(personStatus(b)) ||
               unpaidOf(b) - unpaidOf(a),
           );
         container.innerHTML =
           list.length === 0
-            ? emptyBox(BILL_STATUS[billFilter].icon, `ไม่มีเพื่อนที่${BILL_STATUS[billFilter].label}`)
+            ? emptyBox(
+                BILL_STATUS[billFilter].icon,
+                `ไม่มีเพื่อนที่${BILL_STATUS[billFilter].label}`,
+              )
             : list.map(renderPersonCard).join("");
       }
 
-      document.getElementById("bill-filter-bar").addEventListener("click", (e) => {
-        const btn = e.target.closest(".filter-chip");
-        if (!btn) return;
-        billFilter = btn.dataset.filter;
-        renderBillFilter();
-        renderPaidBills();
-      });
+      document
+        .getElementById("bill-filter-bar")
+        .addEventListener("click", (e) => {
+          const btn = e.target.closest(".filter-chip");
+          if (!btn) return;
+          billFilter = btn.dataset.filter;
+          renderBillFilter();
+          renderPaidBills();
+        });
 
       // การ์ดเพื่อน 1 คน: ค้างคุณเท่าไร + รายการที่ร่วมหาร (กดยืนยันรับเงินทีละรายการ)
       function renderPersonCard(person) {
@@ -818,7 +902,9 @@
         const unpaid = roundMoney(total - received);
         const paidCount = person.items.filter((x) => x.remaining <= 0).length;
         const lumps = allRepayments.filter(
-          (r) => String(r.fromMemberId) === String(person.memberId) && String(r.toMemberId) === String(myId),
+          (r) =>
+            String(r.fromMemberId) === String(person.memberId) &&
+            String(r.toMemberId) === String(myId),
         );
         const status = personStatus(person);
         const percent = total > 0 ? Math.round((received / total) * 100) : 100;
@@ -937,7 +1023,11 @@
               s +
               (b.splits || [])
                 .filter((x) => !x.isPaid)
-                .reduce((t, x) => t + Number(x.amountOwed || 0) - Number(x.paidAmount || 0), 0),
+                .reduce(
+                  (t, x) =>
+                    t + Number(x.amountOwed || 0) - Number(x.paidAmount || 0),
+                  0,
+                ),
             0,
           );
           renderSummary(totalOwe, totalReceive);
@@ -946,7 +1036,10 @@
           setCount("debts-count", myDebts.length);
           myDebtsContainer.innerHTML =
             myDebts.length === 0
-              ? emptyBox("fa-solid fa-champagne-glasses", "ไม่มีรายการที่คุณต้องชำระ 🎉")
+              ? emptyBox(
+                  "fa-solid fa-champagne-glasses",
+                  "ไม่มีรายการที่คุณต้องชำระ",
+                )
               : myDebts.map(renderDebtCard).join("");
 
           // 5. ส่วนที่ 2: บิลที่คุณสำรองจ่าย + ตัวกรองสถานะ (ตัวกรองที่เลือกไว้ยังคงอยู่หลังกดยืนยันรับเงิน)
@@ -989,13 +1082,18 @@
 
       // รายการที่ยังค้าง เรียงบิลเก่าสุดก่อน (ลำดับเดียวกับที่หลังบ้านหัก)
       const openItemsOf = (person) =>
-        person.items.filter((x) => x.remaining > 0).sort((a, b) => Number(a.expenseId) - Number(b.expenseId));
+        person.items
+          .filter((x) => x.remaining > 0)
+          .sort((a, b) => Number(a.expenseId) - Number(b.expenseId));
 
       function openRepay(memberId) {
-        repayPerson = allPeople.find((p) => String(p.memberId) === String(memberId));
+        repayPerson = allPeople.find(
+          (p) => String(p.memberId) === String(memberId),
+        );
         if (!repayPerson) return;
         const items = openItemsOf(repayPerson);
-        document.getElementById("repay-title").textContent = `รับเงินจาก ${repayPerson.name}`;
+        document.getElementById("repay-title").textContent =
+          `รับเงินจาก ${repayPerson.name}`;
         document.getElementById("repay-sub").textContent =
           `ค้างคุณ ${items.length} รายการ รวม ${fmt(items.reduce((s, x) => s + x.remaining, 0))}`;
         document.getElementById("repay-items").innerHTML = items
@@ -1016,24 +1114,39 @@
 
       const chosenItems = () => {
         const ids = new Set(
-          [...document.querySelectorAll("#repay-items input:checked")].map((cb) => String(cb.value)),
+          [...document.querySelectorAll("#repay-items input:checked")].map(
+            (cb) => String(cb.value),
+          ),
         );
-        return openItemsOf(repayPerson).filter((x) => ids.has(String(x.expenseId)));
+        return openItemsOf(repayPerson).filter((x) =>
+          ids.has(String(x.expenseId)),
+        );
       };
 
       // ตัวอย่างการหัก: ไล่จากบิลเก่าสุดในรายการที่ติ๊ก ยอดไม่พอ = รายการสุดท้ายจ่ายบางส่วน
       function renderRepayPreview() {
-        const amount = roundMoney(Number(document.getElementById("repay-amount").value) || 0);
+        const amount = roundMoney(
+          Number(document.getElementById("repay-amount").value) || 0,
+        );
         const chosen = chosenItems();
-        const outstanding = roundMoney(chosen.reduce((s, x) => s + x.remaining, 0));
+        const outstanding = roundMoney(
+          chosen.reduce((s, x) => s + x.remaining, 0),
+        );
         let left = amount;
-        document.querySelectorAll("#repay-items [data-take]").forEach((el) => (el.textContent = "", el.className = "take"));
+        document
+          .querySelectorAll("#repay-items [data-take]")
+          .forEach((el) => ((el.textContent = ""), (el.className = "take")));
         chosen.forEach((x) => {
-          const el = document.querySelector(`#repay-items [data-take="${x.expenseId}"]`);
+          const el = document.querySelector(
+            `#repay-items [data-take="${x.expenseId}"]`,
+          );
           const take = roundMoney(Math.min(left, x.remaining));
           left = roundMoney(left - take);
           if (take <= 0) return;
-          el.textContent = take >= x.remaining ? `✓ ${fmt(take)}` : `${fmt(take)} (เหลือ ${fmt(roundMoney(x.remaining - take))})`;
+          el.textContent =
+            take >= x.remaining
+              ? `✓ ${fmt(take)}`
+              : `${fmt(take)} (เหลือ ${fmt(roundMoney(x.remaining - take))})`;
           el.classList.add(take >= x.remaining ? "full" : "part");
         });
         const summary = document.getElementById("repay-summary");
@@ -1046,55 +1159,80 @@
             : amount > 0
               ? `หักแล้วยังค้างอีก ${fmt(roundMoney(outstanding - amount))}`
               : `ยอดค้างในรายการที่ติ๊ก ${fmt(outstanding)}`;
-        document.getElementById("repay-save").disabled = !(amount > 0) || over || !chosen.length;
+        document.getElementById("repay-save").disabled =
+          !(amount > 0) || over || !chosen.length;
       }
 
-      document.getElementById("repay-amount").addEventListener("input", renderRepayPreview);
-      document.getElementById("repay-items").addEventListener("change", renderRepayPreview);
+      document
+        .getElementById("repay-amount")
+        .addEventListener("input", renderRepayPreview);
+      document
+        .getElementById("repay-items")
+        .addEventListener("change", renderRepayPreview);
       document.getElementById("repay-full").addEventListener("click", () => {
-        document.getElementById("repay-amount").value = roundMoney(chosenItems().reduce((s, x) => s + x.remaining, 0)) || "";
+        document.getElementById("repay-amount").value =
+          roundMoney(chosenItems().reduce((s, x) => s + x.remaining, 0)) || "";
         renderRepayPreview();
       });
-      document.getElementById("repay-cancel").addEventListener("click", () => document.getElementById("repay-dialog").close());
+      document
+        .getElementById("repay-cancel")
+        .addEventListener("click", () =>
+          document.getElementById("repay-dialog").close(),
+        );
       document.getElementById("repay-dialog").addEventListener("click", (e) => {
         if (e.target.id === "repay-dialog") e.target.close();
       });
 
-      document.getElementById("repay-save").addEventListener("click", async () => {
-        const btn = document.getElementById("repay-save");
-        const amount = roundMoney(Number(document.getElementById("repay-amount").value) || 0);
-        const expenseIds = chosenItems().map((x) => Number(x.expenseId));
-        btn.disabled = true;
-        try {
-          const res = await fetch(
-            `${API_BASE_URL}/expenses/repay/${tripId}?receiverId=${myId}&senderId=${repayPerson.memberId}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ amount, expenseIds }),
-            },
+      document
+        .getElementById("repay-save")
+        .addEventListener("click", async () => {
+          const btn = document.getElementById("repay-save");
+          const amount = roundMoney(
+            Number(document.getElementById("repay-amount").value) || 0,
           );
-          if (!res.ok) {
-            let message = "";
-            try {
-              message = (await res.json()).message || "";
-            } catch {}
-            throw new Error(message || "บันทึกไม่สำเร็จ กรุณาลองใหม่");
+          const expenseIds = chosenItems().map((x) => Number(x.expenseId));
+          btn.disabled = true;
+          try {
+            const res = await fetch(
+              `${API_BASE_URL}/expenses/repay/${tripId}?receiverId=${myId}&senderId=${repayPerson.memberId}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount, expenseIds }),
+              },
+            );
+            if (!res.ok) {
+              let message = "";
+              try {
+                message = (await res.json()).message || "";
+              } catch {}
+              throw new Error(message || "บันทึกไม่สำเร็จ กรุณาลองใหม่");
+            }
+            document.getElementById("repay-dialog").close();
+            showToast(
+              `บันทึกรับเงิน ${fmt(amount)} จาก ${repayPerson.name} แล้ว`,
+            );
+            await loadDebts();
+          } catch (error) {
+            showToast(error.message, "error");
+            btn.disabled = false;
           }
-          document.getElementById("repay-dialog").close();
-          showToast(`บันทึกรับเงิน ${fmt(amount)} จาก ${repayPerson.name} แล้ว`);
-          await loadDebts();
-        } catch (error) {
-          showToast(error.message, "error");
-          btn.disabled = false;
-        }
-      });
+        });
 
       async function undoRepay(id) {
         const r = allRepayments.find((x) => String(x.id) === String(id));
-        if (!r || !confirm(`ยกเลิกการรับเงิน ${fmt(r.amount)} จาก ${r.fromName}? รายการที่หักไว้จะกลับมาเป็นยอดค้าง`)) return;
+        if (
+          !r ||
+          !confirm(
+            `ยกเลิกการรับเงิน ${fmt(r.amount)} จาก ${r.fromName}? รายการที่หักไว้จะกลับมาเป็นยอดค้าง`,
+          )
+        )
+          return;
         try {
-          const res = await fetch(`${API_BASE_URL}/expenses/repay/${id}?memberId=${myId}`, { method: "DELETE" });
+          const res = await fetch(
+            `${API_BASE_URL}/expenses/repay/${id}?memberId=${myId}`,
+            { method: "DELETE" },
+          );
           if (!res.ok) throw new Error();
           showToast("ยกเลิกการรับเงินแล้ว");
         } catch {
@@ -1104,10 +1242,15 @@
       }
 
       async function confirmFriendPaid(button) {
-        const { expenseId, memberId, memberName, amount, title } = button.dataset;
+        const { expenseId, memberId, memberName, amount, title } =
+          button.dataset;
 
         // ยกเลิกไม่ได้ จึงถามยืนยันก่อน
-        if (!confirm(`ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} ค่า "${title}" แล้ว?`)) {
+        if (
+          !confirm(
+            `ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} ค่า "${title}" แล้ว?`,
+          )
+        ) {
           return;
         }
 
@@ -1127,8 +1270,14 @@
 
           // อัปเดตข้อมูลในเครื่องก่อน เพื่อเล่นอนิเมชันทันทีโดยไม่ต้องรอโหลดใหม่
           const card = button.closest("article");
-          const bill = allPaidBills.find((b) => String(b.expenseId) === String(expenseId));
-          const split = bill && (bill.splits || []).find((sp) => String(sp.memberId) === String(memberId));
+          const bill = allPaidBills.find(
+            (b) => String(b.expenseId) === String(expenseId),
+          );
+          const split =
+            bill &&
+            (bill.splits || []).find(
+              (sp) => String(sp.memberId) === String(memberId),
+            );
           if (split) split.isPaid = true;
 
           // 1. ป้าย "จ่ายแล้ว" ของเพื่อนคนนี้เด้งขึ้นแทนปุ่ม
@@ -1136,8 +1285,12 @@
             '<span class="badge-status status-paid pop-in"><i class="fa-solid fa-check"></i> จ่ายแล้ว</span>';
 
           // 2. เพื่อนคนนี้คืนครบทุกรายการแล้ว -> ประทับ PAID ลงบนการ์ดของเขา
-          const person = allPeople.find((x) => String(x.memberId) === String(memberId));
-          const personItem = person && person.items.find((x) => String(x.expenseId) === String(expenseId));
+          const person = allPeople.find(
+            (x) => String(x.memberId) === String(memberId),
+          );
+          const personItem =
+            person &&
+            person.items.find((x) => String(x.expenseId) === String(expenseId));
           if (personItem) {
             personItem.isPaid = true;
             personItem.paid = personItem.amount;
@@ -1145,12 +1298,17 @@
           }
           const billDone = !!person && personStatus(person) === "PAID";
           if (billDone && card) {
-            card.insertAdjacentHTML("beforeend", paidStampHtml("คืนครบแล้ว", true));
+            card.insertAdjacentHTML(
+              "beforeend",
+              paidStampHtml("คืนครบแล้ว", true),
+            );
             card.classList.add("stamp-shake");
           }
 
           // 3. ไม่มีใครค้างเราแล้วทุกบิล -> โปรยกระดาษสี
-          const nobodyOwesMe = allPaidBills.every((b) => (b.splits || []).every((sp) => sp.isPaid));
+          const nobodyOwesMe = allPaidBills.every((b) =>
+            (b.splits || []).every((sp) => sp.isPaid),
+          );
           if (nobodyOwesMe) launchConfetti();
 
           showToast(

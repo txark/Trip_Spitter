@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trip Plan - Party & Trip Expense Splitter Pro</title>
+    <title>Trip Plan - Trip Expense Splitter</title>
 
     <link rel="stylesheet" href="css/all.css" />
     <!-- Sidebar สำหรับจอคอม (≥1024px) -->
@@ -956,7 +956,11 @@
         border-radius: var(--radius-lg);
         color: #ffffff;
         background:
-          radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.16), transparent 38%),
+          radial-gradient(
+            circle at 92% 8%,
+            rgba(255, 255, 255, 0.16),
+            transparent 38%
+          ),
           linear-gradient(135deg, #1e1b4b 0%, #3730a3 55%, #4f46e5 100%);
         box-shadow: 0 14px 34px rgba(49, 46, 129, 0.25);
         overflow: hidden;
@@ -2729,7 +2733,9 @@
         <div class="hero-top">
           <div class="hero-trip">
             <span class="hero-eyebrow">TRIP ITINERARY</span>
-            <h3 class="hero-title" id="hero-title"><span class="skeleton-line"></span></h3>
+            <h3 class="hero-title" id="hero-title">
+              <span class="skeleton-line"></span>
+            </h3>
             <div class="hero-dates" id="hero-dates"></div>
           </div>
           <div class="hero-next">
@@ -2750,10 +2756,17 @@
             <span id="stat-total-sub"></span>
           </div>
           <div>
-            <button type="button" class="budget-stat" id="budget-btn" aria-haspopup="dialog">
+            <button
+              type="button"
+              class="budget-stat"
+              id="budget-btn"
+              aria-haspopup="dialog"
+            >
               <b id="stat-budget">-</b>
               <span id="stat-budget-sub">งบโดยประมาณ</span>
-              <span class="budget-bar hidden" id="budget-bar" aria-hidden="true"><i id="budget-fill"></i></span>
+              <span class="budget-bar hidden" id="budget-bar" aria-hidden="true"
+                ><i id="budget-fill"></i
+              ></span>
             </button>
           </div>
         </div>
@@ -2769,10 +2782,14 @@
             aria-expanded="true"
             aria-controls="create-body"
           >
-            <div class="avatar icon"><i class="fa-solid fa-plus" id="form-icon"></i></div>
+            <div class="avatar icon">
+              <i class="fa-solid fa-plus" id="form-icon"></i>
+            </div>
             <span class="heading-text">
               <span id="form-title">เพิ่มกิจกรรม</span>
-              <span class="heading-sub" id="form-sub">แตะเพื่อเพิ่มกิจกรรมลงแพลน</span>
+              <span class="heading-sub" id="form-sub"
+                >แตะเพื่อเพิ่มกิจกรรมลงแพลน</span
+              >
             </span>
             <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
           </button>
@@ -2782,293 +2799,466 @@
             <div class="poll-link hidden" id="poll-link" role="status"></div>
             <div class="input-group">
               <span class="label">ประเภท</span>
-              <div class="cat-grid" id="cat-grid" role="radiogroup" aria-label="ประเภท"></div>
-              <p class="pick-hint" id="pick-hint">เลือกประเภทก่อน แล้วช่องกรอกจะเปลี่ยนตามประเภท</p>
+              <div
+                class="cat-grid"
+                id="cat-grid"
+                role="radiogroup"
+                aria-label="ประเภท"
+              ></div>
+              <p class="pick-hint" id="pick-hint">
+                เลือกประเภทก่อน แล้วช่องกรอกจะเปลี่ยนตามประเภท
+              </p>
             </div>
 
             <!-- ช่องกรอกโชว์หลังเลือกประเภทแล้วเท่านั้น -->
             <div id="cat-fields" class="hidden">
-            <!-- เดินทาง: วิธีเดินทาง -->
-            <div class="input-group" data-cats="TRAVEL">
-              <span class="label">วิธีเดินทาง</span>
-              <div class="pill-grid" id="mode-grid" role="radiogroup" aria-label="วิธีเดินทาง"></div>
-            </div>
-
-            <!-- กิน: มื้อ (เลือกแล้วใส่เวลาให้ถ้ายังว่าง) -->
-            <div class="input-group" data-cats="FOOD">
-              <span class="label">มื้อ</span>
-              <div class="pill-grid" id="meal-grid" role="radiogroup" aria-label="มื้อ"></div>
-            </div>
-
-            <!-- เดินทาง: ไม่มีช่องชื่อ ตั้งจากวิธีเดินทาง + เส้นทางให้เอง (travelTitle) -->
-            <div class="input-group" id="group-title" data-cats="FOOD STAY SIGHTSEEING ACTIVITY OTHER">
-              <label for="title-input"
-                ><span class="label-text" id="title-label">ชื่อกิจกรรม</span>
-                <span id="title-hint"></span
-              ></label>
-              <input
-                type="text"
-                id="title-input"
-                class="text-input"
-                maxlength="100"
-                autocomplete="off"
-                data-place="title"
-              />
-              <div class="field-error" id="title-error">กรุณากรอกชื่อ</div>
-            </div>
-
-            <!-- เดินทาง: การ์ดเส้นทางแบบตั๋วเครื่องบิน (ช่องเวลาเริ่ม/จบย้ายมาไว้ในการ์ด) -->
-            <div class="input-group" id="group-route" data-cats="TRAVEL">
-              <span class="label">เส้นทาง <span>เช่น เชียงใหม่, BKK</span></span>
-              <div class="flight-card">
-                <div class="flight-end">
-                  <span class="flight-cap">ต้นทาง</span>
-                  <input
-                    type="text"
-                    id="origin-input"
-                    class="text-input flight-place"
-                    maxlength="150"
-                    placeholder="ออกจากไหน"
-                    aria-label="ต้นทาง"
-                    autocomplete="off"
-                    data-place="route"
-                  />
-                  <div class="flight-time"><span>เวลาออก</span><div id="depart-slot"></div></div>
-                </div>
-                <div class="flight-mid">
-                  <button type="button" class="swap-btn" id="swap-btn" title="สลับต้นทาง–ปลายทาง" aria-label="สลับต้นทางกับปลายทาง">
-                    <i class="fa-solid fa-right-left"></i>
-                  </button>
-                  <div class="flight-line"><i class="fa-solid fa-route" id="flight-icon"></i></div>
-                  <span class="flight-duration" id="flight-duration"></span>
-                </div>
-                <div class="flight-end to">
-                  <span class="flight-cap">ปลายทาง</span>
-                  <input
-                    type="text"
-                    id="dest-input"
-                    class="text-input flight-place"
-                    maxlength="150"
-                    placeholder="ไปไหน"
-                    aria-label="ปลายทาง"
-                    autocomplete="off"
-                    data-place="route"
-                  />
-                  <div class="flight-time"><span>เวลาถึง</span><div id="arrive-slot"></div></div>
-                </div>
+              <!-- เดินทาง: วิธีเดินทาง -->
+              <div class="input-group" data-cats="TRAVEL">
+                <span class="label">วิธีเดินทาง</span>
+                <div
+                  class="pill-grid"
+                  id="mode-grid"
+                  role="radiogroup"
+                  aria-label="วิธีเดินทาง"
+                ></div>
               </div>
-              <!-- เครื่องบิน: ต่อเครื่องกี่เมืองก็ได้ (ไม่เกิน 5) เรียงตามลำดับที่บินผ่าน -->
-              <div class="stops-box hidden" id="stops-box">
-                <div class="stops-head">ต่อเครื่อง <span id="stops-sum">บินตรง</span></div>
-                <div id="stop-list"></div>
-                <button type="button" class="add-stop-btn" id="add-stop-btn">
-                  <i class="fa-solid fa-plus"></i> เพิ่มเมืองต่อเครื่อง
-                </button>
-              </div>
-              <div class="field-error" id="route-error"></div>
-            </div>
 
-            <div class="input-group" id="group-date">
-              <label for="date-input" id="date-label">วัน</label>
-              <div id="date-home">
-                <div id="date-control">
-                  <select id="date-input" class="text-input"></select>
-                  <input type="date" id="date-free-input" class="text-input hidden" />
-                </div>
+              <!-- กิน: มื้อ (เลือกแล้วใส่เวลาให้ถ้ายังว่าง) -->
+              <div class="input-group" data-cats="FOOD">
+                <span class="label">มื้อ</span>
+                <div
+                  class="pill-grid"
+                  id="meal-grid"
+                  role="radiogroup"
+                  aria-label="มื้อ"
+                ></div>
               </div>
-              <div class="field-error" id="date-error">กรุณาเลือกวัน</div>
-            </div>
 
-            <!-- ทุกประเภทยกเว้นที่พัก: เวลาเริ่ม – สิ้นสุด (กินมีแค่เวลาเริ่ม) -->
-            <div class="input-group" id="group-time" data-cats="FOOD SIGHTSEEING ACTIVITY OTHER">
-              <label for="start-input"
-                ><span class="label-text" id="time-label">เวลา</span> <span id="time-hint">ไม่ใส่ = ทั้งวัน</span></label
+              <!-- เดินทาง: ไม่มีช่องชื่อ ตั้งจากวิธีเดินทาง + เส้นทางให้เอง (travelTitle) -->
+              <div
+                class="input-group"
+                id="group-title"
+                data-cats="FOOD STAY SIGHTSEEING ACTIVITY OTHER"
               >
-              <div class="time-row" id="time-row">
-                <input type="time" id="start-input" class="text-input" aria-label="เวลาเริ่ม" />
-                <span class="to">ถึง</span>
-                <input type="time" id="end-input" class="text-input" aria-label="เวลาสิ้นสุด" />
-                <button
-                  type="button"
-                  class="clear-time-btn"
-                  id="clear-time-btn"
-                  title="ล้างเวลา"
-                  aria-label="ล้างเวลา"
+                <label for="title-input"
+                  ><span class="label-text" id="title-label">ชื่อกิจกรรม</span>
+                  <span id="title-hint"></span
+                ></label>
+                <input
+                  type="text"
+                  id="title-input"
+                  class="text-input"
+                  maxlength="100"
+                  autocomplete="off"
+                  data-place="title"
+                />
+                <div class="field-error" id="title-error">กรุณากรอกชื่อ</div>
+              </div>
+
+              <!-- เดินทาง: การ์ดเส้นทางแบบตั๋วเครื่องบิน (ช่องเวลาเริ่ม/จบย้ายมาไว้ในการ์ด) -->
+              <div class="input-group" id="group-route" data-cats="TRAVEL">
+                <span class="label"
+                  >เส้นทาง <span>เช่น เชียงใหม่, BKK</span></span
                 >
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              </div>
-              <div class="overnight-tag" id="overnight-tag">
-                <i class="fa-solid fa-moon"></i> ถึงวันถัดไป
-              </div>
-              <div class="field-error" id="time-error"></div>
-            </div>
-
-            <!-- ที่พัก: เช็คอิน → เช็คเอาท์ (ช่องเลือกวันย้ายมาไว้ที่นี่) -->
-            <div class="input-group" id="group-stay" data-cats="STAY">
-              <span class="label">เช็คอิน – เช็คเอาท์ <span id="nights-tag"></span></span>
-              <div class="stay-grid">
-                <span class="stay-label"><i class="fa-solid fa-right-to-bracket"></i> เช็คอิน</span>
-                <div id="stay-in-slot"></div>
-                <input type="time" id="checkin-time" class="text-input" aria-label="เวลาเช็คอิน" />
-                <span class="stay-label"><i class="fa-solid fa-right-from-bracket"></i> เช็คเอาท์</span>
-                <div>
-                  <select id="checkout-input" class="text-input" aria-label="วันเช็คเอาท์"></select>
-                  <input type="date" id="checkout-free-input" class="text-input hidden" aria-label="วันเช็คเอาท์" />
+                <div class="flight-card">
+                  <div class="flight-end">
+                    <span class="flight-cap">ต้นทาง</span>
+                    <input
+                      type="text"
+                      id="origin-input"
+                      class="text-input flight-place"
+                      maxlength="150"
+                      placeholder="ออกจากไหน"
+                      aria-label="ต้นทาง"
+                      autocomplete="off"
+                      data-place="route"
+                    />
+                    <div class="flight-time">
+                      <span>เวลาออก</span>
+                      <div id="depart-slot"></div>
+                    </div>
+                  </div>
+                  <div class="flight-mid">
+                    <button
+                      type="button"
+                      class="swap-btn"
+                      id="swap-btn"
+                      title="สลับต้นทาง–ปลายทาง"
+                      aria-label="สลับต้นทางกับปลายทาง"
+                    >
+                      <i class="fa-solid fa-right-left"></i>
+                    </button>
+                    <div class="flight-line">
+                      <i class="fa-solid fa-route" id="flight-icon"></i>
+                    </div>
+                    <span class="flight-duration" id="flight-duration"></span>
+                  </div>
+                  <div class="flight-end to">
+                    <span class="flight-cap">ปลายทาง</span>
+                    <input
+                      type="text"
+                      id="dest-input"
+                      class="text-input flight-place"
+                      maxlength="150"
+                      placeholder="ไปไหน"
+                      aria-label="ปลายทาง"
+                      autocomplete="off"
+                      data-place="route"
+                    />
+                    <div class="flight-time">
+                      <span>เวลาถึง</span>
+                      <div id="arrive-slot"></div>
+                    </div>
+                  </div>
                 </div>
-                <input type="time" id="checkout-time" class="text-input" aria-label="เวลาเช็คเอาท์" />
+                <!-- เครื่องบิน: ต่อเครื่องกี่เมืองก็ได้ (ไม่เกิน 5) เรียงตามลำดับที่บินผ่าน -->
+                <div class="stops-box hidden" id="stops-box">
+                  <div class="stops-head">
+                    ต่อเครื่อง <span id="stops-sum">บินตรง</span>
+                  </div>
+                  <div id="stop-list"></div>
+                  <button type="button" class="add-stop-btn" id="add-stop-btn">
+                    <i class="fa-solid fa-plus"></i> เพิ่มเมืองต่อเครื่อง
+                  </button>
+                </div>
+                <div class="field-error" id="route-error"></div>
               </div>
-              <div class="field-error" id="stay-error"></div>
-            </div>
 
-            <!-- สถานที่: พิมพ์แล้วเลือกจากแผนที่ (เก็บพิกัดไว้เปิดแผนที่ได้ตรงจุด) -->
-            <!-- กิน/ที่พัก/เที่ยวชม ไม่มีช่องนี้: ที่ตั้งได้จากชื่อที่เลือกในแผนที่ -->
-            <div class="input-group" data-cats="ACTIVITY OTHER">
-              <label for="location-input"
-                ><span class="label-text" id="location-label">สถานที่</span>
-                <span id="location-hint"></span
-              ></label>
-              <input
-                type="text"
-                id="location-input"
-                class="text-input"
-                maxlength="150"
-                autocomplete="off"
-                data-place
-              />
-            </div>
+              <div class="input-group" id="group-date">
+                <label for="date-input" id="date-label">วัน</label>
+                <div id="date-home">
+                  <div id="date-control">
+                    <select id="date-input" class="text-input"></select>
+                    <input
+                      type="date"
+                      id="date-free-input"
+                      class="text-input hidden"
+                    />
+                  </div>
+                </div>
+                <div class="field-error" id="date-error">กรุณาเลือกวัน</div>
+              </div>
 
-            <!-- กิจกรรม: ใครไปบ้าง (ไม่จำเป็นต้องไปทุกคน) -->
-            <div class="input-group" id="group-people" data-cats="TRAVEL ACTIVITY">
-              <span class="label" id="people-label">ผู้ร่วมกิจกรรม <span id="people-count"></span></span>
-              <div class="people-grid" id="people-grid" role="group" aria-labelledby="people-label"></div>
-              <div class="field-error" id="people-error">เลือกผู้ร่วมกิจกรรมอย่างน้อย 1 คน</div>
-            </div>
-
-            <div class="input-group" id="group-cost">
-              <label for="cost-input"><span class="label-text" id="cost-label">ค่าใช้จ่าย</span> <span>ประมาณการ</span></label>
-              <div class="cost-row">
-                <div class="money-field" id="cost-money">
-                  <label class="cost-cur" id="cost-cur" title="สกุลเงินของราคา">
-                    <span id="cost-symbol">฿</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                    <select id="cost-currency" aria-label="สกุลเงินของราคา"></select>
-                  </label>
+              <!-- ทุกประเภทยกเว้นที่พัก: เวลาเริ่ม – สิ้นสุด (กินมีแค่เวลาเริ่ม) -->
+              <div
+                class="input-group"
+                id="group-time"
+                data-cats="FOOD SIGHTSEEING ACTIVITY OTHER"
+              >
+                <label for="start-input"
+                  ><span class="label-text" id="time-label">เวลา</span>
+                  <span id="time-hint">ไม่ใส่ = ทั้งวัน</span></label
+                >
+                <div class="time-row" id="time-row">
                   <input
-                    type="number"
-                    id="cost-input"
+                    type="time"
+                    id="start-input"
                     class="text-input"
-                    min="0"
-                    step="any"
-                    inputmode="decimal"
-                    placeholder="0"
+                    aria-label="เวลาเริ่ม"
+                  />
+                  <span class="to">ถึง</span>
+                  <input
+                    type="time"
+                    id="end-input"
+                    class="text-input"
+                    aria-label="เวลาสิ้นสุด"
+                  />
+                  <button
+                    type="button"
+                    class="clear-time-btn"
+                    id="clear-time-btn"
+                    title="ล้างเวลา"
+                    aria-label="ล้างเวลา"
+                  >
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <div class="overnight-tag" id="overnight-tag">
+                  <i class="fa-solid fa-moon"></i> ถึงวันถัดไป
+                </div>
+                <div class="field-error" id="time-error"></div>
+              </div>
+
+              <!-- ที่พัก: เช็คอิน → เช็คเอาท์ (ช่องเลือกวันย้ายมาไว้ที่นี่) -->
+              <div class="input-group" id="group-stay" data-cats="STAY">
+                <span class="label"
+                  >เช็คอิน – เช็คเอาท์ <span id="nights-tag"></span
+                ></span>
+                <div class="stay-grid">
+                  <span class="stay-label"
+                    ><i class="fa-solid fa-right-to-bracket"></i> เช็คอิน</span
+                  >
+                  <div id="stay-in-slot"></div>
+                  <input
+                    type="time"
+                    id="checkin-time"
+                    class="text-input"
+                    aria-label="เวลาเช็คอิน"
+                  />
+                  <span class="stay-label"
+                    ><i class="fa-solid fa-right-from-bracket"></i>
+                    เช็คเอาท์</span
+                  >
+                  <div>
+                    <select
+                      id="checkout-input"
+                      class="text-input"
+                      aria-label="วันเช็คเอาท์"
+                    ></select>
+                    <input
+                      type="date"
+                      id="checkout-free-input"
+                      class="text-input hidden"
+                      aria-label="วันเช็คเอาท์"
+                    />
+                  </div>
+                  <input
+                    type="time"
+                    id="checkout-time"
+                    class="text-input"
+                    aria-label="เวลาเช็คเอาท์"
                   />
                 </div>
-                <!-- ที่พัก: จำนวนห้อง -->
-                <div class="rooms-field" data-cats="STAY">
-                  <span class="times" aria-hidden="true">×</span>
-                  <button type="button" class="step-btn" data-target="rooms-input" data-step="-1" aria-label="ลดจำนวนห้อง">
+                <div class="field-error" id="stay-error"></div>
+              </div>
+
+              <!-- สถานที่: พิมพ์แล้วเลือกจากแผนที่ (เก็บพิกัดไว้เปิดแผนที่ได้ตรงจุด) -->
+              <!-- กิน/ที่พัก/เที่ยวชม ไม่มีช่องนี้: ที่ตั้งได้จากชื่อที่เลือกในแผนที่ -->
+              <div class="input-group" data-cats="ACTIVITY OTHER">
+                <label for="location-input"
+                  ><span class="label-text" id="location-label">สถานที่</span>
+                  <span id="location-hint"></span
+                ></label>
+                <input
+                  type="text"
+                  id="location-input"
+                  class="text-input"
+                  maxlength="150"
+                  autocomplete="off"
+                  data-place
+                />
+              </div>
+
+              <!-- กิจกรรม: ใครไปบ้าง (ไม่จำเป็นต้องไปทุกคน) -->
+              <div
+                class="input-group"
+                id="group-people"
+                data-cats="TRAVEL ACTIVITY"
+              >
+                <span class="label" id="people-label"
+                  >ผู้ร่วมกิจกรรม <span id="people-count"></span
+                ></span>
+                <div
+                  class="people-grid"
+                  id="people-grid"
+                  role="group"
+                  aria-labelledby="people-label"
+                ></div>
+                <div class="field-error" id="people-error">
+                  เลือกผู้ร่วมกิจกรรมอย่างน้อย 1 คน
+                </div>
+              </div>
+
+              <div class="input-group" id="group-cost">
+                <label for="cost-input"
+                  ><span class="label-text" id="cost-label">ค่าใช้จ่าย</span>
+                  <span>ประมาณการ</span></label
+                >
+                <div class="cost-row">
+                  <div class="money-field" id="cost-money">
+                    <label
+                      class="cost-cur"
+                      id="cost-cur"
+                      title="สกุลเงินของราคา"
+                    >
+                      <span id="cost-symbol">฿</span
+                      ><i
+                        class="fa-solid fa-chevron-down"
+                        aria-hidden="true"
+                      ></i>
+                      <select
+                        id="cost-currency"
+                        aria-label="สกุลเงินของราคา"
+                      ></select>
+                    </label>
+                    <input
+                      type="number"
+                      id="cost-input"
+                      class="text-input"
+                      min="0"
+                      step="any"
+                      inputmode="decimal"
+                      placeholder="0"
+                    />
+                  </div>
+                  <!-- ที่พัก: จำนวนห้อง -->
+                  <div class="rooms-field" data-cats="STAY">
+                    <span class="times" aria-hidden="true">×</span>
+                    <button
+                      type="button"
+                      class="step-btn"
+                      data-target="rooms-input"
+                      data-step="-1"
+                      aria-label="ลดจำนวนห้อง"
+                    >
+                      <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <input
+                      type="number"
+                      id="rooms-input"
+                      class="text-input"
+                      min="1"
+                      max="50"
+                      value="1"
+                      inputmode="numeric"
+                      aria-label="จำนวนห้อง"
+                    />
+                    <button
+                      type="button"
+                      class="step-btn"
+                      data-target="rooms-input"
+                      data-step="1"
+                      aria-label="เพิ่มจำนวนห้อง"
+                    >
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <span class="rooms-unit">ห้อง</span>
+                  </div>
+                </div>
+                <!-- ที่พัก: พักได้ห้องละกี่คน -->
+                <div class="rooms-field guests-field" data-cats="STAY">
+                  <span class="guests-label">พักได้ห้องละ</span>
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-target="guests-input"
+                    data-step="-1"
+                    aria-label="ลดจำนวนคนต่อห้อง"
+                  >
                     <i class="fa-solid fa-minus"></i>
                   </button>
                   <input
                     type="number"
-                    id="rooms-input"
+                    id="guests-input"
                     class="text-input"
                     min="1"
-                    max="50"
-                    value="1"
+                    max="20"
+                    value="2"
                     inputmode="numeric"
-                    aria-label="จำนวนห้อง"
+                    aria-label="จำนวนคนต่อห้อง"
                   />
-                  <button type="button" class="step-btn" data-target="rooms-input" data-step="1" aria-label="เพิ่มจำนวนห้อง">
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-target="guests-input"
+                    data-step="1"
+                    aria-label="เพิ่มจำนวนคนต่อห้อง"
+                  >
                     <i class="fa-solid fa-plus"></i>
                   </button>
-                  <span class="rooms-unit">ห้อง</span>
+                  <span class="rooms-unit">คน</span>
                 </div>
+                <div class="cost-rate hidden" id="cost-rate">
+                  <label for="cost-rate-input" id="cost-rate-label">¥</label>
+                  <input
+                    type="number"
+                    id="cost-rate-input"
+                    data-out="cost-rate-out"
+                    min="0"
+                    step="any"
+                    inputmode="decimal"
+                    placeholder="1"
+                  />
+                  <span>= ฿</span>
+                  <input
+                    type="number"
+                    id="cost-rate-out"
+                    data-from="cost-rate-input"
+                    min="0"
+                    step="any"
+                    inputmode="decimal"
+                    aria-label="บาท (แปลงกลับ)"
+                  />
+                  <span class="rate-note" id="cost-rate-note"></span>
+                </div>
+                <div class="calc-line" id="cost-calc"></div>
+                <div class="field-error" id="cost-error"></div>
               </div>
-              <!-- ที่พัก: พักได้ห้องละกี่คน -->
-              <div class="rooms-field guests-field" data-cats="STAY">
-                <span class="guests-label">พักได้ห้องละ</span>
-                <button type="button" class="step-btn" data-target="guests-input" data-step="-1" aria-label="ลดจำนวนคนต่อห้อง">
-                  <i class="fa-solid fa-minus"></i>
-                </button>
+
+              <div class="input-group" data-cats="ACTIVITY">
+                <label for="contact-input">ผู้ให้บริการ / เบอร์ติดต่อ</label>
                 <input
-                  type="number"
-                  id="guests-input"
+                  type="text"
+                  id="contact-input"
                   class="text-input"
-                  min="1"
-                  max="20"
-                  value="2"
-                  inputmode="numeric"
-                  aria-label="จำนวนคนต่อห้อง"
+                  maxlength="100"
+                  placeholder="เช่น ไทยแลนด์ราฟติ้ง 081-234-5678"
+                  autocomplete="off"
                 />
-                <button type="button" class="step-btn" data-target="guests-input" data-step="1" aria-label="เพิ่มจำนวนคนต่อห้อง">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
-                <span class="rooms-unit">คน</span>
               </div>
-              <div class="cost-rate hidden" id="cost-rate">
-                <label for="cost-rate-input" id="cost-rate-label">¥</label>
-                <input type="number" id="cost-rate-input" data-out="cost-rate-out" min="0" step="any" inputmode="decimal" placeholder="1" />
-                <span>= ฿</span>
-                <input type="number" id="cost-rate-out" data-from="cost-rate-input" min="0" step="any" inputmode="decimal" aria-label="บาท (แปลงกลับ)" />
-                <span class="rate-note" id="cost-rate-note"></span>
+
+              <div class="input-group" data-cats="FOOD STAY ACTIVITY">
+                <span class="label" id="method-label">การจอง</span>
+                <div
+                  class="pill-grid"
+                  id="method-grid"
+                  role="radiogroup"
+                  aria-labelledby="method-label"
+                ></div>
               </div>
-              <div class="calc-line" id="cost-calc"></div>
-              <div class="field-error" id="cost-error"></div>
-            </div>
 
-            <div class="input-group" data-cats="ACTIVITY">
-              <label for="contact-input">ผู้ให้บริการ / เบอร์ติดต่อ</label>
-              <input
-                type="text"
-                id="contact-input"
-                class="text-input"
-                maxlength="100"
-                placeholder="เช่น ไทยแลนด์ราฟติ้ง 081-234-5678"
-                autocomplete="off"
-              />
-            </div>
-
-            <div class="input-group" data-cats="FOOD STAY ACTIVITY">
-              <span class="label" id="method-label">การจอง</span>
-              <div class="pill-grid" id="method-grid" role="radiogroup" aria-labelledby="method-label"></div>
-            </div>
-
-            <!-- เดินทาง (เฉพาะวิธีที่มีตั๋ว) / กิน-ที่พัก-กิจกรรม (เมื่อจองแล้ว: รายละเอียดตามช่องทาง) -->
-            <div class="input-group" id="group-booking" data-cats="TRAVEL FOOD STAY ACTIVITY">
-              <label for="booking-input"
-                ><span class="label-text" id="booking-label">เลขการจอง</span> <span>ไม่บังคับ</span></label
+              <!-- เดินทาง (เฉพาะวิธีที่มีตั๋ว) / กิน-ที่พัก-กิจกรรม (เมื่อจองแล้ว: รายละเอียดตามช่องทาง) -->
+              <div
+                class="input-group"
+                id="group-booking"
+                data-cats="TRAVEL FOOD STAY ACTIVITY"
               >
-              <input
-                type="text"
-                id="booking-input"
-                class="text-input"
-                maxlength="100"
-                autocomplete="off"
-              />
+                <label for="booking-input"
+                  ><span class="label-text" id="booking-label">เลขการจอง</span>
+                  <span>ไม่บังคับ</span></label
+                >
+                <input
+                  type="text"
+                  id="booking-input"
+                  class="text-input"
+                  maxlength="100"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="notes-input" id="notes-label">โน้ต</label>
+                <textarea
+                  id="notes-input"
+                  class="text-input"
+                  maxlength="500"
+                  rows="2"
+                ></textarea>
+              </div>
             </div>
 
-            <div class="input-group">
-              <label for="notes-input" id="notes-label">โน้ต</label>
-              <textarea
-                id="notes-input"
-                class="text-input"
-                maxlength="500"
-                rows="2"
-              ></textarea>
-            </div>
-            </div>
-
-            <a class="form-record-link hidden" id="form-record-link" href="expenses.html">
+            <a
+              class="form-record-link hidden"
+              id="form-record-link"
+              href="expenses.html"
+            >
               <i class="fa-solid fa-receipt"></i>
-              <span id="form-record-text">บันทึกค่าใช้จ่ายจริงของรายการนี้</span>
+              <span id="form-record-text"
+                >บันทึกค่าใช้จ่ายจริงของรายการนี้</span
+              >
               <i class="fa-solid fa-arrow-right"></i>
             </a>
             <div class="form-actions" id="form-actions">
-              <button type="button" class="ghost-btn danger hidden" id="delete-btn">
+              <button
+                type="button"
+                class="ghost-btn danger hidden"
+                id="delete-btn"
+              >
                 <i class="fa-solid fa-trash-can"></i> <span>ลบ</span>
               </button>
-              <button type="button" class="ghost-btn hidden" id="cancel-btn">ยกเลิก</button>
+              <button type="button" class="ghost-btn hidden" id="cancel-btn">
+                ยกเลิก
+              </button>
               <button type="submit" class="submit-btn" id="submit-btn">
                 <i class="fa-solid fa-plus"></i> <span>เพิ่มลงแพลน</span>
               </button>
@@ -3080,22 +3270,40 @@
           <div class="section-title">
             <span>แพลนทั้งทริป</span>
             <div class="title-actions">
-              <button type="button" class="tz-chip hidden" id="fx-chip" aria-haspopup="dialog">
+              <button
+                type="button"
+                class="tz-chip hidden"
+                id="fx-chip"
+                aria-haspopup="dialog"
+              >
                 <i class="fa-solid fa-coins" aria-hidden="true"></i>
                 <span id="fx-text">฿ บาท</span>
               </button>
               <label class="tz-chip hidden" id="tz-chip">
                 <i class="fa-regular fa-clock" aria-hidden="true"></i>
                 <span id="tz-text"></span>
-                <i class="fa-solid fa-chevron-down tz-caret" aria-hidden="true"></i>
+                <i
+                  class="fa-solid fa-chevron-down tz-caret"
+                  aria-hidden="true"
+                ></i>
                 <select id="tz-select" aria-label="เขตเวลาของแพลน"></select>
               </label>
-              <button type="button" class="share-btn hidden" id="share-btn" aria-label="แชร์แพลน">
-                <i class="fa-solid fa-share-nodes"></i> <span class="share-label">แชร์แพลน</span>
+              <button
+                type="button"
+                class="share-btn hidden"
+                id="share-btn"
+                aria-label="แชร์แพลน"
+              >
+                <i class="fa-solid fa-share-nodes"></i>
+                <span class="share-label">แชร์แพลน</span>
               </button>
             </div>
           </div>
-          <nav class="day-strip hidden" id="day-strip" aria-label="ไปยังวัน"></nav>
+          <nav
+            class="day-strip hidden"
+            id="day-strip"
+            aria-label="ไปยังวัน"
+          ></nav>
           <div id="timeline">
             <div class="skeleton"></div>
             <div class="skeleton"></div>
@@ -3105,7 +3313,12 @@
     </div>
 
     <!-- มือถือ: ปุ่มลอยเพิ่มกิจกรรม + พื้นหลังมืดตอนเปิดฟอร์ม -->
-    <button type="button" class="add-fab hidden" id="add-fab" aria-label="เพิ่มกิจกรรม">
+    <button
+      type="button"
+      class="add-fab hidden"
+      id="add-fab"
+      aria-label="เพิ่มกิจกรรม"
+    >
       <i class="fa-solid fa-plus"></i>
     </button>
     <div class="sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
@@ -3117,36 +3330,87 @@
           <span id="fx-title">สกุลเงินของทริป</span>
           <button type="submit" value="cancel" aria-label="ปิด">&times;</button>
         </div>
-        <div class="share-sub">กรอกค่าเงินประเทศที่ไป ระบบจะแปลงเป็นค่าเงินบาทให้</div>
+        <div class="share-sub">
+          กรอกค่าเงินประเทศที่ไป ระบบจะแปลงเป็นค่าเงินบาทให้
+        </div>
         <div class="fx-row">
-          <div class="continent-chips" id="fx-continents" role="group" aria-label="ทวีป"></div>
-          <select class="fx-select" id="fx-currency" aria-label="สกุลเงินท้องถิ่น"></select>
+          <div
+            class="continent-chips"
+            id="fx-continents"
+            role="group"
+            aria-label="ทวีป"
+          ></div>
+          <select
+            class="fx-select"
+            id="fx-currency"
+            aria-label="สกุลเงินท้องถิ่น"
+          ></select>
           <div class="fx-rate" id="fx-rate-row">
-            <label class="budget-field"><span aria-hidden="true" id="fx-sym">¥</span><input type="number" id="fx-rate" data-out="fx-unit" min="0" step="any" inputmode="decimal" aria-label="จำนวนเงินสกุลนี้ ที่จะแปลงเป็นบาท" /></label>
+            <label class="budget-field"
+              ><span aria-hidden="true" id="fx-sym">¥</span
+              ><input
+                type="number"
+                id="fx-rate"
+                data-out="fx-unit"
+                min="0"
+                step="any"
+                inputmode="decimal"
+                aria-label="จำนวนเงินสกุลนี้ ที่จะแปลงเป็นบาท"
+            /></label>
             <span>=</span>
-            <label class="budget-field"><span aria-hidden="true">฿</span><input type="number" id="fx-unit" data-from="fx-rate" min="0" step="any" inputmode="decimal" aria-label="บาท (แปลงกลับ)" /></label>
-            <button type="button" class="fx-fetch" id="fx-fetch"><i class="fa-solid fa-rotate"></i> เรทวันนี้</button>
+            <label class="budget-field"
+              ><span aria-hidden="true">฿</span
+              ><input
+                type="number"
+                id="fx-unit"
+                data-from="fx-rate"
+                min="0"
+                step="any"
+                inputmode="decimal"
+                aria-label="บาท (แปลงกลับ)"
+            /></label>
+            <button type="button" class="fx-fetch" id="fx-fetch">
+              <i class="fa-solid fa-rotate"></i> เรทวันนี้
+            </button>
           </div>
           <div class="fx-note" id="fx-note"></div>
         </div>
         <div class="share-actions">
-          <button type="button" class="ghost-btn" id="fx-clear-btn">ใช้บาทอย่างเดียว</button>
-          <button type="button" class="submit-btn" id="fx-save-btn"><i class="fa-solid fa-check"></i> <span>บันทึก</span></button>
+          <button type="button" class="ghost-btn" id="fx-clear-btn">
+            ใช้บาทอย่างเดียว
+          </button>
+          <button type="button" class="submit-btn" id="fx-save-btn">
+            <i class="fa-solid fa-check"></i> <span>บันทึก</span>
+          </button>
         </div>
       </form>
     </dialog>
 
     <!-- ตั้งงบประมาณต่อคน -->
-    <dialog class="share-dialog" id="budget-dialog" aria-labelledby="budget-title">
+    <dialog
+      class="share-dialog"
+      id="budget-dialog"
+      aria-labelledby="budget-title"
+    >
       <form method="dialog" id="budget-form">
         <div class="share-head">
           <span id="budget-title">งบประมาณต่อคน</span>
           <button type="submit" value="cancel" aria-label="ปิด">&times;</button>
         </div>
-        <div class="share-sub">ตั้งงบที่แต่ละคนตั้งใจใช้ทั้งทริป ระบบจะเทียบกับแพลนและยอดที่จ่ายจริง</div>
+        <div class="share-sub">
+          ตั้งงบที่แต่ละคนตั้งใจใช้ทั้งทริป ระบบจะเทียบกับแพลนและยอดที่จ่ายจริง
+        </div>
         <label class="budget-field">
           <span aria-hidden="true">฿</span>
-          <input type="number" id="budget-input" min="0" step="any" inputmode="decimal" placeholder="เช่น 10000" aria-label="งบต่อคน" />
+          <input
+            type="number"
+            id="budget-input"
+            min="0"
+            step="any"
+            inputmode="decimal"
+            placeholder="เช่น 10000"
+            aria-label="งบต่อคน"
+          />
           <small>/คน</small>
         </label>
         <div class="budget-chips" id="budget-chips">
@@ -3158,7 +3422,9 @@
         </div>
         <div class="budget-summary" id="budget-summary"></div>
         <div class="share-actions">
-          <button type="button" class="ghost-btn" id="budget-clear-btn">ไม่กำหนดงบ</button>
+          <button type="button" class="ghost-btn" id="budget-clear-btn">
+            ไม่กำหนดงบ
+          </button>
           <button type="button" class="submit-btn" id="budget-save-btn">
             <i class="fa-solid fa-check"></i> <span>บันทึกงบ</span>
           </button>
@@ -3167,19 +3433,33 @@
     </dialog>
 
     <!-- แชร์แพลน: ตัวอย่างข้อความ แก้ได้ก่อนคัดลอก -->
-    <dialog class="share-dialog" id="share-dialog" aria-labelledby="share-title">
+    <dialog
+      class="share-dialog"
+      id="share-dialog"
+      aria-labelledby="share-title"
+    >
       <form method="dialog">
         <div class="share-head">
           <span id="share-title">แชร์แพลนให้เพื่อน</span>
           <button type="submit" aria-label="ปิด">&times;</button>
         </div>
-        <div class="share-sub">คัดลอกไปวางในแชทกลุ่ม (LINE, Messenger) ได้เลย แก้ข้อความก่อนส่งได้</div>
+        <div class="share-sub">
+          คัดลอกไปวางในแชทกลุ่ม (LINE, Messenger) ได้เลย แก้ข้อความก่อนส่งได้
+        </div>
         <div class="share-options">
-          <label><input type="checkbox" id="share-details" checked /> รายละเอียด (สถานที่ เลขจอง)</label>
+          <label
+            ><input type="checkbox" id="share-details" checked /> รายละเอียด
+            (สถานที่ เลขจอง)</label
+          >
           <label><input type="checkbox" id="share-cost" checked /> ราคา</label>
           <label><input type="checkbox" id="share-notes" /> โน้ต</label>
         </div>
-        <textarea class="share-text" id="share-text" spellcheck="false" aria-label="ข้อความแพลน"></textarea>
+        <textarea
+          class="share-text"
+          id="share-text"
+          spellcheck="false"
+          aria-label="ข้อความแพลน"
+        ></textarea>
         <div class="share-actions">
           <button type="button" class="ghost-btn hidden" id="share-native-btn">
             <i class="fa-solid fa-share-from-square"></i> แชร์
@@ -3198,39 +3478,120 @@
 
       // ประเภทกิจกรรม (เก็บรหัสภาษาอังกฤษในฐานข้อมูล แสดงชื่อไทย)
       const CATEGORIES = [
-        { value: "TRAVEL", label: "เดินทาง", icon: "fa-solid fa-van-shuttle", color: "#0284c7" },
-        { value: "FOOD", label: "กิน", icon: "fa-solid fa-utensils", color: "#ea580c" },
-        { value: "STAY", label: "ที่พัก", icon: "fa-solid fa-bed", color: "#7c3aed" },
-        { value: "SIGHTSEEING", label: "เที่ยวชม", icon: "fa-solid fa-camera", color: "#16a34a" },
-        { value: "ACTIVITY", label: "กิจกรรม", icon: "fa-solid fa-person-hiking", color: "#db2777" },
-        { value: "OTHER", label: "อื่นๆ", icon: "fa-solid fa-star", color: "#71717a" },
+        {
+          value: "TRAVEL",
+          label: "เดินทาง",
+          icon: "fa-solid fa-van-shuttle",
+          color: "#0284c7",
+        },
+        {
+          value: "FOOD",
+          label: "กิน",
+          icon: "fa-solid fa-utensils",
+          color: "#ea580c",
+        },
+        {
+          value: "STAY",
+          label: "ที่พัก",
+          icon: "fa-solid fa-bed",
+          color: "#7c3aed",
+        },
+        {
+          value: "SIGHTSEEING",
+          label: "เที่ยวชม",
+          icon: "fa-solid fa-camera",
+          color: "#16a34a",
+        },
+        {
+          value: "ACTIVITY",
+          label: "กิจกรรม",
+          icon: "fa-solid fa-person-hiking",
+          color: "#db2777",
+        },
+        {
+          value: "OTHER",
+          label: "อื่นๆ",
+          icon: "fa-solid fa-star",
+          color: "#71717a",
+        },
       ];
-            const categoryOf = (value) =>
-        CATEGORIES.find((c) => c.value === value) || CATEGORIES.find((c) => c.value === "OTHER");
+      const categoryOf = (value) =>
+        CATEGORIES.find((c) => c.value === value) ||
+        CATEGORIES.find((c) => c.value === "OTHER");
 
       // booking = ช่องเลขเที่ยว/ที่นั่งของวิธีนั้น (รถส่วนตัว/อื่นๆ ไม่มี)
       const TRANSPORT_MODES = [
         { value: "CAR", label: "รถส่วนตัว", icon: "fa-solid fa-car" },
-        { value: "VAN", label: "รถตู้", icon: "fa-solid fa-van-shuttle",
-          booking: "คิวรถ / เบอร์คนขับ", bookingPh: "เช่น คิวรถตู้หมอชิต 2, 081-234-5678" },
-        { value: "BUS", label: "รถทัวร์", icon: "fa-solid fa-bus",
-          booking: "บริษัทรถ / ที่นั่ง", bookingPh: "เช่น นครชัยแอร์ ที่นั่ง 5" },
-        { value: "TRAIN", label: "รถไฟ", icon: "fa-solid fa-train",
-          booking: "ขบวน / ตู้ / ที่นั่ง", bookingPh: "เช่น ขบวน 23 ตู้ 4 ที่นั่ง 12" },
-        { value: "PLANE", label: "เครื่องบิน", icon: "fa-solid fa-plane",
-          booking: "เที่ยวบิน / ที่นั่ง", bookingPh: "เช่น FD3012 ที่นั่ง 12A" },
-        { value: "BOAT", label: "เรือ", icon: "fa-solid fa-ship",
-          booking: "เที่ยวเรือ / ที่นั่ง", bookingPh: "เช่น เฟอร์รี่รอบ 10:30" },
+        {
+          value: "VAN",
+          label: "รถตู้",
+          icon: "fa-solid fa-van-shuttle",
+          booking: "คิวรถ / เบอร์คนขับ",
+          bookingPh: "เช่น คิวรถตู้หมอชิต 2, 081-234-5678",
+        },
+        {
+          value: "BUS",
+          label: "รถทัวร์",
+          icon: "fa-solid fa-bus",
+          booking: "บริษัทรถ / ที่นั่ง",
+          bookingPh: "เช่น นครชัยแอร์ ที่นั่ง 5",
+        },
+        {
+          value: "TRAIN",
+          label: "รถไฟ",
+          icon: "fa-solid fa-train",
+          booking: "ขบวน / ตู้ / ที่นั่ง",
+          bookingPh: "เช่น ขบวน 23 ตู้ 4 ที่นั่ง 12",
+        },
+        {
+          value: "PLANE",
+          label: "เครื่องบิน",
+          icon: "fa-solid fa-plane",
+          booking: "เที่ยวบิน / ที่นั่ง",
+          bookingPh: "เช่น FD3012 ที่นั่ง 12A",
+        },
+        {
+          value: "BOAT",
+          label: "เรือ",
+          icon: "fa-solid fa-ship",
+          booking: "เที่ยวเรือ / ที่นั่ง",
+          bookingPh: "เช่น เฟอร์รี่รอบ 10:30",
+        },
         { value: "OTHER", label: "อื่นๆ", icon: "fa-solid fa-route" },
       ];
 
       // เลือกมื้อแล้วใส่เวลาให้ (ถ้ายังไม่ได้ใส่เวลา)
       const MEAL_TYPES = [
-        { value: "BREAKFAST", label: "เช้า", time: "08:00", icon: "fa-solid fa-mug-hot" },
-        { value: "LUNCH", label: "กลางวัน", time: "12:00", icon: "fa-solid fa-bowl-rice" },
-        { value: "SNACK", label: "ของว่าง", time: "15:00", icon: "fa-solid fa-ice-cream" },
-        { value: "DINNER", label: "เย็น", time: "18:00", icon: "fa-solid fa-utensils" },
-        { value: "LATE", label: "มื้อดึก", time: "22:00", icon: "fa-solid fa-moon" },
+        {
+          value: "BREAKFAST",
+          label: "เช้า",
+          time: "08:00",
+          icon: "fa-solid fa-mug-hot",
+        },
+        {
+          value: "LUNCH",
+          label: "กลางวัน",
+          time: "12:00",
+          icon: "fa-solid fa-bowl-rice",
+        },
+        {
+          value: "SNACK",
+          label: "ของว่าง",
+          time: "15:00",
+          icon: "fa-solid fa-ice-cream",
+        },
+        {
+          value: "DINNER",
+          label: "เย็น",
+          time: "18:00",
+          icon: "fa-solid fa-utensils",
+        },
+        {
+          value: "LATE",
+          label: "มื้อดึก",
+          time: "22:00",
+          icon: "fa-solid fa-moon",
+        },
       ];
 
       // ฟอร์มของแต่ละประเภท: ข้อความ/ตัวอย่าง และช่องที่ต้องใช้ (ช่องที่มี data-cats จะโชว์เฉพาะประเภทนั้น)
@@ -3309,14 +3670,30 @@
       // ช่องทางการจอง (กิน/ที่พัก/กิจกรรม) — โทร/เพจมักไม่มีเลขการจอง จึงให้กรอกรายละเอียดตามช่องทาง
       const BOOKING_METHODS = [
         { value: null, label: "ยังไม่จอง", icon: "fa-regular fa-clock" },
-        { value: "ONLINE", label: "จองออนไลน์", icon: "fa-solid fa-globe",
-          detail: "เลขการจอง", detailPh: "เช่น Agoda 123456789, Klook #A102" },
-        { value: "PHONE", label: "โทรจอง", icon: "fa-solid fa-phone",
-          detail: "เบอร์ที่โทรจอง / ชื่อที่ใช้จอง", detailPh: "เช่น 081-234-5678 จองในชื่อฝ้าย" },
-        { value: "PAGE", label: "ผ่านเพจ / แชท", icon: "fa-solid fa-comment-dots",
-          detail: "ชื่อเพจ / LINE ที่ทักไป", detailPh: "เช่น เพจ บ้านไร่เขาใหญ่, LINE @banrai" },
+        {
+          value: "ONLINE",
+          label: "จองออนไลน์",
+          icon: "fa-solid fa-globe",
+          detail: "เลขการจอง",
+          detailPh: "เช่น Agoda 123456789, Klook #A102",
+        },
+        {
+          value: "PHONE",
+          label: "โทรจอง",
+          icon: "fa-solid fa-phone",
+          detail: "เบอร์ที่โทรจอง / ชื่อที่ใช้จอง",
+          detailPh: "เช่น 081-234-5678 จองในชื่อฝ้าย",
+        },
+        {
+          value: "PAGE",
+          label: "ผ่านเพจ / แชท",
+          icon: "fa-solid fa-comment-dots",
+          detail: "ชื่อเพจ / LINE ที่ทักไป",
+          detailPh: "เช่น เพจ บ้านไร่เขาใหญ่, LINE @banrai",
+        },
       ];
-      const methodOf = (v) => BOOKING_METHODS.find((m) => m.value === (v || null));
+      const methodOf = (v) =>
+        BOOKING_METHODS.find((m) => m.value === (v || null));
       // ค้นสถานที่จาก OpenStreetMap (Photon: ฟรี ไม่ต้องใช้คีย์ รองรับค้นทีละตัวอักษร)
       const PLACE_API = "https://photon.komoot.io/api/";
       const PLACE_BIAS = { lat: 13.75, lon: 100.5 }; // ให้ผลในไทยขึ้นก่อน
@@ -3347,7 +3724,8 @@
         if (!res.ok) {
           let message = text;
           try {
-            message = JSON.parse(text).message || JSON.parse(text).error || text;
+            message =
+              JSON.parse(text).message || JSON.parse(text).error || text;
           } catch {}
           throw new Error(message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
         }
@@ -3372,54 +3750,79 @@
       }
 
       const pad = (n) => String(n).padStart(2, "0");
-      const dayKey = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+      const dayKey = (date) =>
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
       const keyOf = (value) => String(value || "").slice(0, 10);
       const addDays = (key, n) => {
         const d = parseDay(key);
         d.setDate(d.getDate() + n);
         return dayKey(d);
       };
-      const daysBetween = (a, b) => Math.round((parseDay(b) - parseDay(a)) / 86400000);
+      const daysBetween = (a, b) =>
+        Math.round((parseDay(b) - parseDay(a)) / 86400000);
       const hhmm = (t) => (t ? String(t).slice(0, 5) : "");
       const toMinutes = (t) => {
         const [h, m] = hhmm(t).split(":").map(Number);
         return h * 60 + m;
       };
       const formatDay = (date, opts = {}) =>
-        date.toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short", ...opts });
+        date.toLocaleDateString("th-TH", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          ...opts,
+        });
       const formatDayLong = (date) =>
-        date.toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        date.toLocaleDateString("th-TH", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
 
       const isStay = (act) => act.category === "STAY";
       // ขับรถไปเอง: ไม่มีค่าตั๋ว (ข้อมูลเก่าที่เคยใส่ราคาไว้ก็ไม่นับ)
-      const isCar = (act) => act.category === "TRAVEL" && act.transportMode === "CAR";
+      const isCar = (act) =>
+        act.category === "TRAVEL" && act.transportMode === "CAR";
       // กิน: ไม่มีงบในแพลน (ค่าอาหารจริงบันทึกเป็นบิล)
       const noCost = (act) => isCar(act) || act.category === "FOOD";
       // เรทของราคานี้: สกุลเดียวกับทริป = เรทล่าสุดของทริป, ไม่งั้นเรทตอนบันทึก
-      const tripFx = () => (isForeign(trip?.currency) && Number(trip.exchangeRate) > 0 ? trip.currency : null);
+      const tripFx = () =>
+        isForeign(trip?.currency) && Number(trip.exchangeRate) > 0
+          ? trip.currency
+          : null;
       function rateOf(act) {
         if (!isForeign(act.costCurrency)) return 1;
-        if (trip?.currency === act.costCurrency && Number(trip.exchangeRate) > 0) return Number(trip.exchangeRate);
+        if (
+          trip?.currency === act.costCurrency &&
+          Number(trip.exchangeRate) > 0
+        )
+          return Number(trip.exchangeRate);
         return Number(act.costRate) || 0;
       }
       // ราคาต่อหน่วยเป็นบาท (ใช้รวมงบ/เทียบบิล)
-      const costOf = (act) => (noCost(act) ? 0 : (Number(act.cost) || 0) * rateOf(act));
+      const costOf = (act) =>
+        noCost(act) ? 0 : (Number(act.cost) || 0) * rateOf(act);
       // แสดงราคาตามสกุลที่ใส่ + ≈ บาท เช่น "¥500 (≈ ฿107)"
       const priceText = (amount, act, suffix = "") =>
         isForeign(act.costCurrency)
           ? `${fmtCur(amount, act.costCurrency)}${suffix} (≈ ${fmt(Math.round(amount * rateOf(act)))})`
           : `${fmt(amount)}${suffix}`;
-      const memberName = (id) => members.find((m) => String(m.id) === String(id))?.guestName || "?";
+      const memberName = (id) =>
+        members.find((m) => String(m.id) === String(id))?.guestName || "?";
       const peopleOf = (act) => (act.participantIds || []).map(String);
       // คนที่ร่วมจ่ายรายการนี้: กิจกรรม/เดินทางที่ระบุคนไว้ = เฉพาะคนนั้น, ไม่ระบุ = ทุกคน
       const SPLIT_CATS = ["TRAVEL", "ACTIVITY"];
       const payersOf = (act) =>
-        SPLIT_CATS.includes(act.category) && peopleOf(act).length ? peopleOf(act) : members.map((m) => String(m.id));
+        SPLIT_CATS.includes(act.category) && peopleOf(act).length
+          ? peopleOf(act)
+          : members.map((m) => String(m.id));
       // ที่พัก: ราคาต่อห้องต่อคืน × ห้อง × คืน (ไม่ค้างคืนคิด 1)
       const stayUnits = (act) => (act.rooms || 1) * Math.max(nightsOf(act), 1);
       // ราคาที่พักรวมเป็นบาท
       const stayTotal = (act) => costOf(act) * stayUnits(act);
-      const stayCapacity = (act) => (act.guestsPerRoom ? (act.rooms || 1) * act.guestsPerRoom : null);
+      const stayCapacity = (act) =>
+        act.guestsPerRoom ? (act.rooms || 1) * act.guestsPerRoom : null;
 
       // ระยะเวลาเดินทาง เช่น "3 ชม. 30 นาที" (เวลาถึงน้อยกว่าเวลาออก = ถึงวันถัดไป)
       function durationText(start, end) {
@@ -3428,9 +3831,14 @@
         if (mins <= 0) mins += 24 * 60;
         const h = Math.floor(mins / 60);
         const m = mins % 60;
-        return [h ? `${h} ชม.` : "", m ? `${m} นาที` : ""].filter(Boolean).join(" ");
+        return [h ? `${h} ชม.` : "", m ? `${m} นาที` : ""]
+          .filter(Boolean)
+          .join(" ");
       }
-      const nightsOf = (act) => (isStay(act) && act.endDate ? daysBetween(act.activityDate, act.endDate) : 0);
+      const nightsOf = (act) =>
+        isStay(act) && act.endDate
+          ? daysBetween(act.activityDate, act.endDate)
+          : 0;
       // เวลาตามลำดับ (ออก → ถึง/ออกเมืองต่อเครื่อง → ถึง) เป็นนาทีนับจากเที่ยงคืนวันออก
       // เวลาที่น้อยกว่าเวลาก่อนหน้า = ข้ามไปวันถัดไป
       function timeChain(times) {
@@ -3449,9 +3857,16 @@
         });
         return out;
       }
-      const stopsOf = (act) => (act.category === "TRAVEL" && act.transportMode === "PLANE" ? act.stops || [] : []);
+      const stopsOf = (act) =>
+        act.category === "TRAVEL" && act.transportMode === "PLANE"
+          ? act.stops || []
+          : [];
       const actChain = (act) =>
-        timeChain([act.startTime, ...stopsOf(act).flatMap((st) => [st.arriveTime, st.departTime]), act.endTime]);
+        timeChain([
+          act.startTime,
+          ...stopsOf(act).flatMap((st) => [st.arriveTime, st.departTime]),
+          act.endTime,
+        ]);
       // ถึงปลายทางช้ากว่าวันออกกี่วัน (ที่พักมีวันเช็คเอาท์ของตัวเอง)
       function endDayOffset(act) {
         if (isStay(act) || !act.startTime || !act.endTime) return 0;
@@ -3459,7 +3874,8 @@
         return Math.floor(chain[chain.length - 1] / (24 * 60));
       }
       const isOvernight = (act) => endDayOffset(act) > 0;
-      const dayPlus = (act) => (endDayOffset(act) ? ` +${endDayOffset(act)}` : "");
+      const dayPlus = (act) =>
+        endDayOffset(act) ? ` +${endDayOffset(act)}` : "";
       // ระยะเวลาทั้งหมด (รวมเวลาต่อเครื่อง)
       function totalDuration(act) {
         if (!act.startTime || !act.endTime) return "";
@@ -3470,7 +3886,11 @@
       const minutesText = (mins) => {
         const h = Math.floor(mins / 60);
         const m = mins % 60;
-        return [h ? `${h} ชม.` : "", m ? `${m} นาที` : ""].filter(Boolean).join(" ") || "0 นาที";
+        return (
+          [h ? `${h} ชม.` : "", m ? `${m} นาที` : ""]
+            .filter(Boolean)
+            .join(" ") || "0 นาที"
+        );
       };
 
       // ช่วงเวลาจริง (ms) ของ "หนึ่งช่วงบนไทม์ไลน์" — ทั้งวัน = ทั้งวันนั้น, ไม่มีเวลาจบ = เริ่ม + 1 ชม.
@@ -3483,9 +3903,15 @@
           return { start: day.getTime(), end: end.getTime(), allDay: true };
         }
         const startMin = toMinutes(startTime);
-        let endMin = endTime ? toMinutes(endTime) : startMin + DEFAULT_DURATION_MIN;
+        let endMin = endTime
+          ? toMinutes(endTime)
+          : startMin + DEFAULT_DURATION_MIN;
         endMin += 24 * 60 * Number(overnight || 0); // จำนวนวันที่ข้ามไป
-        return { start: day.getTime() + startMin * 60000, end: day.getTime() + endMin * 60000, allDay: false };
+        return {
+          start: day.getTime() + startMin * 60000,
+          end: day.getTime() + endMin * 60000,
+          allDay: false,
+        };
       }
 
       // 1 กิจกรรม -> แถวบนไทม์ไลน์ (ที่พักหลายคืน = เช็คอิน + วันที่ยังพัก + เช็คเอาท์)
@@ -3493,15 +3919,44 @@
         const key = keyOf(act.activityDate);
         const nights = nightsOf(act);
         if (!nights) {
-          return [{ act, key, kind: "main", time: act.startTime, span: spanAt(key, act.startTime, act.endTime, endDayOffset(act)) }];
+          return [
+            {
+              act,
+              key,
+              kind: "main",
+              time: act.startTime,
+              span: spanAt(key, act.startTime, act.endTime, endDayOffset(act)),
+            },
+          ];
         }
-        const list = [{ act, key, kind: "checkin", time: act.startTime, span: spanAt(key, act.startTime) }];
+        const list = [
+          {
+            act,
+            key,
+            kind: "checkin",
+            time: act.startTime,
+            span: spanAt(key, act.startTime),
+          },
+        ];
         for (let n = 1; n < nights; n++) {
           const k = addDays(key, n);
-          list.push({ act, key: k, kind: "stay", night: n + 1, time: null, span: spanAt(k) });
+          list.push({
+            act,
+            key: k,
+            kind: "stay",
+            night: n + 1,
+            time: null,
+            span: spanAt(k),
+          });
         }
         const out = keyOf(act.endDate);
-        list.push({ act, key: out, kind: "checkout", time: act.endTime, span: spanAt(out, act.endTime) });
+        list.push({
+          act,
+          key: out,
+          kind: "checkout",
+          time: act.endTime,
+          span: spanAt(out, act.endTime),
+        });
         return list;
       }
 
@@ -3526,7 +3981,11 @@
         const end = parseDay(trip?.endDate);
         const list = [];
         if (start && end && end >= start) {
-          for (let d = new Date(start), no = 1; d <= end && no <= MAX_TRIP_DAYS; d.setDate(d.getDate() + 1), no++) {
+          for (
+            let d = new Date(start), no = 1;
+            d <= end && no <= MAX_TRIP_DAYS;
+            d.setDate(d.getDate() + 1), no++
+          ) {
             list.push({ key: dayKey(d), date: new Date(d), no, extra: false });
           }
         }
@@ -3543,9 +4002,11 @@
       }
 
       const hasTripRange = () => days.some((d) => !d.extra);
-      const occurrencesOn = (key) => sortOccurrences(allOccurrences().filter((o) => o.key === key));
+      const occurrencesOn = (key) =>
+        sortOccurrences(allOccurrences().filter((o) => o.key === key));
       // วันที่ "ยังว่าง" = ไม่มีแพลน (แค่นอนพักที่เดิมทั้งวันไม่นับ)
-      const planCountOn = (key) => occurrencesOn(key).filter((o) => o.kind !== "stay").length;
+      const planCountOn = (key) =>
+        occurrencesOn(key).filter((o) => o.kind !== "stay").length;
       const tripZone = () => trip?.timeZone || DEFAULT_TIME_ZONE;
       const tripNow = () => zoneNow(tripZone());
       const todayKey = () => dayKey(tripNow());
@@ -3555,7 +4016,11 @@
         const ids = new Set();
         days.forEach((day) => {
           const timed = occurrencesOn(day.key).filter(
-            (o) => o.kind === "main" && !isStay(o.act) && o.act.startTime && o.act.endTime,
+            (o) =>
+              o.kind === "main" &&
+              !isStay(o.act) &&
+              o.act.startTime &&
+              o.act.endTime,
           );
           for (let i = 0; i < timed.length; i++) {
             for (let j = i + 1; j < timed.length; j++) {
@@ -3579,7 +4044,8 @@
         sortOccurrences(allOccurrences()).forEach((o) => {
           if (!o.span) return;
           if (o.span.end <= now) map.set(occId(o), "past");
-          else if (o.span.start <= now) map.set(occId(o), o.span.allDay ? "today" : "now");
+          else if (o.span.start <= now)
+            map.set(occId(o), o.span.allDay ? "today" : "now");
           else if (!next && !o.span.allDay) next = o;
         });
         if (next) map.set(occId(next), "next");
@@ -3587,8 +4053,10 @@
       }
 
       // บิลที่บันทึกจากรายการนี้ และลิงก์ไปบันทึกบิลใหม่ (หน้าค่าใช้จ่ายกรอกให้จากแพลน)
-      const billsOf = (act) => expenses.filter((e) => String(e.activityId) === String(act.id));
-      const billTotal = (bills) => bills.reduce((sum, e) => sum + (Number(e.totalAmount) || 0), 0);
+      const billsOf = (act) =>
+        expenses.filter((e) => String(e.activityId) === String(act.id));
+      const billTotal = (bills) =>
+        bills.reduce((sum, e) => sum + (Number(e.totalAmount) || 0), 0);
       const recordUrl = (act) =>
         `expenses.html?tripId=${encodeURIComponent(tripId)}&activityId=${encodeURIComponent(act.id)}`;
 
@@ -3607,7 +4075,10 @@
         return expenses
           .filter((e) => e.activityId != null)
           .flatMap((e) => e.splits || [])
-          .filter((sp) => sp.tripMember && String(sp.tripMember.id) === String(myMemberId))
+          .filter(
+            (sp) =>
+              sp.tripMember && String(sp.tripMember.id) === String(myMemberId),
+          )
           .reduce((sum, sp) => sum + (Number(sp.amountOwed) || 0), 0);
       }
 
@@ -3619,7 +4090,9 @@
           const estimate = planEstimate(act);
           const diff = estimate > 0 ? total - estimate : 0;
           const diffText =
-            Math.abs(diff) >= 1 ? ` <span class="diff">(${diff > 0 ? "เกิน" : "ต่ำกว่า"}งบ ${fmt(Math.abs(diff))})</span>` : "";
+            Math.abs(diff) >= 1
+              ? ` <span class="diff">(${diff > 0 ? "เกิน" : "ต่ำกว่า"}งบ ${fmt(Math.abs(diff))})</span>`
+              : "";
           return `
               <a class="paid-chip" href="expenses.html?tripId=${encodeURIComponent(tripId)}"
                  title="ดูบิลในหน้าค่าใช้จ่าย">
@@ -3630,7 +4103,11 @@
               ${canEdit() ? `<a class="add-bill-link" href="${recordUrl(act)}">+ เพิ่มบิล</a>` : ""}`;
         }
         // ปุ่มบันทึก: รายการที่มีค่าใช้จ่าย จองแล้ว หรือถึงเวลาแล้ว (ไม่รกทุกแถว)
-        const worth = costOf(act) > 0 || act.booked || status === "past" || status === "now";
+        const worth =
+          costOf(act) > 0 ||
+          act.booked ||
+          status === "past" ||
+          status === "now";
         if (!canEdit() || !worth) return "";
         return `
             <a class="record-btn" href="${recordUrl(act)}">
@@ -3639,9 +4116,13 @@
       }
 
       // เดินทาง: ยังไม่มีเที่ยวที่สลับต้นทาง–ปลายทาง (ทั้งขาไปของขากลับนี้ หรือขากลับของขาไปนี้)
-      const routeKey = (s) => String(s || "").trim().toLowerCase();
+      const routeKey = (s) =>
+        String(s || "")
+          .trim()
+          .toLowerCase();
       function needsReturn(act) {
-        if (act.category !== "TRAVEL" || !act.origin || !act.location) return false;
+        if (act.category !== "TRAVEL" || !act.origin || !act.location)
+          return false;
         return !activities.some(
           (o) =>
             o.id !== act.id &&
@@ -3666,7 +4147,11 @@
       }
 
       const occLabel = (o) =>
-        o.kind === "checkin" ? `เช็คอิน ${o.act.title}` : o.kind === "checkout" ? `เช็คเอาท์ ${o.act.title}` : o.act.title;
+        o.kind === "checkin"
+          ? `เช็คอิน ${o.act.title}`
+          : o.kind === "checkout"
+            ? `เช็คเอาท์ ${o.act.title}`
+            : o.act.title;
 
       // งบของคุณโดยประมาณ: ค่าต่อคน (กิจกรรมนับเฉพาะที่คุณไปด้วย) + ราคาที่พักรวมหารจำนวนสมาชิก
       function budgetPerPerson() {
@@ -3675,7 +4160,8 @@
           const cost = costOf(a);
           if (isStay(a)) return sum + stayTotal(a) / people;
           // เดินทาง/กิจกรรมที่คุณไม่ได้ไป ไม่นับในงบของคุณ
-          if (myMemberId != null && !payersOf(a).includes(String(myMemberId))) return sum;
+          if (myMemberId != null && !payersOf(a).includes(String(myMemberId)))
+            return sum;
           return sum + cost;
         }, 0);
       }
@@ -3686,7 +4172,9 @@
         chip.classList.toggle("hidden", !trip);
         if (!trip) return;
         const fx = tripFx();
-        $("fx-text").textContent = fx ? `${currencySymbol(fx)} ${currencyOf(fx).name}` : "฿ บาท";
+        $("fx-text").textContent = fx
+          ? `${currencySymbol(fx)} ${currencyOf(fx).name}`
+          : "฿ บาท";
         chip.title = fx
           ? `ราคาเป็น${currencyOf(fx).name}ได้ · ${bahtUnitText(fx, trip.exchangeRate)}${canEdit() ? " — แตะเพื่อเปลี่ยน" : ""}`
           : canEdit()
@@ -3731,18 +4219,45 @@
 
       // ทวีป -> สกุลเงินในกล่อง (บาทอยู่ทุกทวีป เผื่อกลับมาใช้บาท)
       const CONTINENTS = [
-        { key: "ASIA", label: "เอเชีย", currencies: ["THB", "JPY", "KRW", "CNY", "HKD", "TWD", "SGD", "MYR", "IDR", "PHP", "VND", "LAK", "MMK", "INR", "NPR"] },
+        {
+          key: "ASIA",
+          label: "เอเชีย",
+          currencies: [
+            "THB",
+            "JPY",
+            "KRW",
+            "CNY",
+            "HKD",
+            "TWD",
+            "SGD",
+            "MYR",
+            "IDR",
+            "PHP",
+            "VND",
+            "LAK",
+            "MMK",
+            "INR",
+            "NPR",
+          ],
+        },
         { key: "MIDEAST", label: "ตะวันออกกลาง", currencies: ["AED", "TRY"] },
-        { key: "EUROPE", label: "ยุโรป", currencies: ["EUR", "GBP", "CHF", "TRY"] },
+        {
+          key: "EUROPE",
+          label: "ยุโรป",
+          currencies: ["EUR", "GBP", "CHF", "TRY"],
+        },
         { key: "AMERICA", label: "อเมริกา", currencies: ["USD"] },
         { key: "OCEANIA", label: "โอเชียเนีย", currencies: ["AUD", "NZD"] },
       ];
       let fxContinent = "ASIA";
-      const continentOf = (code) => (CONTINENTS.find((c) => c.currencies.includes(code)) || CONTINENTS[0]).key;
+      const continentOf = (code) =>
+        (CONTINENTS.find((c) => c.currencies.includes(code)) || CONTINENTS[0])
+          .key;
 
       function renderFxContinents(selected) {
         $("fx-continents").innerHTML = CONTINENTS.map(
-          (c) => `<button type="button" class="continent-chip" data-continent="${c.key}" aria-pressed="${c.key === fxContinent}">${c.label}</button>`,
+          (c) =>
+            `<button type="button" class="continent-chip" data-continent="${c.key}" aria-pressed="${c.key === fxContinent}">${c.label}</button>`,
         ).join("");
         const continent = CONTINENTS.find((c) => c.key === fxContinent);
         const codes = [...new Set([...continent.currencies, BASE_CURRENCY])];
@@ -3754,7 +4269,9 @@
           })
           .join("");
         // เปลี่ยนทวีป: เลือกสกุลแรกที่ไม่ใช่บาทให้เลย
-        select.value = codes.includes(selected) ? selected : codes.find(isForeign) || BASE_CURRENCY;
+        select.value = codes.includes(selected)
+          ? selected
+          : codes.find(isForeign) || BASE_CURRENCY;
       }
 
       $("fx-continents").addEventListener("click", (e) => {
@@ -3796,15 +4313,21 @@
         $("fx-clear-btn").disabled = true;
         try {
           const query = isForeign(code) ? `&currency=${code}&rate=${rate}` : "";
-          const updated = await request(`${API_BASE_URL}/trips/${tripId}/currency?memberId=${myMemberId}${query}`, {
-            method: "PUT",
-          });
+          const updated = await request(
+            `${API_BASE_URL}/trips/${tripId}/currency?memberId=${myMemberId}${query}`,
+            {
+              method: "PUT",
+            },
+          );
           trip.currency = updated.currency;
           trip.exchangeRate = updated.exchangeRate;
           // เวลาล็อคตามสกุลเงิน: เขตเดิมใช้กับสกุลนี้ไม่ได้ -> เปลี่ยนให้ (กลับเป็นบาท = เวลาไทย)
           let zoneMsg = "";
           {
-            const zone = zoneForCurrency(isForeign(code) ? code : BASE_CURRENCY, tripZone());
+            const zone = zoneForCurrency(
+              isForeign(code) ? code : BASE_CURRENCY,
+              tripZone(),
+            );
             if (zone !== tripZone()) {
               try {
                 const moved = await request(
@@ -3819,11 +4342,18 @@
             }
           }
           $("fx-dialog").close();
-          renderCostCurrency(costCur(), readRateInput($("cost-rate-input")) || null);
+          renderCostCurrency(
+            costCur(),
+            readRateInput($("cost-rate-input")) || null,
+          );
           renderAll();
           $("tz-select").dataset.zone = "";
           renderTimeZone(); // ชิปสกุลเงินอยู่คู่ชิปเวลา
-          showToast(isForeign(code) ? `ใช้${currencyOf(code).name} · ${bahtUnitText(code, rate)}${zoneMsg}` : `ใช้บาทอย่างเดียวแล้ว${zoneMsg}`);
+          showToast(
+            isForeign(code)
+              ? `ใช้${currencyOf(code).name} · ${bahtUnitText(code, rate)}${zoneMsg}`
+              : `ใช้บาทอย่างเดียวแล้ว${zoneMsg}`,
+          );
         } catch (error) {
           showToast(error.message, "error");
         } finally {
@@ -3842,7 +4372,9 @@
         }
         saveFx(code, rate);
       });
-      $("fx-clear-btn").addEventListener("click", () => saveFx(BASE_CURRENCY, null));
+      $("fx-clear-btn").addEventListener("click", () =>
+        saveFx(BASE_CURRENCY, null),
+      );
 
       // ---------- งบประมาณต่อคน ----------
       const tripBudget = () => Number(trip?.budgetPerPerson) || 0;
@@ -3853,15 +4385,20 @@
         const limit = tripBudget();
         const actual = myActualShare();
         const used = Math.max(estimate, actual); // จ่ายจริงเกินแพลนแล้ว = ใช้ยอดจริง
-        const editHint = canEdit() ? ` <i class="fa-solid fa-pen edit-hint" aria-hidden="true"></i>` : "";
+        const editHint = canEdit()
+          ? ` <i class="fa-solid fa-pen edit-hint" aria-hidden="true"></i>`
+          : "";
         btn.disabled = !canEdit();
         btn.classList.toggle("over", limit > 0 && used > limit);
         $("budget-bar").classList.toggle("hidden", !limit);
         if (limit) {
           const left = limit - used;
-          $("budget-fill").style.width = `${Math.min((used / limit) * 100, 100)}%`;
+          $("budget-fill").style.width =
+            `${Math.min((used / limit) * 100, 100)}%`;
           $("stat-budget-sub").innerHTML =
-            (left >= 0 ? `งบ ${fmt(limit)} · เหลือ ${fmt(Math.round(left))}` : `เกินงบ ${fmt(Math.round(-left))}`) + editHint;
+            (left >= 0
+              ? `งบ ${fmt(limit)} · เหลือ ${fmt(Math.round(left))}`
+              : `เกินงบ ${fmt(Math.round(-left))}`) + editHint;
         } else {
           const base =
             actual > 0
@@ -3869,7 +4406,8 @@
               : myMemberId != null
                 ? "งบของคุณ (ประมาณ)"
                 : "งบต่อคน (ประมาณ)";
-          $("stat-budget-sub").innerHTML = esc(base) + (canEdit() ? ` · ตั้งงบ${editHint}` : "");
+          $("stat-budget-sub").innerHTML =
+            esc(base) + (canEdit() ? ` · ตั้งงบ${editHint}` : "");
         }
         btn.title = canEdit() ? "แตะเพื่อตั้งงบประมาณต่อคน" : "";
       }
@@ -3878,13 +4416,29 @@
         const typed = Number($("budget-input").value) || 0;
         const estimate = budgetPerPerson();
         const actual = myActualShare();
-        const row = (label, value, cls = "") => `<div class="${cls}"><span>${label}</span><b>${value}</b></div>`;
-        const rows = [row("แพลนตอนนี้ (ประมาณ)", `${fmt(Math.round(estimate))}/คน`)];
-        if (actual > 0) rows.push(row("จ่ายจริงแล้ว (ส่วนของคุณ)", fmt(Math.round(actual))));
+        const row = (label, value, cls = "") =>
+          `<div class="${cls}"><span>${label}</span><b>${value}</b></div>`;
+        const rows = [
+          row("แพลนตอนนี้ (ประมาณ)", `${fmt(Math.round(estimate))}/คน`),
+        ];
+        if (actual > 0)
+          rows.push(row("จ่ายจริงแล้ว (ส่วนของคุณ)", fmt(Math.round(actual))));
         if (typed > 0) {
           const left = typed - Math.max(estimate, actual);
-          rows.push(row(left >= 0 ? "เหลือจากงบ" : "เกินงบ", fmt(Math.round(Math.abs(left))), left >= 0 ? "ok" : "over"));
-          if (members.length > 1) rows.push(row(`งบรวมทั้งทริป (${members.length} คน)`, fmt(typed * members.length)));
+          rows.push(
+            row(
+              left >= 0 ? "เหลือจากงบ" : "เกินงบ",
+              fmt(Math.round(Math.abs(left))),
+              left >= 0 ? "ok" : "over",
+            ),
+          );
+          if (members.length > 1)
+            rows.push(
+              row(
+                `งบรวมทั้งทริป (${members.length} คน)`,
+                fmt(typed * members.length),
+              ),
+            );
         }
         $("budget-summary").innerHTML = rows.join("");
       }
@@ -3902,7 +4456,9 @@
         if (!chip) return;
         // "ตามแพลน" = ยอดประมาณของแพลนตอนนี้ ปัดขึ้นหลักร้อย
         $("budget-input").value =
-          chip.dataset.amount === "plan" ? Math.ceil(budgetPerPerson() / 100) * 100 || "" : chip.dataset.amount;
+          chip.dataset.amount === "plan"
+            ? Math.ceil(budgetPerPerson() / 100) * 100 || ""
+            : chip.dataset.amount;
         renderBudgetSummary();
         $("budget-input").focus();
       });
@@ -3976,13 +4532,29 @@
 
       // เขตเวลาที่เลือกได้ ล็อคตามสกุลเงินของทริป (ไม่ตั้ง = บาท = เวลาไทย)
       const CURRENCY_ZONES = {
-        THB: ["Asia/Bangkok"], VND: ["Asia/Bangkok"], LAK: ["Asia/Bangkok"], MMK: ["Asia/Yangon"],
-        INR: ["Asia/Kolkata"], NPR: ["Asia/Kathmandu"], SGD: ["Asia/Singapore"], MYR: ["Asia/Singapore"],
-        PHP: ["Asia/Manila"], IDR: ["Asia/Jakarta", "Asia/Makassar"], HKD: ["Asia/Hong_Kong"],
-        CNY: ["Asia/Shanghai"], TWD: ["Asia/Taipei"], JPY: ["Asia/Tokyo"], KRW: ["Asia/Seoul"],
-        AED: ["Asia/Dubai"], TRY: ["Europe/Istanbul"], GBP: ["Europe/London"], EUR: ["Europe/Paris"],
-        CHF: ["Europe/Paris"], USD: ["America/Los_Angeles", "America/New_York"],
-        AUD: ["Australia/Sydney"], NZD: ["Pacific/Auckland"],
+        THB: ["Asia/Bangkok"],
+        VND: ["Asia/Bangkok"],
+        LAK: ["Asia/Bangkok"],
+        MMK: ["Asia/Yangon"],
+        INR: ["Asia/Kolkata"],
+        NPR: ["Asia/Kathmandu"],
+        SGD: ["Asia/Singapore"],
+        MYR: ["Asia/Singapore"],
+        PHP: ["Asia/Manila"],
+        IDR: ["Asia/Jakarta", "Asia/Makassar"],
+        HKD: ["Asia/Hong_Kong"],
+        CNY: ["Asia/Shanghai"],
+        TWD: ["Asia/Taipei"],
+        JPY: ["Asia/Tokyo"],
+        KRW: ["Asia/Seoul"],
+        AED: ["Asia/Dubai"],
+        TRY: ["Europe/Istanbul"],
+        GBP: ["Europe/London"],
+        EUR: ["Europe/Paris"],
+        CHF: ["Europe/Paris"],
+        USD: ["America/Los_Angeles", "America/New_York"],
+        AUD: ["Australia/Sydney"],
+        NZD: ["Pacific/Auckland"],
       };
       const lockedCurrency = () => tripFx() || BASE_CURRENCY;
       const zonesOfCurrency = (code) => CURRENCY_ZONES[code] || null; // สกุลที่ไม่รู้จัก = ไม่ล็อค
@@ -3996,7 +4568,10 @@
 
       function zoneOffset(zone) {
         try {
-          const name = new Intl.DateTimeFormat("en-US", { timeZone: zone, timeZoneName: "shortOffset" })
+          const name = new Intl.DateTimeFormat("en-US", {
+            timeZone: zone,
+            timeZoneName: "shortOffset",
+          })
             .formatToParts(new Date())
             .find((p) => p.type === "timeZoneName")?.value;
           return (name || "").replace("GMT", "UTC") || "UTC";
@@ -4004,7 +4579,8 @@
           return "";
         }
       }
-      const zoneLabel = (zone) => TIME_ZONES.find(([z]) => z === zone)?.[1] || zone;
+      const zoneLabel = (zone) =>
+        TIME_ZONES.find(([z]) => z === zone)?.[1] || zone;
 
       // ชื่อสั้นบนชิป เช่น "ไทย", "ญี่ปุ่น"
       const zoneShort = (zone) => zoneLabel(zone).split(" · ")[0];
@@ -4018,14 +4594,21 @@
         const select = $("tz-select");
         const lockCode = lockedCurrency();
         const lockZones = zonesOfCurrency(lockCode);
-        const allowed = lockZones ? TIME_ZONES.filter(([z]) => lockZones.includes(z)) : TIME_ZONES;
-        const list = allowed.some(([z]) => z === zone) ? allowed : [[zone, zoneLabel(zone)], ...allowed];
+        const allowed = lockZones
+          ? TIME_ZONES.filter(([z]) => lockZones.includes(z))
+          : TIME_ZONES;
+        const list = allowed.some(([z]) => z === zone)
+          ? allowed
+          : [[zone, zoneLabel(zone)], ...allowed];
         const cacheKey = `${zone}|${lockCode}`;
         // สกุลนี้มีเขตเวลาเดียว = ล็อคตาย เปลี่ยนไม่ได้ (เปลี่ยนสกุลเงินแทน)
         const fixed = list.length <= 1;
         if (!select.options.length || select.dataset.zone !== cacheKey) {
           select.innerHTML = list
-            .map(([z, label]) => `<option value="${esc(z)}">${esc(label)} (${esc(zoneOffset(z))})</option>`)
+            .map(
+              ([z, label]) =>
+                `<option value="${esc(z)}">${esc(label)} (${esc(zoneOffset(z))})</option>`,
+            )
             .join("");
           select.value = zone;
           select.dataset.zone = cacheKey;
@@ -4038,10 +4621,14 @@
         const away = Math.abs(there - here) >= 60000;
         const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
         chip.classList.toggle("away", away);
-        $("tz-text").innerHTML = away ? `${esc(zoneShort(zone))} <b>${hm(there)}</b>` : `เวลา${esc(zoneShort(zone))}`;
+        $("tz-text").innerHTML = away
+          ? `${esc(zoneShort(zone))} <b>${hm(there)}</b>`
+          : `เวลา${esc(zoneShort(zone))}`;
         chip.title =
           `เวลาในแพลนเป็นเวลา${zoneLabel(zone)} (${zoneOffset(zone)})` +
-          (lockZones ? ` · ล็อคตามสกุลเงิน (${currencyOf(lockCode).name})` : "") +
+          (lockZones
+            ? ` · ล็อคตามสกุลเงิน (${currencyOf(lockCode).name})`
+            : "") +
           (away ? ` · เครื่องคุณ ${hm(here)}` : "") +
           (canEdit() && !fixed ? " — แตะเพื่อเปลี่ยน" : "");
       }
@@ -4070,13 +4657,19 @@
 
       // ---------- มือถือ: ปุ่มลอย + ฟอร์มแบบ bottom sheet ----------
       const sheetMode = () => !wideScreen.matches;
-      const sheetOpen = () => sheetMode() && !form.classList.contains("collapsed") && !form.classList.contains("hidden");
+      const sheetOpen = () =>
+        sheetMode() &&
+        !form.classList.contains("collapsed") &&
+        !form.classList.contains("hidden");
 
       function syncSheet() {
         const open = sheetOpen();
         $("sheet-backdrop").classList.toggle("show", open);
         document.body.classList.toggle("sheet-open", open);
-        $("add-fab").classList.toggle("hidden", !sheetMode() || open || !canEdit() || !trip);
+        $("add-fab").classList.toggle(
+          "hidden",
+          !sheetMode() || open || !canEdit() || !trip,
+        );
       }
 
       function closeSheet() {
@@ -4087,7 +4680,13 @@
       $("add-fab").addEventListener("click", () => startAdd());
       $("sheet-backdrop").addEventListener("click", closeSheet);
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && sheetOpen() && !$("share-dialog").open && editingId == null) closeSheet();
+        if (
+          e.key === "Escape" &&
+          sheetOpen() &&
+          !$("share-dialog").open &&
+          editingId == null
+        )
+          closeSheet();
       });
 
       // ---------- อัปเดตเองเมื่อเพื่อนแก้แพลน ----------
@@ -4097,7 +4696,11 @@
       // ไม่เทียบ createdAt: ตอนบันทึกได้เวลาละเอียดระดับนาโนวินาที แต่โหลดจากฐานข้อมูลได้แค่ไมโคร
       // (ถ้าเทียบ จะขึ้นว่า "มีคนแก้" ทุกครั้งหลังเราเพิ่มเอง)
       const planSig = (list) =>
-        JSON.stringify([...(list || [])].sort((a, b) => a.id - b.id).map(({ createdAt, ...rest }) => rest));
+        JSON.stringify(
+          [...(list || [])]
+            .sort((a, b) => a.id - b.id)
+            .map(({ createdAt, ...rest }) => rest),
+        );
 
       async function refreshPlan() {
         if (!trip || refreshing || busy || document.hidden) return;
@@ -4107,28 +4710,49 @@
           const [tripData, list, bills] = await Promise.all([
             request(`${API_BASE_URL}/trips/${tripId}`).catch(() => null),
             request(`${API_BASE_URL}/activities/trip/${tripId}`),
-            request(`${API_BASE_URL}/expenses/trip/${tripId}`).catch(() => null),
+            request(`${API_BASE_URL}/expenses/trip/${tripId}`).catch(
+              () => null,
+            ),
           ]);
           if (version !== planVersion || busy) return; // ระหว่างนั้นเราแก้เอง: รอบหน้าค่อยดูใหม่
           const planChanged = planSig(list) !== planSig(activities);
-          const billsChanged = Array.isArray(bills) && JSON.stringify(bills) !== JSON.stringify(expenses);
-          const zoneChanged = tripData && (tripData.timeZone || null) !== (trip.timeZone || null);
-          const budgetChanged = tripData && Number(tripData.budgetPerPerson || 0) !== tripBudget();
+          const billsChanged =
+            Array.isArray(bills) &&
+            JSON.stringify(bills) !== JSON.stringify(expenses);
+          const zoneChanged =
+            tripData && (tripData.timeZone || null) !== (trip.timeZone || null);
+          const budgetChanged =
+            tripData && Number(tripData.budgetPerPerson || 0) !== tripBudget();
           if (budgetChanged) trip.budgetPerPerson = tripData.budgetPerPerson;
           const fxChanged =
             tripData &&
             ((tripData.currency || null) !== (trip.currency || null) ||
-              Number(tripData.exchangeRate || 0) !== Number(trip.exchangeRate || 0));
+              Number(tripData.exchangeRate || 0) !==
+                Number(trip.exchangeRate || 0));
           if (fxChanged) {
             trip.currency = tripData.currency;
             trip.exchangeRate = tripData.exchangeRate;
-            if (!form.contains(document.activeElement)) renderCostCurrency(costCur(), readRateInput($("cost-rate-input")) || null);
+            if (!form.contains(document.activeElement))
+              renderCostCurrency(
+                costCur(),
+                readRateInput($("cost-rate-input")) || null,
+              );
           }
-          if (!planChanged && !billsChanged && !zoneChanged && !budgetChanged && !fxChanged) return;
+          if (
+            !planChanged &&
+            !billsChanged &&
+            !zoneChanged &&
+            !budgetChanged &&
+            !fxChanged
+          )
+            return;
           activities = list;
           if (Array.isArray(bills)) expenses = bills;
           if (zoneChanged) trip.timeZone = tripData.timeZone;
-          if (editingId != null && !activities.some((a) => String(a.id) === String(editingId))) {
+          if (
+            editingId != null &&
+            !activities.some((a) => String(a.id) === String(editingId))
+          ) {
             exitEdit({ collapse: true });
             showToast("รายการที่คุณกำลังแก้ ถูกลบไปแล้ว", "error");
           } else if (planChanged) {
@@ -4153,12 +4777,27 @@
       });
 
       // ---------- แชร์แพลนเป็นข้อความ ----------
-      const MODE_EMOJI = { CAR: "🚗", VAN: "🚐", BUS: "🚌", TRAIN: "🚆", PLANE: "✈️", BOAT: "⛴️" };
-      const CATEGORY_EMOJI = { TRAVEL: "🧭", FOOD: "🍽️", STAY: "🏨", SIGHTSEEING: "📸", ACTIVITY: "🎯", OTHER: "⭐" };
+      const MODE_EMOJI = {
+        CAR: "🚗",
+        VAN: "🚐",
+        BUS: "🚌",
+        TRAIN: "🚆",
+        PLANE: "✈️",
+        BOAT: "⛴️",
+      };
+      const CATEGORY_EMOJI = {
+        TRAVEL: "🧭",
+        FOOD: "🍽️",
+        STAY: "🏨",
+        SIGHTSEEING: "📸",
+        ACTIVITY: "🎯",
+        OTHER: "⭐",
+      };
 
       function shareEmoji(o) {
         if (o.kind === "checkout") return "🧳";
-        if (o.act.category === "TRAVEL") return MODE_EMOJI[o.act.transportMode] || CATEGORY_EMOJI.TRAVEL;
+        if (o.act.category === "TRAVEL")
+          return MODE_EMOJI[o.act.transportMode] || CATEGORY_EMOJI.TRAVEL;
         return CATEGORY_EMOJI[o.act.category] || CATEGORY_EMOJI.OTHER;
       }
 
@@ -4166,7 +4805,9 @@
         const act = o.act;
         if (o.kind !== "main") return o.time ? hhmm(o.time) : "";
         if (!act.startTime) return "ทั้งวัน";
-        return act.endTime ? `${hhmm(act.startTime)}–${hhmm(act.endTime)}${endDayOffset(act) ? ` (+${endDayOffset(act)})` : ""}` : hhmm(act.startTime);
+        return act.endTime
+          ? `${hhmm(act.startTime)}–${hhmm(act.endTime)}${endDayOffset(act) ? ` (+${endDayOffset(act)})` : ""}`
+          : hhmm(act.startTime);
       }
 
       // บรรทัดรายละเอียดใต้รายการ (เฉพาะแถวหลัก/เช็คอิน ไม่ซ้ำในแถวเช็คเอาท์)
@@ -4176,32 +4817,54 @@
         const parts = [];
         if (details) {
           if (act.category === "TRAVEL" && act.origin && act.location) {
-            parts.push([act.origin, ...stopsOf(act).map((st) => st.place), act.location].join(" → "));
+            parts.push(
+              [
+                act.origin,
+                ...stopsOf(act).map((st) => st.place),
+                act.location,
+              ].join(" → "),
+            );
           } else if (act.location && act.location !== act.title) {
             parts.push(`📍 ${act.location}`);
           }
           if (isStay(act)) {
             const nights = nightsOf(act);
-            parts.push(nights ? `${nights} คืน · เช็คเอาท์ ${formatDay(parseDay(act.endDate))}` : "ไม่ค้างคืน");
+            parts.push(
+              nights
+                ? `${nights} คืน · เช็คเอาท์ ${formatDay(parseDay(act.endDate))}`
+                : "ไม่ค้างคืน",
+            );
             if (act.rooms) parts.push(`${act.rooms} ห้อง`);
           }
           if (SPLIT_CATS.includes(act.category)) {
             const ids = peopleOf(act);
-            if (ids.length && ids.length < members.length) parts.push(`ไป: ${ids.map(memberName).join(", ")}`);
+            if (ids.length && ids.length < members.length)
+              parts.push(`ไป: ${ids.map(memberName).join(", ")}`);
           }
-          if (act.bookingRef) parts.push(`${act.category === "TRAVEL" ? "🎫" : "🔖"} ${act.bookingRef}`);
+          if (act.bookingRef)
+            parts.push(
+              `${act.category === "TRAVEL" ? "🎫" : "🔖"} ${act.bookingRef}`,
+            );
           else if (act.booked) parts.push("จองแล้ว");
           if (act.contact) parts.push(`☎️ ${act.contact}`);
         }
         if (cost && costOf(act) > 0) {
-          parts.push(isStay(act) ? priceText(Number(act.cost) * stayUnits(act), act, " รวม") : priceText(Number(act.cost), act, "/คน"));
+          parts.push(
+            isStay(act)
+              ? priceText(Number(act.cost) * stayUnits(act), act, " รวม")
+              : priceText(Number(act.cost), act, "/คน"),
+          );
         }
         const lines = parts.length ? [parts.join(" · ")] : [];
         if (details) {
           stopsOf(act).forEach((st) => {
-            const times = [hhmm(st.arriveTime), hhmm(st.departTime)].filter(Boolean).join("–");
+            const times = [hhmm(st.arriveTime), hhmm(st.departTime)]
+              .filter(Boolean)
+              .join("–");
             const wait = layover(st);
-            lines.push(`🔁 ต่อเครื่อง ${st.place}${times ? ` ${times}` : ""}${wait ? ` (รอ ${wait})` : ""}`);
+            lines.push(
+              `🔁 ต่อเครื่อง ${st.place}${times ? ` ${times}` : ""}${wait ? ` (รอ ${wait})` : ""}`,
+            );
           });
         }
         if (notes && act.notes) lines.push(`📝 ${act.notes}`);
@@ -4218,29 +4881,42 @@
             start.getTime() === end.getTime()
               ? formatDay(start, { year: "numeric" })
               : `${formatDay(start)} – ${formatDay(end, { year: "numeric" })}`;
-          const length = tripDays.length > 1 ? `${tripDays.length} วัน ${tripDays.length - 1} คืน` : "ไปเช้าเย็นกลับ";
+          const length =
+            tripDays.length > 1
+              ? `${tripDays.length} วัน ${tripDays.length - 1} คืน`
+              : "ไปเช้าเย็นกลับ";
           lines.push(`${range} (${length})`);
         }
         days.forEach((d) => {
           lines.push("");
-          lines.push(`📅 ${d.no ? `วันที่ ${d.no} · ` : ""}${formatDay(d.date)}`);
+          lines.push(
+            `📅 ${d.no ? `วันที่ ${d.no} · ` : ""}${formatDay(d.date)}`,
+          );
           const occs = occurrencesOn(d.key).filter((o) => o.kind !== "stay");
           if (!occs.length) {
             const staying = occurrencesOn(d.key).find((o) => o.kind === "stay");
-            lines.push(staying ? `พักที่ ${staying.act.title} (ยังไม่มีแพลน)` : "(ยังว่าง)");
+            lines.push(
+              staying
+                ? `พักที่ ${staying.act.title} (ยังไม่มีแพลน)`
+                : "(ยังว่าง)",
+            );
             return;
           }
           occs.forEach((o) => {
             const time = shareTime(o);
-            lines.push(`${time ? `${time} ` : ""}${shareEmoji(o)} ${occLabel(o)}`);
+            lines.push(
+              `${time ? `${time} ` : ""}${shareEmoji(o)} ${occLabel(o)}`,
+            );
             shareDetails(o, opts).forEach((l) => lines.push(`      ${l}`));
           });
         });
         const budget = budgetPerPerson();
         if (opts.cost && (budget > 0 || tripBudget() > 0)) {
           lines.push("");
-          if (budget > 0) lines.push(`💰 ค่าใช้จ่ายตามแพลน ≈ ${fmt(Math.round(budget))}/คน`);
-          if (tripBudget() > 0) lines.push(`🎯 งบที่ตั้งไว้ ${fmt(tripBudget())}/คน`);
+          if (budget > 0)
+            lines.push(`💰 ค่าใช้จ่ายตามแพลน ≈ ${fmt(Math.round(budget))}/คน`);
+          if (tripBudget() > 0)
+            lines.push(`🎯 งบที่ตั้งไว้ ${fmt(tripBudget())}/คน`);
         }
         return lines.join("\n");
       }
@@ -4257,12 +4933,17 @@
 
       $("share-btn").addEventListener("click", () => {
         refreshShareText();
-        $("share-native-btn").classList.toggle("hidden", typeof navigator.share !== "function");
+        $("share-native-btn").classList.toggle(
+          "hidden",
+          typeof navigator.share !== "function",
+        );
         $("share-dialog").showModal();
         $("share-copy-btn").focus();
       });
 
-      ["share-details", "share-cost", "share-notes"].forEach((id) => $(id).addEventListener("change", refreshShareText));
+      ["share-details", "share-cost", "share-notes"].forEach((id) =>
+        $(id).addEventListener("change", refreshShareText),
+      );
 
       // คลิกพื้นหลังมืด = ปิด
       $("share-dialog").addEventListener("click", (e) => {
@@ -4274,7 +4955,9 @@
           // บางเบราว์เซอร์ค้างรอสิทธิ์ไม่ตอบ: รอไม่เกิน 1.5 วินาทีแล้วใช้วิธีสำรอง
           await Promise.race([
             navigator.clipboard.writeText(text),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("clipboard timeout")), 1500)),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("clipboard timeout")), 1500),
+            ),
           ]);
           return true;
         } catch {
@@ -4296,16 +4979,23 @@
           $("share-dialog").close();
           showToast("คัดลอกแพลนแล้ว วางในแชทกลุ่มได้เลย");
         } else {
-          showToast("คัดลอกไม่สำเร็จ ลองกดค้างที่ข้อความแล้วคัดลอกเอง", "error");
+          showToast(
+            "คัดลอกไม่สำเร็จ ลองกดค้างที่ข้อความแล้วคัดลอกเอง",
+            "error",
+          );
         }
       });
 
       $("share-native-btn").addEventListener("click", async () => {
         try {
-          await navigator.share({ title: `แพลนเที่ยว ${trip?.title || ""}`.trim(), text: $("share-text").value });
+          await navigator.share({
+            title: `แพลนเที่ยว ${trip?.title || ""}`.trim(),
+            text: $("share-text").value,
+          });
           $("share-dialog").close();
         } catch (error) {
-          if (error.name !== "AbortError") showToast("แชร์ไม่สำเร็จ ลองคัดลอกข้อความแทน", "error");
+          if (error.name !== "AbortError")
+            showToast("แชร์ไม่สำเร็จ ลองคัดลอกข้อความแทน", "error");
         }
       });
 
@@ -4315,20 +5005,30 @@
         const start = parseDay(trip?.startDate);
         const end = parseDay(trip?.endDate);
 
-        $("stat-days").textContent = tripDays.length ? `${tripDays.length} วัน` : "-";
+        $("stat-days").textContent = tripDays.length
+          ? `${tripDays.length} วัน`
+          : "-";
         $("stat-days-sub").textContent =
-          tripDays.length > 1 ? `${tripDays.length - 1} คืน` : tripDays.length ? "ไปเช้าเย็นกลับ" : "ยังไม่ได้กำหนดวัน";
+          tripDays.length > 1
+            ? `${tripDays.length - 1} คืน`
+            : tripDays.length
+              ? "ไปเช้าเย็นกลับ"
+              : "ยังไม่ได้กำหนดวัน";
 
-        $("stat-total").textContent = `${activities.length.toLocaleString("th-TH")} รายการ`;
+        $("stat-total").textContent =
+          `${activities.length.toLocaleString("th-TH")} รายการ`;
         $("share-btn").classList.toggle("hidden", activities.length === 0);
-        const emptyDays = tripDays.filter((d) => planCountOn(d.key) === 0).length;
+        const emptyDays = tripDays.filter(
+          (d) => planCountOn(d.key) === 0,
+        ).length;
         $("stat-total-sub").textContent = !tripDays.length
           ? "ในแพลน"
           : emptyDays
             ? `ยังว่าง ${emptyDays} วัน`
             : "ครบทุกวันแล้ว";
         const budget = budgetPerPerson();
-        $("stat-budget").textContent = budget > 0 ? `≈ ${fmt(Math.round(budget))}` : "-";
+        $("stat-budget").textContent =
+          budget > 0 ? `≈ ${fmt(Math.round(budget))}` : "-";
         renderBudgetTile(budget);
 
         $("hero-title").textContent = trip?.title || `ทริป #${tripId}`;
@@ -4337,7 +5037,9 @@
         // ไทล์ขวา: ก่อนทริป = นับถอยหลัง, ระหว่างทริป = กิจกรรมถัดไป, หลังทริป = จบแล้ว
         const today = parseDay(todayKey());
         const { next, map } = statusMap();
-        const nowOcc = allOccurrences().find((o) => map.get(occId(o)) === "now");
+        const nowOcc = allOccurrences().find(
+          (o) => map.get(occId(o)) === "now",
+        );
         let label = "ถัดไป";
         let value = "-";
         let sub = "";
@@ -4356,7 +5058,10 @@
           sub = occLabel(nowOcc);
         } else if (next) {
           value = hhmm(next.time);
-          sub = next.key === todayKey() ? occLabel(next) : `${formatDay(parseDay(next.key))} · ${occLabel(next)}`;
+          sub =
+            next.key === todayKey()
+              ? occLabel(next)
+              : `${formatDay(parseDay(next.key))} · ${occLabel(next)}`;
         } else {
           sub = activities.length ? "ไม่มีกิจกรรมที่เหลือ" : "ยังไม่มีกิจกรรม";
         }
@@ -4391,8 +5096,10 @@
         const first = tripDays[0];
         const last = tripDays[tripDays.length - 1];
         let middle = "";
-        if (todayIndex >= 0) middle = `<strong>วันที่ ${todayIndex + 1} จาก ${tripDays.length}</strong>`;
-        else if (first && today < first.key) middle = `อีก ${daysBetween(today, first.key)} วันออกเดินทาง`;
+        if (todayIndex >= 0)
+          middle = `<strong>วันที่ ${todayIndex + 1} จาก ${tripDays.length}</strong>`;
+        else if (first && today < first.key)
+          middle = `อีก ${daysBetween(today, first.key)} วันออกเดินทาง`;
         else if (last) middle = "เที่ยวจบแล้ว";
         $("hero-days-label").innerHTML = first
           ? `<span>${esc(formatDay(first.date))}</span><span>${middle}</span><span>${esc(formatDay(last.date))}</span>`
@@ -4406,7 +5113,12 @@
         strip.innerHTML = days
           .map((d) => {
             const count = planCountOn(d.key);
-            const dots = count ? Array.from({ length: Math.min(count, 4) }, () => "<i></i>").join("") : "<i></i>";
+            const dots = count
+              ? Array.from(
+                  { length: Math.min(count, 4) },
+                  () => "<i></i>",
+                ).join("")
+              : "<i></i>";
             const label = `${formatDayLong(d.date)} · ${count ? `${count} รายการ` : "ยังว่าง"}`;
             return `
               <button type="button" class="day-chip${count ? "" : " empty"}${d.key === today ? " today" : ""}"
@@ -4426,15 +5138,27 @@
         `<span class="meta-item ${cls}">${icon ? `<i class="${icon}"></i>` : ""}${html}</span>`;
       // มีพิกัด (เลือกจากแผนที่) = เปิดตรงจุด, ไม่มี = ค้นจากชื่อ
       const mapLink = (query, text, act) => {
-        const q = act && act.latitude != null && act.longitude != null ? `${act.latitude},${act.longitude}` : query;
+        const q =
+          act && act.latitude != null && act.longitude != null
+            ? `${act.latitude},${act.longitude}`
+            : query;
         return `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank"
             rel="noopener" title="เปิดใน Google Maps">${text}</a>`;
       };
       const costText = (act) => {
         if (costOf(act) <= 0) return "";
-        if (isStay(act)) return metaItem("", priceText(Number(act.cost) * stayUnits(act), act, " รวม"), "cost");
+        if (isStay(act))
+          return metaItem(
+            "",
+            priceText(Number(act.cost) * stayUnits(act), act, " รวม"),
+            "cost",
+          );
         const n = SPLIT_CATS.includes(act.category) ? payersOf(act).length : 0;
-        return metaItem("", `${priceText(Number(act.cost), act, "/คน")}${n > 1 ? ` · ${n} คน ${fmt(Math.round(costOf(act) * n))}` : ""}`, "cost");
+        return metaItem(
+          "",
+          `${priceText(Number(act.cost), act, "/คน")}${n > 1 ? ` · ${n} คน ${fmt(Math.round(costOf(act) * n))}` : ""}`,
+          "cost",
+        );
       };
       const PHONE_RE = /0\d[\d\s-]{7,}\d/;
       function contactHtml(act) {
@@ -4443,7 +5167,9 @@
         const text = esc(act.contact);
         return metaItem(
           "fa-solid fa-phone",
-          phone ? `<a href="tel:${phone.replace(/[\s-]/g, "")}">${text}</a>` : text,
+          phone
+            ? `<a href="tel:${phone.replace(/[\s-]/g, "")}">${text}</a>`
+            : text,
         );
       }
       function peopleHtml(act) {
@@ -4452,20 +5178,30 @@
         const all = members.length > 1 && ids.length === members.length;
         const names = ids.map(memberName).join(", ");
         return `<span class="meta-item people" title="${esc(names)}">
-          <span class="mini-stack">${ids.slice(0, 3).map((id) => avatar(memberName(id), "xs")).join("")}</span>
+          <span class="mini-stack">${ids
+            .slice(0, 3)
+            .map((id) => avatar(memberName(id), "xs"))
+            .join("")}</span>
           ${all ? "ไปทุกคน" : `${ids.length} คน`}</span>`;
       }
 
       // รายละเอียดการจอง: ไอคอนตามช่องทาง (เบอร์โทรกดโทรได้)
       function bookingHtml(act) {
-        const method = act.category === "TRAVEL" ? null : methodOf(act.bookingMethod);
+        const method =
+          act.category === "TRAVEL" ? null : methodOf(act.bookingMethod);
         const detail = act.bookingRef ? esc(act.bookingRef) : "";
         if (method?.value === "PHONE") {
           const phone = act.bookingRef?.match(PHONE_RE)?.[0];
-          const text = detail ? `โทรจอง · ${phone ? detail.replace(esc(phone), `<a href="tel:${phone.replace(/[\s-]/g, "")}">${esc(phone)}</a>`) : detail}` : "โทรจอง";
+          const text = detail
+            ? `โทรจอง · ${phone ? detail.replace(esc(phone), `<a href="tel:${phone.replace(/[\s-]/g, "")}">${esc(phone)}</a>`) : detail}`
+            : "โทรจอง";
           return metaItem(method.icon, text);
         }
-        if (method?.value === "PAGE") return metaItem(method.icon, detail ? `จองผ่าน ${detail}` : "จองผ่านเพจ / แชท");
+        if (method?.value === "PAGE")
+          return metaItem(
+            method.icon,
+            detail ? `จองผ่าน ${detail}` : "จองผ่านเพจ / แชท",
+          );
         return detail ? metaItem("fa-solid fa-ticket", detail) : "";
       }
 
@@ -4481,7 +5217,9 @@
         if (!stops.length) return "";
         return `<div class="ticket-stops">${stops
           .map((st) => {
-            const times = [hhmm(st.arriveTime), hhmm(st.departTime)].filter(Boolean).join("–");
+            const times = [hhmm(st.arriveTime), hhmm(st.departTime)]
+              .filter(Boolean)
+              .join("–");
             const wait = layover(st);
             return `<span><i class="fa-solid fa-shuffle" aria-hidden="true"></i> ต่อเครื่องที่ <b>${esc(st.place)}</b>${
               times ? ` · <span class="money">${times}</span>` : ""
@@ -4495,7 +5233,11 @@
         if (!act.origin && !act.location) return "";
         const mode = modeOf(act.transportMode);
         const place = (name, linked) =>
-          name ? (linked ? mapLink(name, esc(name), act) : esc(name)) : `<em>ไม่ระบุ</em>`;
+          name
+            ? linked
+              ? mapLink(name, esc(name), act)
+              : esc(name)
+            : `<em>ไม่ระบุ</em>`;
         return `
           <div class="ticket">
             <div class="ticket-end"><b>${hhmm(act.startTime) || "--:--"}</b><span>${place(act.origin, false)}</span></div>
@@ -4514,10 +5256,14 @@
         const cat = categoryOf(act.category);
         const loc =
           act.location && act.location !== act.title
-            ? metaItem("fa-solid fa-location-dot", mapLink(act.location, esc(act.location), act))
+            ? metaItem(
+                "fa-solid fa-location-dot",
+                mapLink(act.location, esc(act.location), act),
+              )
             : "";
         const booking = bookingHtml(act);
-        if (o.kind === "stay") return metaItem("", `คืนที่ ${o.night} จาก ${nightsOf(act)}`);
+        if (o.kind === "stay")
+          return metaItem("", `คืนที่ ${o.night} จาก ${nightsOf(act)}`);
         if (o.kind === "checkout") return loc;
         switch (cat.value) {
           case "TRAVEL": {
@@ -4526,25 +5272,43 @@
             return [
               mode ? metaItem(mode.icon, mode.label) : metaItem("", cat.label),
               endDayOffset(act) > 1
-                ? metaItem("fa-solid fa-moon", `ถึงอีก ${endDayOffset(act)} วัน`)
+                ? metaItem(
+                    "fa-solid fa-moon",
+                    `ถึงอีก ${endDayOffset(act)} วัน`,
+                  )
                 : isOvernight(act)
                   ? metaItem("fa-solid fa-moon", "ถึงวันถัดไป")
                   : "",
-              stopsOf(act).length ? metaItem("fa-solid fa-shuffle", `ต่อเครื่อง ${stopsOf(act).length} ครั้ง`) : "",
-              peopleOf(act).length && peopleOf(act).length < members.length ? peopleHtml(act) : "",
+              stopsOf(act).length
+                ? metaItem(
+                    "fa-solid fa-shuffle",
+                    `ต่อเครื่อง ${stopsOf(act).length} ครั้ง`,
+                  )
+                : "",
+              peopleOf(act).length && peopleOf(act).length < members.length
+                ? peopleHtml(act)
+                : "",
               booking,
               costText(act),
             ].join("");
           }
           case "FOOD": {
             const meal = mealOf(act.mealType);
-            return [metaItem("", meal ? `มื้อ${meal.label}` : cat.label), loc, booking, costText(act)].join("");
+            return [
+              metaItem("", meal ? `มื้อ${meal.label}` : cat.label),
+              loc,
+              booking,
+              costText(act),
+            ].join("");
           }
           case "STAY": {
             const nights = nightsOf(act);
             return [
               nights
-                ? metaItem("fa-solid fa-moon", `${nights} คืน · เช็คเอาท์ ${esc(formatDay(parseDay(act.endDate)))}`)
+                ? metaItem(
+                    "fa-solid fa-moon",
+                    `${nights} คืน · เช็คเอาท์ ${esc(formatDay(parseDay(act.endDate)))}`,
+                  )
                 : metaItem("", "ไม่ค้างคืน"),
               act.rooms
                 ? metaItem(
@@ -4562,7 +5326,15 @@
               metaItem("", cat.label),
               metaItem(
                 "fa-solid fa-location-dot",
-                mapLink(act.location || act.title, esc(act.location && act.location !== act.title ? act.location : "ดูแผนที่"), act),
+                mapLink(
+                  act.location || act.title,
+                  esc(
+                    act.location && act.location !== act.title
+                      ? act.location
+                      : "ดูแผนที่",
+                  ),
+                  act,
+                ),
               ),
               costText(act),
             ].join("");
@@ -4570,7 +5342,9 @@
             return [
               metaItem("", cat.label),
               loc,
-              isOvernight(act) ? metaItem("fa-solid fa-moon", "จบวันถัดไป") : "",
+              isOvernight(act)
+                ? metaItem("fa-solid fa-moon", "จบวันถัดไป")
+                : "",
               peopleHtml(act),
               contactHtml(act),
               booking,
@@ -4580,7 +5354,9 @@
             return [
               metaItem("", cat.label),
               loc,
-              isOvernight(act) ? metaItem("fa-solid fa-moon", "จบวันถัดไป") : "",
+              isOvernight(act)
+                ? metaItem("fa-solid fa-moon", "จบวันถัดไป")
+                : "",
               booking,
               costText(act),
             ].join("");
@@ -4590,10 +5366,13 @@
       function timeHtml(o) {
         const act = o.act;
         if (o.kind === "stay") return "";
-        if (o.kind !== "main") return o.time ? hhmm(o.time) : `<span class="all-day">-</span>`;
+        if (o.kind !== "main")
+          return o.time ? hhmm(o.time) : `<span class="all-day">-</span>`;
         if (!act.startTime) return `<span class="all-day">ทั้งวัน</span>`;
         return `${hhmm(act.startTime)}${
-          act.endTime ? `<span class="end">${hhmm(act.endTime)}${dayPlus(act)}</span>` : ""
+          act.endTime
+            ? `<span class="end">${hhmm(act.endTime)}${dayPlus(act)}</span>`
+            : ""
         }`;
       }
 
@@ -4602,15 +5381,29 @@
         const cat = categoryOf(act.category);
         const badges = [
           o.kind === "checkin" ? `<span class="badge stay">เช็คอิน</span>` : "",
-          o.kind === "checkout" ? `<span class="badge stay">เช็คเอาท์</span>` : "",
-          o.kind === "main" && isStay(act) ? `<span class="badge stay">ที่พัก</span>` : "",
+          o.kind === "checkout"
+            ? `<span class="badge stay">เช็คเอาท์</span>`
+            : "",
+          o.kind === "main" && isStay(act)
+            ? `<span class="badge stay">ที่พัก</span>`
+            : "",
           status === "now" ? `<span class="badge now">ตอนนี้</span>` : "",
           status === "next" ? `<span class="badge next">ถัดไป</span>` : "",
-          act.booked && o.kind === "main" ? `<span class="badge booked">${act.category === "FOOD" ? "จองโต๊ะแล้ว" : "จองแล้ว"}</span>` : "",
-          (act.category === "ACTIVITY" || isStay(act)) && !act.booked && o.kind !== "checkout" && o.kind !== "stay" && status !== "past"
+          act.booked && o.kind === "main"
+            ? `<span class="badge booked">${act.category === "FOOD" ? "จองโต๊ะแล้ว" : "จองแล้ว"}</span>`
+            : "",
+          (act.category === "ACTIVITY" || isStay(act)) &&
+          !act.booked &&
+          o.kind !== "checkout" &&
+          o.kind !== "stay" &&
+          status !== "past"
             ? `<span class="badge warn">ยังไม่จอง</span>`
             : "",
-          isStay(act) && o.kind !== "stay" && o.kind !== "checkout" && stayCapacity(act) && members.length > stayCapacity(act)
+          isStay(act) &&
+          o.kind !== "stay" &&
+          o.kind !== "checkout" &&
+          stayCapacity(act) &&
+          members.length > stayCapacity(act)
             ? `<span class="badge warn" title="ทริปมี ${members.length} คน แต่ห้องพักได้ ${stayCapacity(act)} คน">ห้องไม่พอ</span>`
             : "",
           o.kind === "main" && overlaps.has(act.id)
@@ -4635,7 +5428,8 @@
         ]
           .filter(Boolean)
           .join(" ");
-        const showNote = act.notes && (o.kind === "main" || o.kind === "checkin");
+        const showNote =
+          act.notes && (o.kind === "main" || o.kind === "checkin");
         return `
           <article class="${cls}" data-id="${act.id}" data-kind="${o.kind}" style="--cat:${cat.color}">
             <div class="act-time">${timeHtml(o)}</div>
@@ -4661,7 +5455,9 @@
         if (!days.length) {
           box.innerHTML = emptyBox(
             "fa-solid fa-calendar-xmark",
-            canEdit() ? "ทริปนี้ยังไม่ได้กำหนดวันเที่ยว เพิ่มกิจกรรมแรกได้จากฟอร์ม" : "ยังไม่มีแพลน",
+            canEdit()
+              ? "ทริปนี้ยังไม่ได้กำหนดวันเที่ยว เพิ่มกิจกรรมแรกได้จากฟอร์ม"
+              : "ยังไม่มีแพลน",
           );
           return;
         }
@@ -4672,7 +5468,11 @@
           .map((d) => {
             const occs = occurrencesOn(d.key);
             const count = occs.filter((o) => o.kind !== "stay").length;
-            const cls = [d.key === today ? "today" : "", d.key < today ? "past" : "", d.extra ? "extra" : ""]
+            const cls = [
+              d.key === today ? "today" : "",
+              d.key < today ? "past" : "",
+              d.extra ? "extra" : "",
+            ]
               .filter(Boolean)
               .join(" ");
             const addBtn = canEdit()
@@ -4682,11 +5482,22 @@
                  </button>`
               : `<div class="day-empty"><span class="empty-icon"><i class="fa-regular fa-calendar"></i></span>
                    <span>ยังไม่มีแพลนวันนี้</span></div>`;
-            const rows = occs.map((o) => occurrenceHtml(o, map.get(occId(o)), overlaps));
-            if (d.key === today && occs.some((o) => o.time)) rows.splice(nowLineIndex(occs), 0, nowLineHtml());
-            const list = occs.length ? `<div class="day-card">${rows.join("")}</div>` : "";
-            const weekday = d.date.toLocaleDateString("th-TH", { weekday: "long" });
-            const fullDate = d.date.toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" });
+            const rows = occs.map((o) =>
+              occurrenceHtml(o, map.get(occId(o)), overlaps),
+            );
+            if (d.key === today && occs.some((o) => o.time))
+              rows.splice(nowLineIndex(occs), 0, nowLineHtml());
+            const list = occs.length
+              ? `<div class="day-card">${rows.join("")}</div>`
+              : "";
+            const weekday = d.date.toLocaleDateString("th-TH", {
+              weekday: "long",
+            });
+            const fullDate = d.date.toLocaleDateString("th-TH", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            });
             return `
               <section class="day-section ${cls}" id="day-${d.key}" aria-label="${esc(formatDayLong(d.date))}">
                 <div class="day-head">
@@ -4736,15 +5547,26 @@
             if (!visible.length) return;
             const key = visible[0].target.id.replace("day-", "");
             const strip = $("day-strip");
-            strip.querySelectorAll(".day-chip").forEach((c) => c.classList.toggle("active", c.dataset.day === key));
+            strip
+              .querySelectorAll(".day-chip")
+              .forEach((c) =>
+                c.classList.toggle("active", c.dataset.day === key),
+              );
             const chip = strip.querySelector(`.day-chip[data-day="${key}"]`);
-            if (chip && (chip.offsetLeft < strip.scrollLeft || chip.offsetLeft + chip.offsetWidth > strip.scrollLeft + strip.clientWidth)) {
+            if (
+              chip &&
+              (chip.offsetLeft < strip.scrollLeft ||
+                chip.offsetLeft + chip.offsetWidth >
+                  strip.scrollLeft + strip.clientWidth)
+            ) {
               strip.scrollTo({ left: chip.offsetLeft - 8, behavior: "smooth" });
             }
           },
           { rootMargin: "-120px 0px -60% 0px" },
         );
-        document.querySelectorAll(".day-section").forEach((el) => dayObserver.observe(el));
+        document
+          .querySelectorAll(".day-section")
+          .forEach((el) => dayObserver.observe(el));
       }
 
       const tripDayOptions = (fromKey = "") =>
@@ -4766,7 +5588,8 @@
         if (!ranged) return;
         const current = select.value;
         select.innerHTML = tripDayOptions();
-        if (current && [...select.options].some((o) => o.value === current)) select.value = current;
+        if (current && [...select.options].some((o) => o.value === current))
+          select.value = current;
         else select.value = defaultDayKey();
         renderCheckoutOptions();
       }
@@ -4779,14 +5602,19 @@
         const wanted = preferred || select.value;
         select.innerHTML = tripDayOptions(checkin);
         const keys = [...select.options].map((o) => o.value);
-        select.value = keys.includes(wanted) && wanted >= checkin ? wanted : keys[1] || keys[0] || "";
+        select.value =
+          keys.includes(wanted) && wanted >= checkin
+            ? wanted
+            : keys[1] || keys[0] || "";
         syncStayUi();
       }
 
       // วันเริ่มต้นของฟอร์ม: วันนี้ถ้าอยู่ระหว่างทริป ไม่งั้นวันแรก
       function defaultDayKey() {
         const tripDays = days.filter((d) => !d.extra);
-        return (tripDays.find((d) => d.key === todayKey()) || tripDays[0])?.key || "";
+        return (
+          (tripDays.find((d) => d.key === todayKey()) || tripDays[0])?.key || ""
+        );
       }
 
       function renderAll() {
@@ -4809,7 +5637,9 @@
       }
 
       function renderPills() {
-        const color = selectedCategory ? categoryOf(selectedCategory).color : "#71717a";
+        const color = selectedCategory
+          ? categoryOf(selectedCategory).color
+          : "#71717a";
         $("mode-grid").innerHTML = TRANSPORT_MODES.map(
           (m) => `
             <button type="button" class="pill-option" role="radio" data-value="${m.value}"
@@ -4840,7 +5670,10 @@
         }
         const text = FORM_TEXT[cat];
         form.querySelectorAll("[data-cats]").forEach((el) => {
-          el.classList.toggle("hidden", !el.dataset.cats.split(" ").includes(cat));
+          el.classList.toggle(
+            "hidden",
+            !el.dataset.cats.split(" ").includes(cat),
+          );
         });
 
         // เดินทาง: ย้ายช่องเวลาเริ่ม/จบเข้าการ์ดเส้นทาง (ออก / ถึง)
@@ -4848,11 +5681,15 @@
 
         // ที่พัก: ย้ายช่องเลือกวันไปเป็น "วันเช็คอิน" ในกลุ่มเช็คอิน–เช็คเอาท์
         const stay = cat === "STAY";
-        (stay ? $("stay-in-slot") : $("date-home")).appendChild($("date-control"));
+        (stay ? $("stay-in-slot") : $("date-home")).appendChild(
+          $("date-control"),
+        );
         $("group-date").classList.toggle("hidden", stay);
         if (stay) {
-          if (!$("checkin-time").value) $("checkin-time").value = DEFAULT_CHECKIN;
-          if (!$("checkout-time").value) $("checkout-time").value = DEFAULT_CHECKOUT;
+          if (!$("checkin-time").value)
+            $("checkin-time").value = DEFAULT_CHECKIN;
+          if (!$("checkout-time").value)
+            $("checkout-time").value = DEFAULT_CHECKOUT;
           renderCheckoutOptions();
         }
 
@@ -4869,9 +5706,12 @@
         $("location-input").placeholder = text.locationPh || "";
 
         $("cost-label").textContent = text.cost;
-        $("people-label").firstChild.textContent = cat === "TRAVEL" ? "คนที่เดินทางเที่ยวนี้ " : "ผู้ร่วมกิจกรรม ";
+        $("people-label").firstChild.textContent =
+          cat === "TRAVEL" ? "คนที่เดินทางเที่ยวนี้ " : "ผู้ร่วมกิจกรรม ";
         $("people-error").textContent =
-          cat === "TRAVEL" ? "เลือกคนที่เดินทางอย่างน้อย 1 คน" : "เลือกผู้ร่วมกิจกรรมอย่างน้อย 1 คน";
+          cat === "TRAVEL"
+            ? "เลือกคนที่เดินทางอย่างน้อย 1 คน"
+            : "เลือกผู้ร่วมกิจกรรมอย่างน้อย 1 คน";
         $("method-label").textContent = text.method || "การจอง";
         $("notes-input").placeholder = text.notesPh || "";
         $("title-error").textContent = `กรุณากรอก${text.title || "ชื่อ"}`;
@@ -4900,7 +5740,9 @@
       }
 
       function renderMethods() {
-        const color = selectedCategory ? categoryOf(selectedCategory).color : "#71717a";
+        const color = selectedCategory
+          ? categoryOf(selectedCategory).color
+          : "#71717a";
         $("method-grid").innerHTML = BOOKING_METHODS.map(
           (m) => `
             <button type="button" class="pill-option" role="radio" data-value="${m.value ?? ""}"
@@ -4923,14 +5765,20 @@
         const from = $("origin-input");
         const to = $("dest-input");
         [from.value, to.value] = [to.value, from.value];
-        const fromCoords = from.dataset.lat ? [from.dataset.lat, from.dataset.lon] : null;
-        const toCoords = to.dataset.lat ? [to.dataset.lat, to.dataset.lon] : null;
+        const fromCoords = from.dataset.lat
+          ? [from.dataset.lat, from.dataset.lon]
+          : null;
+        const toCoords = to.dataset.lat
+          ? [to.dataset.lat, to.dataset.lon]
+          : null;
         clearCoords(from);
         clearCoords(to);
         if (toCoords) setCoords(from, ...toCoords);
         if (fromCoords) setCoords(to, ...fromCoords);
         // เมืองต่อเครื่องย้อนลำดับ (เวลาเดิมใช้ไม่ได้แล้ว)
-        const places = readStops().map((st) => st.place).reverse();
+        const places = readStops()
+          .map((st) => st.place)
+          .reverse();
         clearStops();
         places.forEach((place) => addStopRow({ place }));
         syncTravelTitle();
@@ -4987,15 +5835,23 @@
             arriveTime: row.querySelector(".stop-arrive").value,
             departTime: row.querySelector(".stop-depart").value,
           });
-          row.querySelector(".stop-wait").textContent = wait ? `รอ ${wait}` : "";
+          row.querySelector(".stop-wait").textContent = wait
+            ? `รอ ${wait}`
+            : "";
         });
-        $("stops-sum").textContent = rows.length ? `${rows.length} เมือง` : "บินตรง";
+        $("stops-sum").textContent = rows.length
+          ? `${rows.length} เมือง`
+          : "บินตรง";
         $("add-stop-btn").disabled = rows.length >= MAX_STOPS;
         $("add-stop-btn").lastChild.textContent =
-          rows.length >= MAX_STOPS ? ` ต่อได้สูงสุด ${MAX_STOPS} เมือง` : " เพิ่มเมืองต่อเครื่อง";
+          rows.length >= MAX_STOPS
+            ? ` ต่อได้สูงสุด ${MAX_STOPS} เมือง`
+            : " เพิ่มเมืองต่อเครื่อง";
       }
 
-      $("add-stop-btn").addEventListener("click", () => addStopRow({}, { focus: true }));
+      $("add-stop-btn").addEventListener("click", () =>
+        addStopRow({}, { focus: true }),
+      );
       $("stop-list").addEventListener("click", (e) => {
         const btn = e.target.closest(".stop-remove");
         if (!btn) return;
@@ -5010,7 +5866,9 @@
       });
 
       // รถส่วนตัว / กิน: ไม่มีค่าใช้จ่ายในแพลน ซ่อนช่องค่าใช้จ่าย
-      const formHasNoCost = () => selectedCategory === "FOOD" || (selectedCategory === "TRAVEL" && selectedMode === "CAR");
+      const formHasNoCost = () =>
+        selectedCategory === "FOOD" ||
+        (selectedCategory === "TRAVEL" && selectedMode === "CAR");
       function syncCarCost() {
         $("group-cost").classList.toggle("hidden", formHasNoCost());
       }
@@ -5022,7 +5880,10 @@
         const method = methodOf(selectedMethod);
         const show = cat === "TRAVEL" ? !!mode?.booking : !!selectedMethod;
         $("group-booking").classList.toggle("hidden", !show);
-        const text = cat === "TRAVEL" ? { label: mode?.booking, ph: mode?.bookingPh } : { label: method?.detail, ph: method?.detailPh };
+        const text =
+          cat === "TRAVEL"
+            ? { label: mode?.booking, ph: mode?.bookingPh }
+            : { label: method?.detail, ph: method?.detailPh };
         $("booking-label").textContent = text.label || "เลขการจอง";
         $("booking-input").placeholder = text.ph || "";
       }
@@ -5040,7 +5901,9 @@
             </button>`,
           )
           .join("");
-        $("people-count").textContent = members.length ? `${selectedPeople.size}/${members.length} คน` : "";
+        $("people-count").textContent = members.length
+          ? `${selectedPeople.size}/${members.length} คน`
+          : "";
       }
 
       $("people-grid").addEventListener("click", (e) => {
@@ -5074,22 +5937,33 @@
         return used ? Number(used.costRate) : null;
       }
       let costRateRequest = 0;
-      const approx = (v) => (isForeign(costCur()) && formRate() ? ` <span>(≈ ${fmt(Math.round(v * formRate()))})</span>` : "");
+      const approx = (v) =>
+        isForeign(costCur()) && formRate()
+          ? ` <span>(≈ ${fmt(Math.round(v * formRate()))})</span>`
+          : "";
 
       // ทุกสกุล: บาท -> สกุลหลักของทริป -> สกุลที่ใช้ในแพลนแล้ว -> ที่เหลือ
       // rate = เรทเดิมของรายการที่กำลังแก้ (ไม่มี = หาเรทให้ใหม่)
       function renderCostCurrency(selected, rate) {
         const fx = tripFx();
-        const used = [...new Set(activities.map((a) => a.costCurrency).filter(isForeign))];
-        const first = [...new Set([BASE_CURRENCY, ...(fx ? [fx] : []), ...used])];
+        const used = [
+          ...new Set(activities.map((a) => a.costCurrency).filter(isForeign)),
+        ];
+        const first = [
+          ...new Set([BASE_CURRENCY, ...(fx ? [fx] : []), ...used]),
+        ];
         const known = new Set(CURRENCIES.map((c) => c.code));
-        const option = (code) => `<option value="${code}">${esc(currencySymbol(code))} ${esc(currencyOf(code).name)}</option>`;
+        const option = (code) =>
+          `<option value="${code}">${esc(currencySymbol(code))} ${esc(currencyOf(code).name)}</option>`;
         const select = $("cost-currency");
         select.innerHTML =
           first.map(option).join("") +
           `<option disabled>──────────</option>` +
-          CURRENCIES.filter((c) => !first.includes(c.code)).map((c) => option(c.code)).join("");
-        if (selected && !known.has(selected) && !first.includes(selected)) select.insertAdjacentHTML("beforeend", option(selected));
+          CURRENCIES.filter((c) => !first.includes(c.code))
+            .map((c) => option(c.code))
+            .join("");
+        if (selected && !known.has(selected) && !first.includes(selected))
+          select.insertAdjacentHTML("beforeend", option(selected));
         select.value = selected || fx || BASE_CURRENCY;
         if (!select.value) select.value = BASE_CURRENCY;
         syncCostCurrency(rate);
@@ -5110,7 +5984,9 @@
           $("cost-rate-label").textContent = currencySymbol(code);
           const kept = Number(rate) > 0 ? Number(rate) : lastRateOf(code);
           setRateInput(input, kept);
-          note.textContent = kept ? `เรทที่ใช้ในแพลนนี้ ${bahtUnitText(code, kept)}` : "";
+          note.textContent = kept
+            ? `เรทที่ใช้ในแพลนนี้ ${bahtUnitText(code, kept)}`
+            : "";
           syncCostCalc();
           if (!kept) {
             note.textContent = "กำลังดึงเรทวันนี้...";
@@ -5123,7 +5999,8 @@
             if (request !== costRateRequest) return; // เปลี่ยนสกุลไปแล้วระหว่างรอ
             if (fetched && !input.value) setRateInput(input, fetched.rate);
             if (fetched) note.innerHTML = rateNoteHtml(code, fetched);
-            else note.textContent = `ดึงเรทกลางของ${currencyOf(code).name}ไม่ได้ ลองเลือกสกุลใหม่อีกครั้ง`;
+            else
+              note.textContent = `ดึงเรทกลางของ${currencyOf(code).name}ไม่ได้ ลองเลือกสกุลใหม่อีกครั้ง`;
           }
         }
         syncCostCalc();
@@ -5142,17 +6019,22 @@
           const rooms = clampRooms($("rooms-input").value);
           const inKey = dateValue();
           const outKey = checkoutValue();
-          const nights = inKey && outKey ? Math.max(daysBetween(inKey, outKey), 0) : 0;
+          const nights =
+            inKey && outKey ? Math.max(daysBetween(inKey, outKey), 0) : 0;
           const total = cost * rooms * Math.max(nights, 1);
           html = `${fmtCost(cost)} × ${rooms} ห้อง × ${nights ? `${nights} คืน` : "ไม่ค้างคืน"} = <strong>${fmtCost(total)}</strong>${approx(total)}`;
-          if (members.length > 1) html += ` <span>(≈ ${fmt(Math.round((total * formRate()) / members.length))}/คน)</span>`;
+          if (members.length > 1)
+            html += ` <span>(≈ ${fmt(Math.round((total * formRate()) / members.length))}/คน)</span>`;
         }
         // ที่พัก: พักได้กี่คน เทียบกับจำนวนคนในทริป (โชว์แม้ยังไม่ใส่ราคา)
         if (selectedCategory === "STAY") {
-          const capacity = clampRooms($("rooms-input").value) * clampGuests($("guests-input").value);
+          const capacity =
+            clampRooms($("rooms-input").value) *
+            clampGuests($("guests-input").value);
           const short = members.length - capacity;
           html += `${html ? "<br />" : ""}<span>พักได้ ${capacity} คน${members.length ? ` · ทริปมี ${members.length} คน` : ""}</span>`;
-          if (short > 0) html += `<span class="warn"><i class="fa-solid fa-triangle-exclamation"></i> ห้องยังไม่พอ ขาดอีก ${short} ที่</span>`;
+          if (short > 0)
+            html += `<span class="warn"><i class="fa-solid fa-triangle-exclamation"></i> ห้องยังไม่พอ ขาดอีก ${short} ที่</span>`;
         } else if (
           cost > 0 &&
           SPLIT_CATS.includes(selectedCategory) &&
@@ -5167,14 +6049,17 @@
         line.classList.toggle("hidden", !html);
       }
 
-      const clampTo = (v, max) => Math.min(Math.max(Math.round(Number(v)) || 1, 1), max);
+      const clampTo = (v, max) =>
+        Math.min(Math.max(Math.round(Number(v)) || 1, 1), max);
       const clampRooms = (v) => clampTo(v, MAX_ROOMS);
       const clampGuests = (v) => clampTo(v, MAX_GUESTS_PER_ROOM);
       const CLAMPS = { "rooms-input": clampRooms, "guests-input": clampGuests };
       form.querySelectorAll(".step-btn").forEach((btn) =>
         btn.addEventListener("click", () => {
           const input = $(btn.dataset.target);
-          input.value = CLAMPS[input.id](Number(input.value) + Number(btn.dataset.step));
+          input.value = CLAMPS[input.id](
+            Number(input.value) + Number(btn.dataset.step),
+          );
           syncCostCalc();
         }),
       );
@@ -5202,21 +6087,24 @@
       $("mode-grid").addEventListener("click", (e) => {
         const btn = e.target.closest(".pill-option");
         if (!btn) return;
-        selectedMode = selectedMode === btn.dataset.value ? null : btn.dataset.value;
+        selectedMode =
+          selectedMode === btn.dataset.value ? null : btn.dataset.value;
         renderPills();
         syncTravelTitle();
         syncBooking();
         syncStops();
         syncCarCost();
         syncTimeUi();
-        $("flight-icon").className = modeOf(selectedMode)?.icon || "fa-solid fa-route";
+        $("flight-icon").className =
+          modeOf(selectedMode)?.icon || "fa-solid fa-route";
         $("group-title").classList.remove("invalid");
       });
 
       $("meal-grid").addEventListener("click", (e) => {
         const btn = e.target.closest(".pill-option");
         if (!btn) return;
-        selectedMeal = selectedMeal === btn.dataset.value ? null : btn.dataset.value;
+        selectedMeal =
+          selectedMeal === btn.dataset.value ? null : btn.dataset.value;
         const meal = mealOf(selectedMeal);
         if (meal && !$("start-input").value) {
           $("start-input").value = meal.time;
@@ -5230,14 +6118,26 @@
         const mode = modeOf(selectedMode);
         const from = $("origin-input").value.trim();
         const to = $("dest-input").value.trim();
-        const route = from && to ? `${from} → ${to}` : to ? `ไป${to}` : from ? `จาก${from}` : "";
+        const route =
+          from && to
+            ? `${from} → ${to}`
+            : to
+              ? `ไป${to}`
+              : from
+                ? `จาก${from}`
+                : "";
         if (!mode && !route) return "";
-        return [mode && mode.value !== "OTHER" ? mode.label : "เดินทาง", route].filter(Boolean).join(" ").slice(0, 100);
+        return [mode && mode.value !== "OTHER" ? mode.label : "เดินทาง", route]
+          .filter(Boolean)
+          .join(" ")
+          .slice(0, 100);
       }
 
       function syncTravelTitle() {
         const auto = selectedCategory === "TRAVEL" ? travelTitle() : "";
-        $("title-input").placeholder = auto ? `จะตั้งชื่อว่า "${auto}"` : FORM_TEXT[selectedCategory]?.titlePh || "";
+        $("title-input").placeholder = auto
+          ? `จะตั้งชื่อว่า "${auto}"`
+          : FORM_TEXT[selectedCategory]?.titlePh || "";
       }
 
       ["origin-input", "dest-input"].forEach((id) =>
@@ -5263,9 +6163,13 @@
 
       // ตรึงฟอร์มไว้ตอนเลื่อนหน้า เฉพาะตอนที่ฟอร์มไม่สูงเกินจอ (ไม่งั้นจะเลื่อนไปดูปุ่มด้านล่างไม่ได้)
       function syncFormSticky() {
-        form.classList.toggle("fits", form.offsetHeight <= window.innerHeight - 40);
+        form.classList.toggle(
+          "fits",
+          form.offsetHeight <= window.innerHeight - 40,
+        );
       }
-      if ("ResizeObserver" in window) new ResizeObserver(syncFormSticky).observe(form);
+      if ("ResizeObserver" in window)
+        new ResizeObserver(syncFormSticky).observe(form);
       window.addEventListener("resize", syncFormSticky);
 
       $("form-toggle").addEventListener("click", () => {
@@ -5280,15 +6184,20 @@
       });
 
       // ช่องแรกที่ควรโฟกัส: ยังไม่เลือกประเภท = ปุ่มประเภท
-      const firstField = () => (selectedCategory ? $("title-input") : form.querySelector(".cat-option"));
+      const firstField = () =>
+        selectedCategory ? $("title-input") : form.querySelector(".cat-option");
 
-      const dateValue = () => (hasTripRange() ? $("date-input").value : $("date-free-input").value);
+      const dateValue = () =>
+        hasTripRange() ? $("date-input").value : $("date-free-input").value;
       function setDateValue(key) {
         if (hasTripRange()) $("date-input").value = key;
         else $("date-free-input").value = key;
         renderCheckoutOptions();
       }
-      const checkoutValue = () => (hasTripRange() ? $("checkout-input").value : $("checkout-free-input").value);
+      const checkoutValue = () =>
+        hasTripRange()
+          ? $("checkout-input").value
+          : $("checkout-free-input").value;
       function setCheckoutValue(key) {
         if (hasTripRange()) renderCheckoutOptions(key);
         else $("checkout-free-input").value = key;
@@ -5312,18 +6221,28 @@
           stops: selectedMode === "PLANE" ? readStops() : [],
         };
         const extraDays = start && end ? endDayOffset(draft) : 0;
-        const duration = stopsOf(draft).length ? totalDuration(draft) : durationText(start, end);
+        const duration = stopsOf(draft).length
+          ? totalDuration(draft)
+          : durationText(start, end);
         $("flight-duration").innerHTML = duration
           ? `${esc(duration)}${extraDays ? `<span class="next-day">${extraDays > 1 ? `ถึงอีก ${extraDays} วัน` : "ถึงวันถัดไป"}</span>` : ""}`
           : "";
-        $("overnight-tag").classList.toggle("show", selectedCategory !== "FOOD" && extraDays > 0);
+        $("overnight-tag").classList.toggle(
+          "show",
+          selectedCategory !== "FOOD" && extraDays > 0,
+        );
       }
 
       function syncStayUi() {
         const inKey = dateValue();
         const outKey = checkoutValue();
         const nights = inKey && outKey ? daysBetween(inKey, outKey) : 0;
-        $("nights-tag").textContent = nights > 0 ? `${nights} คืน` : inKey && outKey === inKey ? "ไม่ค้างคืน" : "";
+        $("nights-tag").textContent =
+          nights > 0
+            ? `${nights} คืน`
+            : inKey && outKey === inKey
+              ? "ไม่ค้างคืน"
+              : "";
         syncCostCalc();
       }
 
@@ -5334,7 +6253,9 @@
           $("group-route").classList.remove("invalid");
         }),
       );
-      $("title-input").addEventListener("input", () => $("group-title").classList.remove("invalid"));
+      $("title-input").addEventListener("input", () =>
+        $("group-title").classList.remove("invalid"),
+      );
       $("date-input").addEventListener("change", () => {
         $("group-date").classList.remove("invalid");
         renderCheckoutOptions();
@@ -5343,7 +6264,12 @@
         $("group-date").classList.remove("invalid");
         syncStayUi();
       });
-      ["checkout-input", "checkout-free-input", "checkin-time", "checkout-time"].forEach((id) =>
+      [
+        "checkout-input",
+        "checkout-free-input",
+        "checkin-time",
+        "checkout-time",
+      ].forEach((id) =>
         $(id).addEventListener("input", () => {
           $("group-stay").classList.remove("invalid");
           syncStayUi();
@@ -5366,8 +6292,14 @@
       function resetFields({ keepDay = true, startAt = "" } = {}) {
         const day = dateValue();
         [
-          "title-input", "origin-input", "dest-input", "location-input",
-          "booking-input", "cost-input", "notes-input", "contact-input",
+          "title-input",
+          "origin-input",
+          "dest-input",
+          "location-input",
+          "booking-input",
+          "cost-input",
+          "notes-input",
+          "contact-input",
         ].forEach((id) => ($(id).value = ""));
         form.querySelectorAll("[data-place]").forEach(clearCoords);
         $("rooms-input").value = 1;
@@ -5386,9 +6318,15 @@
         clearStops();
         selectedMeal = null;
         setDateValue(keepDay && day ? day : defaultDayKey());
-        ["group-title", "group-date", "group-time", "group-route", "group-stay", "group-cost", "group-people"].forEach((id) =>
-          $(id).classList.remove("invalid"),
-        );
+        [
+          "group-title",
+          "group-date",
+          "group-time",
+          "group-route",
+          "group-stay",
+          "group-cost",
+          "group-people",
+        ].forEach((id) => $(id).classList.remove("invalid"));
         selectCategory(null);
         syncTimeUi();
       }
@@ -5397,20 +6335,26 @@
         deleteArmed = armed;
         const btn = $("delete-btn");
         btn.classList.toggle("confirm", armed);
-        btn.querySelector("span").textContent = armed ? "กดอีกครั้งเพื่อลบ" : "ลบ";
+        btn.querySelector("span").textContent = armed
+          ? "กดอีกครั้งเพื่อลบ"
+          : "ลบ";
       }
 
       function setFormMode() {
         const editing = editingId != null;
         form.classList.toggle("editing", editing);
         $("form-title").textContent = editing ? "แก้ไขรายการ" : "เพิ่มกิจกรรม";
-        $("form-icon").className = editing ? "fa-solid fa-pen" : "fa-solid fa-plus";
+        $("form-icon").className = editing
+          ? "fa-solid fa-pen"
+          : "fa-solid fa-plus";
         $("submit-btn").innerHTML = editing
           ? `<i class="fa-solid fa-check"></i> <span>บันทึก</span>`
           : `<i class="fa-solid fa-plus"></i> <span>เพิ่มลงแพลน</span>`;
         $("delete-btn").classList.toggle("hidden", !editing);
         $("cancel-btn").classList.toggle("hidden", !editing);
-        const act = editing ? activities.find((a) => String(a.id) === String(editingId)) : null;
+        const act = editing
+          ? activities.find((a) => String(a.id) === String(editingId))
+          : null;
         $("form-record-link").classList.toggle("hidden", !act);
         if (act) {
           const bills = billsOf(act);
@@ -5447,9 +6391,15 @@
       const POLL_CATEGORY_RULES = [
         ["FOOD", /กิน|อาหาร|ร้าน|มื้อ|ข้าว|คาเฟ่|กาแฟ|ขนม/],
         ["STAY", /พัก|โรงแรม|รีสอร์ท|โฮมสเตย์|ที่นอน|นอนที่/],
-        ["TRAVEL", /เดินทาง|ออกกี่โมง|กี่โมง|รถ|เครื่องบิน|เรือ|ไฟลท์|เที่ยวบิน/],
+        [
+          "TRAVEL",
+          /เดินทาง|ออกกี่โมง|กี่โมง|รถ|เครื่องบิน|เรือ|ไฟลท์|เที่ยวบิน/,
+        ],
         ["ACTIVITY", /กิจกรรม|เล่น|ดำน้ำ|ล่องแก่ง|ปีนเขา|เดินป่า|สปา|นวด/],
-        ["SIGHTSEEING", /เที่ยว|ไปไหน|ที่ไหน|ชม|ถ่ายรูป|วัด|ดอย|ทะเล|น้ำตก|ตลาด/],
+        [
+          "SIGHTSEEING",
+          /เที่ยว|ไปไหน|ที่ไหน|ชม|ถ่ายรูป|วัด|ดอย|ทะเล|น้ำตก|ตลาด/,
+        ],
       ];
       function guessPollCategory(question, answer) {
         for (const text of [question, answer]) {
@@ -5463,7 +6413,8 @@
       function pollTime(answer) {
         const t = String(answer || "");
         let m = t.match(/(\d{1,2})[:.](\d{2})/);
-        if (m && Number(m[1]) < 24 && Number(m[2]) < 60) return `${m[1].padStart(2, "0")}:${m[2]}`;
+        if (m && Number(m[1]) < 24 && Number(m[2]) < 60)
+          return `${m[1].padStart(2, "0")}:${m[2]}`;
         m = t.match(/(บ่าย|เย็น)?\s*(\d{1,2})\s*โมง/);
         if (!m) return "";
         let h = Number(m[2]);
@@ -5495,13 +6446,16 @@
         const time = pollTime(answer);
         selectCategory(cat);
         // คำตอบเป็นแค่เวลา (เช่น ออกกี่โมง) = ใส่เป็นเวลาเริ่ม ชื่อให้ตั้งเอง/ตั้งอัตโนมัติ
-        const onlyTime = time && answer.replace(/[\d:.\sน.]|โมง|บ่าย|เย็น|เช้า/g, "") === "";
+        const onlyTime =
+          time && answer.replace(/[\d:.\sน.]|โมง|บ่าย|เย็น|เช้า/g, "") === "";
         $("title-input").value = onlyTime ? "" : answer.slice(0, 100);
         if (time) $("start-input").value = time;
         syncTimeUi();
         syncTravelTitle();
 
-        const already = activities.filter((a) => String(a.pollId) === String(id));
+        const already = activities.filter(
+          (a) => String(a.pollId) === String(id),
+        );
         const box = $("poll-link");
         box.className = "poll-link";
         box.innerHTML = `
@@ -5538,18 +6492,23 @@
         if (editingId != null) exitEdit({ collapse: false });
         resetFields({ keepDay: false });
         selectedMode = act.transportMode || null;
-        $("flight-icon").className = modeOf(selectedMode)?.icon || "fa-solid fa-route";
+        $("flight-icon").className =
+          modeOf(selectedMode)?.icon || "fa-solid fa-route";
         selectCategory("TRAVEL");
         const lastDay = days.filter((d) => !d.extra).at(-1)?.key;
         const goDay = keyOf(act.activityDate);
         setDateValue(lastDay && lastDay > goDay ? lastDay : goDay);
         $("origin-input").value = act.location || "";
         $("dest-input").value = act.origin || "";
-        if (act.latitude != null && act.longitude != null) setCoords($("origin-input"), act.latitude, act.longitude);
-        $("cost-input").value = act.cost != null && !noCost(act) ? Number(act.cost) : "";
+        if (act.latitude != null && act.longitude != null)
+          setCoords($("origin-input"), act.latitude, act.longitude);
+        $("cost-input").value =
+          act.cost != null && !noCost(act) ? Number(act.cost) : "";
         renderCostCurrency(act.costCurrency || BASE_CURRENCY, act.costRate);
         // ขากลับมักต่อเครื่องเมืองเดิม (ย้อนลำดับ) เวลาให้กรอกใหม่
-        [...stopsOf(act)].reverse().forEach((st) => addStopRow({ place: st.place }));
+        [...stopsOf(act)]
+          .reverse()
+          .forEach((st) => addStopRow({ place: st.place }));
         selectedPeople.clear();
         payersOf(act).forEach((id) => selectedPeople.add(id));
         renderPeople();
@@ -5560,7 +6519,9 @@
         renderTimeline();
         revealForm();
         $("start-input").focus({ preventScroll: true });
-        showToast(`เติมขากลับ ${act.location} → ${act.origin} ให้แล้ว ใส่เวลาแล้วกดเพิ่มลงแพลน`);
+        showToast(
+          `เติมขากลับ ${act.location} → ${act.origin} ให้แล้ว ใส่เวลาแล้วกดเพิ่มลงแพลน`,
+        );
       }
 
       function startEdit(id) {
@@ -5573,7 +6534,8 @@
         selectedMeal = act.mealType || null;
         // ข้อมูลเก่าที่จองแล้วแต่ไม่มีช่องทาง ถือเป็นจองออนไลน์ (มีเลขการจอง)
         selectedMethod = act.bookingMethod || (act.booked ? "ONLINE" : null);
-        $("flight-icon").className = modeOf(selectedMode)?.icon || "fa-solid fa-route";
+        $("flight-icon").className =
+          modeOf(selectedMode)?.icon || "fa-solid fa-route";
         selectCategory(categoryOf(act.category).value);
         $("title-input").value = act.title || "";
         setDateValue(keyOf(act.activityDate));
@@ -5585,11 +6547,15 @@
           $("start-input").value = hhmm(act.startTime);
           $("end-input").value = hhmm(act.endTime);
         }
-        const placeInput = act.category === "TRAVEL" ? $("dest-input") : $("location-input");
-        if (act.category === "TRAVEL") $("origin-input").value = act.origin || "";
+        const placeInput =
+          act.category === "TRAVEL" ? $("dest-input") : $("location-input");
+        if (act.category === "TRAVEL")
+          $("origin-input").value = act.origin || "";
         placeInput.value = act.location || "";
-        if (act.latitude != null && act.longitude != null) setCoords(placeInput, act.latitude, act.longitude);
-        if (TITLE_PLACE_CATS.includes(act.category) && act.latitude != null) markPicked($("title-input"));
+        if (act.latitude != null && act.longitude != null)
+          setCoords(placeInput, act.latitude, act.longitude);
+        if (TITLE_PLACE_CATS.includes(act.category) && act.latitude != null)
+          markPicked($("title-input"));
         $("booking-input").value = act.bookingRef || "";
         $("cost-input").value = act.cost != null ? Number(act.cost) : "";
         renderCostCurrency(act.costCurrency || BASE_CURRENCY, act.costRate);
@@ -5606,7 +6572,8 @@
         syncBooking();
         renderPeople();
         syncCostCalc();
-        if (act.category === "TRAVEL" && act.origin) $("origin-input").value = act.origin;
+        if (act.category === "TRAVEL" && act.origin)
+          $("origin-input").value = act.origin;
         $("notes-input").value = act.notes || "";
         syncTimeUi();
         syncTravelTitle();
@@ -5615,7 +6582,9 @@
         revealForm();
       }
 
-      function exitEdit({ collapse = activities.length > 0 || sheetMode() } = {}) {
+      function exitEdit({
+        collapse = activities.length > 0 || sheetMode(),
+      } = {}) {
         const id = editingId;
         editingId = null;
         setFormMode();
@@ -5623,7 +6592,10 @@
         renderTimeline();
         setFormCollapsed(collapse);
         // คืนโฟกัสไปที่ปุ่มแก้ไขของกิจกรรมเดิม
-        if (id != null) document.querySelector(`.act[data-id="${id}"] .edit-btn`)?.focus({ preventScroll: true });
+        if (id != null)
+          document
+            .querySelector(`.act[data-id="${id}"] .edit-btn`)
+            ?.focus({ preventScroll: true });
       }
 
       $("cancel-btn").addEventListener("click", () => exitEdit());
@@ -5645,21 +6617,38 @@
       function buildPayload() {
         const cat = selectedCategory;
         if (!cat) return null;
-        ["group-title", "group-date", "group-time", "group-route", "group-stay", "group-cost", "group-people"].forEach((id) =>
-          $(id).classList.remove("invalid"),
-        );
+        [
+          "group-title",
+          "group-date",
+          "group-time",
+          "group-route",
+          "group-stay",
+          "group-cost",
+          "group-people",
+        ].forEach((id) => $(id).classList.remove("invalid"));
         const problems = [];
         // เดินทาง: เวลาอยู่ในการ์ดเส้นทาง ข้อความ error ไปขึ้นที่การ์ด
-        const timeGroup = cat === "TRAVEL" ? ["group-route", "route-error"] : ["group-time", "time-error"];
+        const timeGroup =
+          cat === "TRAVEL"
+            ? ["group-route", "route-error"]
+            : ["group-time", "time-error"];
 
         // เดินทาง: ชื่อตามเส้นทางเสมอ (แก้เส้นทางแล้วชื่อเปลี่ยนตาม)
-        const title = cat === "TRAVEL" ? travelTitle() || "เดินทาง" : $("title-input").value.trim();
-        if (!title) problems.push(invalid("group-title", null, null, $("title-input")));
+        const title =
+          cat === "TRAVEL"
+            ? travelTitle() || "เดินทาง"
+            : $("title-input").value.trim();
+        if (!title)
+          problems.push(invalid("group-title", null, null, $("title-input")));
 
         const day = dateValue();
         if (!day) {
           const el = hasTripRange() ? $("date-input") : $("date-free-input");
-          problems.push(cat === "STAY" ? invalid("group-stay", "กรุณาเลือกวันเช็คอิน", "stay-error", el) : invalid("group-date", null, null, el));
+          problems.push(
+            cat === "STAY"
+              ? invalid("group-stay", "กรุณาเลือกวันเช็คอิน", "stay-error", el)
+              : invalid("group-date", null, null, el),
+          );
         }
 
         let startTime = null;
@@ -5670,18 +6659,56 @@
           endTime = $("checkout-time").value || null;
           endDate = checkoutValue() || day;
           if (day && endDate < day) {
-            problems.push(invalid("group-stay", "วันเช็คเอาท์ต้องไม่ก่อนวันเช็คอิน", "stay-error", $("checkout-input")));
-          } else if (day && endDate === day && startTime && endTime && endTime <= startTime) {
-            problems.push(invalid("group-stay", "ไม่ค้างคืน: เวลาเช็คเอาท์ต้องหลังเวลาเช็คอิน", "stay-error", $("checkout-time")));
+            problems.push(
+              invalid(
+                "group-stay",
+                "วันเช็คเอาท์ต้องไม่ก่อนวันเช็คอิน",
+                "stay-error",
+                $("checkout-input"),
+              ),
+            );
+          } else if (
+            day &&
+            endDate === day &&
+            startTime &&
+            endTime &&
+            endTime <= startTime
+          ) {
+            problems.push(
+              invalid(
+                "group-stay",
+                "ไม่ค้างคืน: เวลาเช็คเอาท์ต้องหลังเวลาเช็คอิน",
+                "stay-error",
+                $("checkout-time"),
+              ),
+            );
           }
         } else {
           startTime = $("start-input").value || null;
           endTime = cat === "FOOD" ? null : $("end-input").value || null;
           const [group, errorId] = timeGroup;
           if (endTime && !startTime) {
-            problems.push(invalid(group, cat === "TRAVEL" ? "กรุณาใส่เวลาออกก่อนเวลาถึง" : "กรุณาใส่เวลาเริ่มก่อนเวลาสิ้นสุด", errorId, $("start-input")));
+            problems.push(
+              invalid(
+                group,
+                cat === "TRAVEL"
+                  ? "กรุณาใส่เวลาออกก่อนเวลาถึง"
+                  : "กรุณาใส่เวลาเริ่มก่อนเวลาสิ้นสุด",
+                errorId,
+                $("start-input"),
+              ),
+            );
           } else if (endTime && endTime === startTime) {
-            problems.push(invalid(group, cat === "TRAVEL" ? "เวลาถึงต้องไม่เท่ากับเวลาออก" : "เวลาสิ้นสุดต้องไม่เท่ากับเวลาเริ่ม", errorId, $("end-input")));
+            problems.push(
+              invalid(
+                group,
+                cat === "TRAVEL"
+                  ? "เวลาถึงต้องไม่เท่ากับเวลาออก"
+                  : "เวลาสิ้นสุดต้องไม่เท่ากับเวลาเริ่ม",
+                errorId,
+                $("end-input"),
+              ),
+            );
           }
         }
 
@@ -5690,12 +6717,39 @@
         if (costRaw) {
           cost = Number(costRaw);
           if (!isFinite(cost) || cost < 0 || cost > MAX_COST) {
-            problems.push(invalid("group-cost", "ใส่ตัวเลข 0 ถึง 9,999,999", "cost-error", $("cost-input")));
+            problems.push(
+              invalid(
+                "group-cost",
+                "ใส่ตัวเลข 0 ถึง 9,999,999",
+                "cost-error",
+                $("cost-input"),
+              ),
+            );
           } else if (Math.round(cost * 100) / 100 !== cost) {
-            problems.push(invalid("group-cost", "ใส่ทศนิยมได้ไม่เกิน 2 ตำแหน่ง", "cost-error", $("cost-input")));
-          } else if (!formHasNoCost() && isForeign(costCur()) && !(formRate() > 0)) {
-            const target = isTripCur(costCur()) ? $("cost-input") : $("cost-rate-input");
-            problems.push(invalid("group-cost", `ยังไม่มีเรทของ${currencyOf(costCur()).name} ลองเลือกสกุลใหม่อีกครั้ง`, "cost-error", target));
+            problems.push(
+              invalid(
+                "group-cost",
+                "ใส่ทศนิยมได้ไม่เกิน 2 ตำแหน่ง",
+                "cost-error",
+                $("cost-input"),
+              ),
+            );
+          } else if (
+            !formHasNoCost() &&
+            isForeign(costCur()) &&
+            !(formRate() > 0)
+          ) {
+            const target = isTripCur(costCur())
+              ? $("cost-input")
+              : $("cost-rate-input");
+            problems.push(
+              invalid(
+                "group-cost",
+                `ยังไม่มีเรทของ${currencyOf(costCur()).name} ลองเลือกสกุลใหม่อีกครั้ง`,
+                "cost-error",
+                target,
+              ),
+            );
           }
         }
 
@@ -5712,14 +6766,33 @@
               row.remove();
               return;
             }
-            if (!st.place) problems.push(invalid("group-route", "กรอกเมืองที่ต่อเครื่อง", "route-error", row.querySelector(".stop-place")));
+            if (!st.place)
+              problems.push(
+                invalid(
+                  "group-route",
+                  "กรอกเมืองที่ต่อเครื่อง",
+                  "route-error",
+                  row.querySelector(".stop-place"),
+                ),
+              );
             stops.push(st);
           });
           syncStops();
         }
 
-        if (SPLIT_CATS.includes(cat) && members.length && !selectedPeople.size) {
-          problems.push(invalid("group-people", null, null, form.querySelector(".person-chip")));
+        if (
+          SPLIT_CATS.includes(cat) &&
+          members.length &&
+          !selectedPeople.size
+        ) {
+          problems.push(
+            invalid(
+              "group-people",
+              null,
+              null,
+              form.querySelector(".person-chip"),
+            ),
+          );
         }
 
         if (problems.length) {
@@ -5730,7 +6803,8 @@
         // ส่งเฉพาะช่องที่มองเห็นอยู่ (ช่องของประเภทอื่นที่ซ่อนไว้ไม่ส่ง)
         const shown = (id) => !$(id).closest(".hidden");
         const usesMethod = ["FOOD", "STAY", "ACTIVITY"].includes(cat);
-        const placeInput = cat === "TRAVEL" ? $("dest-input") : $("location-input");
+        const placeInput =
+          cat === "TRAVEL" ? $("dest-input") : $("location-input");
         return {
           title,
           category: cat,
@@ -5738,32 +6812,54 @@
           startTime,
           endTime,
           endDate,
-          location: placeInput.value.trim() || (TITLE_PLACE_CATS.includes(cat) ? title.slice(0, 150) : null),
-          latitude: placeInput.dataset.lat ? Number(placeInput.dataset.lat) : null,
-          longitude: placeInput.dataset.lon ? Number(placeInput.dataset.lon) : null,
-          origin: cat === "TRAVEL" ? $("origin-input").value.trim() || null : null,
+          location:
+            placeInput.value.trim() ||
+            (TITLE_PLACE_CATS.includes(cat) ? title.slice(0, 150) : null),
+          latitude: placeInput.dataset.lat
+            ? Number(placeInput.dataset.lat)
+            : null,
+          longitude: placeInput.dataset.lon
+            ? Number(placeInput.dataset.lon)
+            : null,
+          origin:
+            cat === "TRAVEL" ? $("origin-input").value.trim() || null : null,
           transportMode: cat === "TRAVEL" ? selectedMode : null,
           mealType: cat === "FOOD" ? selectedMeal : null,
-          bookingRef: shown("booking-input") ? $("booking-input").value.trim() || null : null,
+          bookingRef: shown("booking-input")
+            ? $("booking-input").value.trim() || null
+            : null,
           bookingMethod: usesMethod ? selectedMethod : null,
           booked: usesMethod ? !!selectedMethod : null,
           cost: formHasNoCost() ? null : cost,
-          costCurrency: !formHasNoCost() && cost != null && isForeign(costCur()) ? costCur() : null,
-          costRate: !formHasNoCost() && cost != null && isForeign(costCur()) ? roundRate(formRate()) : null,
+          costCurrency:
+            !formHasNoCost() && cost != null && isForeign(costCur())
+              ? costCur()
+              : null,
+          costRate:
+            !formHasNoCost() && cost != null && isForeign(costCur())
+              ? roundRate(formRate())
+              : null,
           stops,
           rooms: cat === "STAY" ? clampRooms($("rooms-input").value) : null,
-          guestsPerRoom: cat === "STAY" ? clampGuests($("guests-input").value) : null,
-          contact: cat === "ACTIVITY" ? $("contact-input").value.trim() || null : null,
-          participantIds: SPLIT_CATS.includes(cat) ? [...selectedPeople].map(Number) : [],
+          guestsPerRoom:
+            cat === "STAY" ? clampGuests($("guests-input").value) : null,
+          contact:
+            cat === "ACTIVITY" ? $("contact-input").value.trim() || null : null,
+          participantIds: SPLIT_CATS.includes(cat)
+            ? [...selectedPeople].map(Number)
+            : [],
           notes: $("notes-input").value.trim() || null,
-          pollId: editingId == null && pollSource ? Number(pollSource.id) : null,
+          pollId:
+            editingId == null && pollSource ? Number(pollSource.id) : null,
           memberId: myMemberId,
         };
       }
 
       function replaceActivity(updated) {
         planVersion++;
-        const i = activities.findIndex((a) => String(a.id) === String(updated.id));
+        const i = activities.findIndex(
+          (a) => String(a.id) === String(updated.id),
+        );
         if (i >= 0) activities[i] = updated;
         else activities.push(updated);
       }
@@ -5786,11 +6882,14 @@
         $("submit-btn").disabled = true;
         try {
           if (editingId != null) {
-            const updated = await request(`${API_BASE_URL}/activities/${editingId}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
+            const updated = await request(
+              `${API_BASE_URL}/activities/${editingId}`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              },
+            );
             replaceActivity(updated);
             editingId = null;
             setFormMode();
@@ -5800,14 +6899,20 @@
             showToast(`บันทึก "${updated.title}" แล้ว`);
             scrollToActivity(updated.id);
           } else {
-            const created = await request(`${API_BASE_URL}/activities/add/${tripId}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
+            const created = await request(
+              `${API_BASE_URL}/activities/add/${tripId}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              },
+            );
             replaceActivity(created);
             // รายการถัดไปมักเริ่มตอนอันนี้จบ: ใส่เวลาเริ่มให้ล่วงหน้า (ที่พัก/ข้ามคืนไม่ใส่)
-            const nextStart = created.endTime && !isStay(created) && !isOvernight(created) ? hhmm(created.endTime) : "";
+            const nextStart =
+              created.endTime && !isStay(created) && !isOvernight(created)
+                ? hhmm(created.endTime)
+                : "";
             resetFields({ startAt: nextStart });
             renderAll();
             showToast(`เพิ่ม "${created.title}" ลงแพลนแล้ว`);
@@ -5837,7 +6942,10 @@
         busy = true;
         $("delete-btn").disabled = true;
         try {
-          await request(`${API_BASE_URL}/activities/${id}?memberId=${myMemberId}`, { method: "DELETE" });
+          await request(
+            `${API_BASE_URL}/activities/${id}?memberId=${myMemberId}`,
+            { method: "DELETE" },
+          );
           planVersion++;
           activities = activities.filter((a) => String(a.id) !== String(id));
           editingId = null;
@@ -5857,7 +6965,8 @@
 
       // คลิกนอกปุ่มลบ = ยกเลิกการยืนยันลบ
       document.addEventListener("click", (e) => {
-        if (deleteArmed && !e.target.closest("#delete-btn")) setDeleteArmed(false);
+        if (deleteArmed && !e.target.closest("#delete-btn"))
+          setDeleteArmed(false);
       });
 
       // ---------- ไทม์ไลน์ ----------
@@ -5878,7 +6987,9 @@
       $("day-strip").addEventListener("click", (e) => {
         const chip = e.target.closest(".day-chip");
         if (!chip) return;
-        document.getElementById(`day-${chip.dataset.day}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document
+          .getElementById(`day-${chip.dataset.day}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
 
       // อัปเดตป้าย "ตอนนี้ / ถัดไป" ทุกนาที (ไม่วาดใหม่ระหว่างแก้ไข จะได้ไม่เสียโฟกัส)
@@ -6053,23 +7164,54 @@
         BOAT||ท่าเรือรัษฎา ภูเก็ต|Rassada Pier|ภูเก็ต
         BOAT||ท่าเรือเฟอร์รี่เกาะช้าง (อ่าวธรรมชาติ)|Koh Chang Ferry|ตราด`;
 
-      const HUB_ICONS = { PLANE: "fa-solid fa-plane", TRAIN: "fa-solid fa-train", BUS: "fa-solid fa-bus", VAN: "fa-solid fa-van-shuttle", BOAT: "fa-solid fa-ship" };
-      const HUB_KIND = { PLANE: "สนามบิน", TRAIN: "สถานีรถไฟ", BUS: "สถานีขนส่ง", VAN: "จุดขึ้นรถตู้", BOAT: "ท่าเรือ" };
+      const HUB_ICONS = {
+        PLANE: "fa-solid fa-plane",
+        TRAIN: "fa-solid fa-train",
+        BUS: "fa-solid fa-bus",
+        VAN: "fa-solid fa-van-shuttle",
+        BOAT: "fa-solid fa-ship",
+      };
+      const HUB_KIND = {
+        PLANE: "สนามบิน",
+        TRAIN: "สถานีรถไฟ",
+        BUS: "สถานีขนส่ง",
+        VAN: "จุดขึ้นรถตู้",
+        BOAT: "ท่าเรือ",
+      };
       const rows = (text) => text.split("\n").map((l) => l.trim().split("|"));
       const ROUTE_PLACES = [
         ...rows(HUBS).map(([mode, code, name, en, area]) => ({
-          kind: "hub", mode, code, name: code ? `${name} (${code})` : name, en, area,
-          address: [HUB_KIND[mode], area].join(" · "), icon: HUB_ICONS[mode],
+          kind: "hub",
+          mode,
+          code,
+          name: code ? `${name} (${code})` : name,
+          en,
+          area,
+          address: [HUB_KIND[mode], area].join(" · "),
+          icon: HUB_ICONS[mode],
         })),
         ...rows(PROVINCES).map(([name, en, alias = ""]) => ({
-          kind: "province", name, en, alias, address: name === "กรุงเทพมหานคร" ? "เมืองหลวง" : "จังหวัด", icon: "fa-solid fa-map",
+          kind: "province",
+          name,
+          en,
+          alias,
+          address: name === "กรุงเทพมหานคร" ? "เมืองหลวง" : "จังหวัด",
+          icon: "fa-solid fa-map",
         })),
         ...rows(DESTINATIONS).map(([name, en, area]) => ({
-          kind: "destination", name, en, area, address: `จังหวัด${area}`, icon: "fa-solid fa-umbrella-beach",
+          kind: "destination",
+          name,
+          en,
+          area,
+          address: `จังหวัด${area}`,
+          icon: "fa-solid fa-umbrella-beach",
         })),
       ];
 
-      const normalize = (s) => String(s || "").toLowerCase().replace(/จังหวัด|สนามบิน|สถานี|\s+/g, "");
+      const normalize = (s) =>
+        String(s || "")
+          .toLowerCase()
+          .replace(/จังหวัด|สนามบิน|สถานี|\s+/g, "");
 
       // รายชื่อในเครื่อง: รหัสสนามบินตรงเป๊ะขึ้นก่อน → ขึ้นต้นด้วยคำค้น → มีคำค้นอยู่ข้างใน
       // วิธีเดินทางที่เลือกไว้ (เช่น เครื่องบิน) ทำให้สนามบินขึ้นก่อนจังหวัด
@@ -6078,21 +7220,27 @@
         const mode = selectedMode;
         const score = (p) => {
           const code = (p.code || "").toLowerCase();
-          const fields = [p.name, p.en, p.alias, p.area].map(normalize).filter(Boolean);
+          const fields = [p.name, p.en, p.alias, p.area]
+            .map(normalize)
+            .filter(Boolean);
           let base = -1;
           if (!q) base = p.kind === "hub" && p.mode === mode ? 1 : -1;
           else if (code && code === q) base = 100;
           else if (fields.some((f) => f.startsWith(q))) base = 50;
-          else if (q.length >= 2 && fields.some((f) => f.includes(q))) base = 20;
+          else if (q.length >= 2 && fields.some((f) => f.includes(q)))
+            base = 20;
           if (base < 0) return -1;
-          if (p.kind === "hub") base += p.mode === mode ? 30 : mode === "CAR" ? -40 : -10;
+          if (p.kind === "hub")
+            base += p.mode === mode ? 30 : mode === "CAR" ? -40 : -10;
           if (p.kind === "province") base += 5;
           return base;
         };
         return ROUTE_PLACES.map((p) => ({ p, s: score(p) }))
           .filter((x) => x.s >= 0)
           .sort((a, b) => b.s - a.s)
-          .filter((x, i, all) => all.findIndex((y) => y.p.name === x.p.name) === i)
+          .filter(
+            (x, i, all) => all.findIndex((y) => y.p.name === x.p.name) === i,
+          )
           .slice(0, 6)
           .map((x) => ({ ...x.p, lat: null, lon: null }));
       }
@@ -6120,15 +7268,34 @@
 
       // ที่อยู่บรรทัดรองจากข้อมูล OSM เช่น "ถนนราชดำริ, ปทุมวัน, กรุงเทพมหานคร"
       function placeAddress(p) {
-        const parts = [p.street, p.district, p.city, p.county, p.state].filter(Boolean);
-        return [...new Set(parts)].filter((x) => x !== p.name).slice(0, 3).join(", ");
+        const parts = [p.street, p.district, p.city, p.county, p.state].filter(
+          Boolean,
+        );
+        return [...new Set(parts)]
+          .filter((x) => x !== p.name)
+          .slice(0, 3)
+          .join(", ");
       }
 
       // เส้นทาง: เอาเฉพาะระดับจังหวัด/อำเภอ/เมือง/ตำบล (ไม่เอาร้านค้า บ้าน ถนน)
-      const ROUTE_LAYERS = ["state", "county", "city", "district", "locality"].map((l) => `&layer=${l}`).join("");
+      const ROUTE_LAYERS = ["state", "county", "city", "district", "locality"]
+        .map((l) => `&layer=${l}`)
+        .join("");
       const ROUTE_PLACE_TYPES = new Set([
-        "city", "town", "village", "suburb", "quarter", "municipality", "island", "islet",
-        "state", "province", "county", "district", "region", "administrative",
+        "city",
+        "town",
+        "village",
+        "suburb",
+        "quarter",
+        "municipality",
+        "island",
+        "islet",
+        "state",
+        "province",
+        "county",
+        "district",
+        "region",
+        "administrative",
       ]);
       const placeCache = new Map();
       async function searchPlaces(query, signal, kind = "place") {
@@ -6159,7 +7326,12 @@
             lon: f.geometry.coordinates[0],
             icon: kind === "route" ? "fa-solid fa-city" : null,
           }))
-          .filter((p) => p.name && !seen.has(`${p.name}|${p.address}`) && seen.add(`${p.name}|${p.address}`))
+          .filter(
+            (p) =>
+              p.name &&
+              !seen.has(`${p.name}|${p.address}`) &&
+              seen.add(`${p.name}|${p.address}`),
+          )
           .slice(0, 6);
         placeCache.set(key, places);
         return places;
@@ -6208,7 +7380,10 @@
             ? `<div class="place-empty"><i class="fa-solid fa-spinner fa-spin"></i> กำลังค้นหาในแผนที่...</div>`
             : "";
           if (!places.length) {
-            show(status || `<div class="place-empty">ไม่พบ · ใช้ชื่อที่พิมพ์ได้เลย</div>`);
+            show(
+              status ||
+                `<div class="place-empty">ไม่พบ · ใช้ชื่อที่พิมพ์ได้เลย</div>`,
+            );
             return;
           }
           const fromMap = places.some((p) => p.lat != null);
@@ -6224,7 +7399,9 @@
               )
               .join("") +
               status +
-              (fromMap ? `<div class="place-credit">ข้อมูลแผนที่ © OpenStreetMap</div>` : ""),
+              (fromMap
+                ? `<div class="place-credit">ข้อมูลแผนที่ © OpenStreetMap</div>`
+                : ""),
           );
         };
         const choose = (p) => {
@@ -6252,14 +7429,20 @@
 
         // ชื่อซ้ำกับรายชื่อในเครื่อง (เช่น "เชียงใหม่" กับ "จังหวัดเชียงใหม่") ไม่ต้องขึ้นซ้ำ
         const merge = (local, remote) => {
-          const names = new Set(local.flatMap((p) => [normalize(p.name), normalize(p.en)]));
-          return [...local, ...remote.filter((p) => !names.has(normalize(p.name)))].slice(0, 8);
+          const names = new Set(
+            local.flatMap((p) => [normalize(p.name), normalize(p.en)]),
+          );
+          return [
+            ...local,
+            ...remote.filter((p) => !names.has(normalize(p.name))),
+          ].slice(0, 8);
         };
 
         const search = (query) => {
           clearTimeout(timer);
           controller?.abort();
-          if (isTitle && !TITLE_PLACE_CATS.includes(selectedCategory)) return close();
+          if (isTitle && !TITLE_PLACE_CATS.includes(selectedCategory))
+            return close();
           const local = isRoute ? localRoutePlaces(query) : [];
           places = local;
           active = -1;
@@ -6272,14 +7455,24 @@
           timer = setTimeout(async () => {
             controller = new AbortController();
             try {
-              const remote = await searchPlaces(query, controller.signal, isRoute ? "route" : "place");
-              if (input.value.trim() !== query || document.activeElement !== input) return;
+              const remote = await searchPlaces(
+                query,
+                controller.signal,
+                isRoute ? "route" : "place",
+              );
+              if (
+                input.value.trim() !== query ||
+                document.activeElement !== input
+              )
+                return;
               places = merge(local, remote);
             } catch (err) {
               if (err.name === "AbortError") return;
               if (!local.length) {
                 loading = false;
-                show(`<div class="place-empty">ค้นหาแผนที่ไม่ได้ตอนนี้ · ใช้ชื่อที่พิมพ์ได้เลย</div>`);
+                show(
+                  `<div class="place-empty">ค้นหาแผนที่ไม่ได้ตอนนี้ · ใช้ชื่อที่พิมพ์ได้เลย</div>`,
+                );
                 return;
               }
             }
@@ -6308,7 +7501,9 @@
           if (list.classList.contains("hidden") || !places.length) return;
           if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             e.preventDefault();
-            active = (active + (e.key === "ArrowDown" ? 1 : -1) + places.length) % places.length;
+            active =
+              (active + (e.key === "ArrowDown" ? 1 : -1) + places.length) %
+              places.length;
             render();
           } else if (e.key === "Enter" && active >= 0) {
             e.preventDefault();
@@ -6336,12 +7531,17 @@
         selectCategory(null);
         syncTimeUi();
         try {
-          const [tripData, memberList, activityList, expenseList] = await Promise.all([
-            request(`${API_BASE_URL}/trips/${tripId}`),
-            request(`${API_BASE_URL}/trips/${tripId}/members`).catch(() => []),
-            request(`${API_BASE_URL}/activities/trip/${tripId}`),
-            request(`${API_BASE_URL}/expenses/trip/${tripId}`).catch(() => []),
-          ]);
+          const [tripData, memberList, activityList, expenseList] =
+            await Promise.all([
+              request(`${API_BASE_URL}/trips/${tripId}`),
+              request(`${API_BASE_URL}/trips/${tripId}/members`).catch(
+                () => [],
+              ),
+              request(`${API_BASE_URL}/activities/trip/${tripId}`),
+              request(`${API_BASE_URL}/expenses/trip/${tripId}`).catch(
+                () => [],
+              ),
+            ]);
           trip = tripData;
           members = memberList;
           activities = activityList;
@@ -6367,14 +7567,18 @@
 
           // กลับมาจากหน้าค่าใช้จ่าย (#day-2026-10-12) = เลื่อนไปวันนั้น
           if (location.hash.startsWith("#day-")) {
-            document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: "start" });
+            document
+              .getElementById(location.hash.slice(1))
+              ?.scrollIntoView({ block: "start" });
           }
 
           // ระหว่างทริป: เลื่อนแถบวันให้เห็น "วันนี้"
           const todayChip = document.querySelector(".day-chip.today");
           if (todayChip) {
             const strip = $("day-strip");
-            strip.scrollLeft = todayChip.offsetLeft - (strip.clientWidth - todayChip.offsetWidth) / 2;
+            strip.scrollLeft =
+              todayChip.offsetLeft -
+              (strip.clientWidth - todayChip.offsetWidth) / 2;
           }
         } catch (error) {
           console.error("Error loading plan:", error);
@@ -6383,7 +7587,9 @@
             "โหลดแพลนเที่ยวไม่สำเร็จ กรุณาลองใหม่",
             true,
           );
-          ["stat-days", "stat-total", "stat-next", "stat-budget"].forEach((id) => ($(id).textContent = "-"));
+          ["stat-days", "stat-total", "stat-next", "stat-budget"].forEach(
+            (id) => ($(id).textContent = "-"),
+          );
           $("hero-title").textContent = "โหลดข้อมูลทริปไม่สำเร็จ";
         }
       }
