@@ -1,8 +1,8 @@
 """รันทุกชุดทดสอบ API แล้วลบข้อมูลทดสอบออกจากฐานข้อมูล
 
-    python scripts/api-tests/run_all.py            # ทุกชุด
-    python scripts/api-tests/run_all.py auth       # เฉพาะชุดที่ชื่อมีคำนี้
-    python scripts/api-tests/run_all.py --keep     # ไม่ลบข้อมูลทดสอบ (ไว้เปิดดูในเว็บ)
+    python test/api-tests/run_all.py            # ทุกชุด
+    python test/api-tests/run_all.py auth       # เฉพาะชุดที่ชื่อมีคำนี้
+    python test/api-tests/run_all.py --keep     # ไม่ลบข้อมูลทดสอบ (ไว้เปิดดูในเว็บ)
 
 ต้องเปิด backend ก่อน (ค่าเริ่มต้น http://localhost:8090/api/v1 ตั้ง API_BASE เพื่อเปลี่ยน)
 การลบข้อมูลใช้ psql + ค่าฐานข้อมูลจาก .env ที่โฟลเดอร์โปรเจกต์

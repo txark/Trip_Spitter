@@ -112,6 +112,8 @@
 	</dependencies>
 
 	<build>
+		<!-- unit test อยู่ที่ test/java (โฟลเดอร์ test/ ของ repository) ไม่ใช่ src/test/java -->
+		<testSourceDirectory>${project.basedir}/../test/java</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
