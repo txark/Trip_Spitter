@@ -4,14 +4,14 @@
 ทุกรายการมีที่มาจากปัญหาจริงในโค้ด ไม่ได้ใส่ Pattern เพื่อให้ครบ และข้อที่ยังไม่ตรงตำราเป๊ะ ๆ ระบุไว้ในช่อง "หมายเหตุ"
 
 - **ที่มาของเลขบรรทัด:** นับจากโค้ด ณ commit `29aac8a` (branch `artitaya_6430212592_01`)
-- **path ย่อ:** ทุกไฟล์อยู่ใต้ `src/main/java/com/cp/party_trip/`
+- **path ย่อ:** ทุกไฟล์อยู่ใต้ `code/src/main/java/com/cp/party_trip/`
 
 ## 1) Enterprise / Architectural Patterns (บังคับทุกกลุ่ม)
 
 | Pattern | ปัญหาที่แก้ | ไฟล์/คลาสที่ใช้ | Class Diagram |
 |---|---|---|---|
 | **Layered Architecture** | กัน Controller, Business Logic และ SQL ปนกัน เปลี่ยนชั้นหนึ่งไม่กระทบอีกชั้น | `controller/` → `service/` + `service/impl/` → `repository/` → `model/` และ `dto/`, `mapper/`, `config/` | [แผนภาพ A](#a-layered--dependency-injection--service-layer) |
-| **MVC** | แยกหน้าจอ ข้อมูล และตัวควบคุม | **Model:** `model/*` (Entity) + `dto/*`<br>**View:** `src/main/resources/static/*.html` + `js/ui.js` (HTML/JS เรียก REST)<br>**Controller:** `controller/*` (เช่น `ExpenseController.java:26`) | [แผนภาพ A](#a-layered--dependency-injection--service-layer) |
+| **MVC** | แยกหน้าจอ ข้อมูล และตัวควบคุม | **Model:** `model/*` (Entity) + `dto/*`<br>**View:** `code/src/main/resources/static/*.html` + `js/ui.js` (HTML/JS เรียก REST)<br>**Controller:** `controller/*` (เช่น `ExpenseController.java:26`) | [แผนภาพ A](#a-layered--dependency-injection--service-layer) |
 | **Repository** | ซ่อนรายละเอียดการเข้าถึงฐานข้อมูล Service ไม่เขียน SQL/EntityManager เอง | `repository/ExpenseRepo.java:14`, `TripMemberRepo.java:13`, `ExpenseSplitRepo.java:7` ฯลฯ (13 ไฟล์) สืบทอด `JpaRepository` ของ Spring Data JPA | [แผนภาพ A](#a-layered--dependency-injection--service-layer) |
 | **Service Layer** | รวม Business Logic และ Transaction ไว้ที่เดียว ให้ Controller เรียกใช้ซ้ำได้ | interface ใน `service/*.java` + คลาสจริงใน `service/impl/*ServiceImpl.java` (เช่น `ExpenseServiceImpl.java:40` มี `@Service`, `@Transactional` บรรทัด 67) | [แผนภาพ A](#a-layered--dependency-injection--service-layer) |
 | **DTO + Mapper** | แยก Entity ออกจาก API Contract: ไม่หลุดฟิลด์ลับ (เช่น `pinHash`, `authToken`), เปลี่ยนฐานข้อมูลโดย JSON ไม่เปลี่ยน, validate ที่ขอบ API | **Request:** `dto/request/*` (เช่น `ExpenseRequest.java:15`) มี Bean Validation<br>**Response:** `dto/response/*` (เช่น `ExpenseResponse.java:8`, `ExpenseViewResponse.java:9`)<br>**Mapper:** `mapper/*` (เช่น `TripMapper.java:13`) | [แผนภาพ A](#a-layered--dependency-injection--service-layer) |

@@ -1,6 +1,6 @@
 # Data Dictionary และ ER Diagram
 
-พจนานุกรมข้อมูลของฐานข้อมูล PostgreSQL (18 ตาราง, Foreign Key 34 ตัว) สร้างจาก schema จริงหลังรัน Flyway V1-V4 (`src/main/resources/db/migration/`) ชนิดข้อมูล ค่าว่างได้หรือไม่ คีย์ และ Index ในตารางมาจากฐานข้อมูลโดยตรง ไม่ได้พิมพ์เอง
+พจนานุกรมข้อมูลของฐานข้อมูล PostgreSQL (18 ตาราง, Foreign Key 34 ตัว) สร้างจาก schema จริงหลังรัน Flyway V1-V4 (`code/src/main/resources/db/migration/`) ชนิดข้อมูล ค่าว่างได้หรือไม่ คีย์ และ Index ในตารางมาจากฐานข้อมูลโดยตรง ไม่ได้พิมพ์เอง
 
 ตารางที่ Flyway เพิ่มเอง `flyway_schema_history` ไม่รวมในเอกสารนี้ ชื่อคอลัมน์ `position` ในตารางย่อยคือลำดับของรายการใน List
 
