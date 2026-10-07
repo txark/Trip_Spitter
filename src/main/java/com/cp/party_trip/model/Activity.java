@@ -11,7 +11,7 @@ import java.util.List;
 
 // กิจกรรมในแพลนเที่ยว: 1 แถว = 1 กิจกรรมในวันหนึ่งของทริป
 @Entity
-@Table(name = "activities")
+@Table(name = "activities", indexes = @Index(name = "idx_activities_trip", columnList = "trip_id"))
 public class Activity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -95,11 +95,15 @@ public class Activity {
     private Long pollId;
 
     // กิจกรรม: สมาชิกที่ไปด้วย (ไม่ใช่ทุกคนจะไปทุกกิจกรรม)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "activity_participants", joinColumns = @JoinColumn(name = "activity_id"))
-    @Column(name = "member_id")
+    // Many-to-Many กับ TripMember (กิจกรรมหนึ่งมีผู้ร่วมหลายคน สมาชิกหนึ่งคนร่วมได้หลายกิจกรรม) ตารางกลาง activity_participants
+    // ไม่ใช้ cascade: สมาชิกเป็นของทริป ไม่ใช่ของกิจกรรม ลบกิจกรรมแล้วต้องลบแค่แถวในตารางกลาง ห้ามลบสมาชิก
+    // EAGER: ใช้แสดงรายชื่อทุกครั้งที่อ่านกิจกรรม (ชุดเล็ก ไม่เกินจำนวนคนในทริป)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "activity_participants",
+            joinColumns = @JoinColumn(name = "activity_id"),
+            inverseJoinColumns = @JoinColumn(name = "member_id"))
     @OrderColumn(name = "position")
-    private List<Long> participantIds = new ArrayList<>();
+    private List<TripMember> participants = new ArrayList<>();
 
     // ค่าใช้จ่ายโดยประมาณ: ที่พัก = ต่อห้องต่อคืน, ประเภทอื่น = ต่อคน
     @Column(precision = 10, scale = 2)
@@ -326,12 +330,17 @@ public class Activity {
         this.contact = contact;
     }
 
-    public List<Long> getParticipantIds() {
-        return participantIds;
+    public List<TripMember> getParticipants() {
+        return participants;
     }
 
-    public void setParticipantIds(List<Long> participantIds) {
-        this.participantIds = participantIds == null ? new ArrayList<>() : new ArrayList<>(participantIds);
+    public void setParticipants(List<TripMember> members) {
+        this.participants = members == null ? new ArrayList<>() : new ArrayList<>(members);
+    }
+
+    // รหัสสมาชิกที่ไปด้วย (ใช้ตอบ API)
+    public List<Long> getParticipantIds() {
+        return participants.stream().map(TripMember::getId).toList();
     }
 
     public String getBookingMethod() {

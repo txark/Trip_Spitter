@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "trips")
+@Table(name = "trips", indexes = @Index(name = "idx_trips_invite_code", columnList = "invite_code"))
 public class Trip {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,26 +15,20 @@ public class Trip {
     private String title; 
     private LocalDate startDate;
     private LocalDate endDate;
+    @Column(name = "invite_code")
     private String inviteCode;
 
-    // เขตเวลาของที่เที่ยว (IANA เช่น Asia/Tokyo) ใช้บอก "ตอนนี้/ถัดไป" ในแพลน, null = เวลาไทย
-    @Column(name = "time_zone", length = 50)
-    private String timeZone;
-
-    // งบที่ตั้งใจใช้ต่อคน (null = ยังไม่ตั้ง) เทียบกับยอดประมาณจากแพลน และยอดที่จ่ายจริง
-    @Column(name = "budget_per_person", precision = 10, scale = 2)
-    private java.math.BigDecimal budgetPerPerson;
-
-    // สกุลเงินท้องถิ่นของที่เที่ยว (เช่น JPY) และเรท 1 หน่วย = กี่บาท (null = ใช้บาทอย่างเดียว)
-    @Column(length = 3)
-    private String currency;
-
-    @Column(name = "exchange_rate", precision = 14, scale = 6)
-    private java.math.BigDecimal exchangeRate;
+    // ตั้งค่าของทริป (งบ/สกุลเงิน/เรท/เขตเวลา) One-to-One
+    // cascade ALL + orphanRemoval: ตั้งค่าไม่มีความหมายถ้าไม่มีทริป บันทึก/ลบทริปแล้วตามไปด้วยโดยไม่ต้องเรียก repo แยก
+    // EAGER: ทุกหน้าที่โหลดทริปต้องใช้ค่าพวกนี้ (สกุลเงิน/เขตเวลา) และเป็นแถวเดียวต่อทริป จึงไม่คุ้มที่จะ lazy
+    @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private TripSettings settings;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // LAZY (ค่าเริ่มต้นของ OneToMany): รายชื่อ/กิจกรรมโหลดเมื่อใช้เท่านั้น ไม่ต้องดึงมาทุกครั้งที่อ่านทริป
+    // cascade ALL + orphanRemoval: สมาชิกและกิจกรรมเป็นส่วนหนึ่งของทริป ลบทริปแล้วต้องลบตาม
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripMember> tripMembers;
 
@@ -54,17 +48,29 @@ public class Trip {
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
-    public String getCurrency() { return currency; }
-    public void setCurrency(String currency) { this.currency = currency; }
+    // getter/setter ของตั้งค่าส่งต่อไปที่ TripSettings เพื่อให้ service/mapper ที่ใช้อยู่ไม่ต้องรู้ว่าแยกตาราง
+    public String getCurrency() { return settings == null ? null : settings.getCurrency(); }
+    public void setCurrency(String currency) { settings().setCurrency(currency); }
 
-    public java.math.BigDecimal getExchangeRate() { return exchangeRate; }
-    public void setExchangeRate(java.math.BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
+    public java.math.BigDecimal getExchangeRate() { return settings == null ? null : settings.getExchangeRate(); }
+    public void setExchangeRate(java.math.BigDecimal exchangeRate) { settings().setExchangeRate(exchangeRate); }
 
-    public java.math.BigDecimal getBudgetPerPerson() { return budgetPerPerson; }
-    public void setBudgetPerPerson(java.math.BigDecimal budgetPerPerson) { this.budgetPerPerson = budgetPerPerson; }
+    public java.math.BigDecimal getBudgetPerPerson() { return settings == null ? null : settings.getBudgetPerPerson(); }
+    public void setBudgetPerPerson(java.math.BigDecimal budgetPerPerson) { settings().setBudgetPerPerson(budgetPerPerson); }
 
-    public String getTimeZone() { return timeZone; }
-    public void setTimeZone(String timeZone) { this.timeZone = timeZone; }
+    public String getTimeZone() { return settings == null ? null : settings.getTimeZone(); }
+    public void setTimeZone(String timeZone) { settings().setTimeZone(timeZone); }
+
+    public TripSettings getSettings() { return settings; }
+    public void setSettings(TripSettings settings) { this.settings = settings; }
+
+    private TripSettings settings() {
+        if (settings == null) {
+            settings = new TripSettings();
+            settings.setTrip(this);
+        }
+        return settings;
+    }
 
     public String getInviteCode() { return inviteCode; }
     public void setInviteCode(String inviteCode) { this.inviteCode = inviteCode; }

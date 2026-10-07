@@ -7,13 +7,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 // คนเดียวกันอยู่ในทริปเดียวกันได้แถวเดียว (กดเข้าร่วมซ้ำพร้อมกันเคยได้สมาชิกซ้ำ)
 @Table(name = "trip_members", uniqueConstraints = @UniqueConstraint(name = "uk_trip_members_trip_guest",
-        columnNames = { "trip_id", "guest_name" }))
+        columnNames = { "trip_id", "guest_name" }),
+        indexes = @Index(name = "idx_trip_members_trip", columnList = "trip_id"))
 public class TripMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    // LAZY: สมาชิกถูกโหลดพร้อมกิจกรรม/เช็กลิสต์บ่อย ไม่ต้องลากทริปตามมาทุกครั้ง (อ่านแค่ id ของทริปก็พอ)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id", nullable = false)
     @JsonIgnore // ป้องกัน Infinite Recursion เวลา Return JSON
     private Trip trip;
