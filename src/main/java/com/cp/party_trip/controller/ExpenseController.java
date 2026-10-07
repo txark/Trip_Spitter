@@ -1,158 +1,119 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.request.ExpenseRequest;
+import com.cp.party_trip.dto.request.RepaymentRequest;
 import com.cp.party_trip.dto.response.ExpenseResponse;
-import com.cp.party_trip.model.Expense;
-import com.cp.party_trip.model.ExpenseSplit;
+import com.cp.party_trip.dto.response.ExpenseViewResponse;
+import com.cp.party_trip.dto.response.MessageResponse;
+import com.cp.party_trip.dto.response.RepaymentResponse;
+import com.cp.party_trip.mapper.DebtMapper;
+import com.cp.party_trip.mapper.ExpenseMapper;
 import com.cp.party_trip.service.ExpenseService;
-import com.cp.party_trip.repository.ExpenseRepo;
-import com.cp.party_trip.repository.ExpenseSplitRepo;
-
+import com.cp.party_trip.service.RepaymentService;
+import jakarta.validation.Valid;
+import com.cp.party_trip.dto.response.PageResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+@Tag(name = "Expenses - บิลและการหาร")
 @RestController
-@RequestMapping("/api/expenses")
+@RequestMapping("/api/v1/expenses")
 public class ExpenseController {
 
     private final ExpenseService expenseService;
-    private final ExpenseRepo expenseRepo;
-    private final ExpenseSplitRepo expenseSplitRepo;
+    private final RepaymentService repaymentService;
+    private final ExpenseMapper expenseMapper;
+    private final DebtMapper debtMapper;
+    private final AuthGuard guard;
 
-    public ExpenseController(ExpenseService expenseService, ExpenseRepo expenseRepo,
-            ExpenseSplitRepo expenseSplitRepo) {
+    public ExpenseController(ExpenseService expenseService, RepaymentService repaymentService,
+            ExpenseMapper expenseMapper, DebtMapper debtMapper, AuthGuard guard) {
         this.expenseService = expenseService;
-        this.expenseRepo = expenseRepo;
-        this.expenseSplitRepo = expenseSplitRepo;
+        this.repaymentService = repaymentService;
+        this.expenseMapper = expenseMapper;
+        this.debtMapper = debtMapper;
+        this.guard = guard;
     }
 
-    private void guardSelf(Object trip, Long memberId) {
-        if (memberId == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Member access is required");
-        }
+    // เพื่อนโอนคืนเป็นยอดรวม: receiverId = คนที่สำรองจ่าย (คนกด), senderId = คนที่โอนมา
+    @PostMapping("/repay/{tripId}")
+    public ResponseEntity<RepaymentResponse> receiveRepayment(@PathVariable Long tripId,
+            @RequestParam Long receiverId, @RequestParam Long senderId, @Valid @RequestBody RepaymentRequest request) {
+        guard.self(tripId, receiverId); // คนรับเงินเป็นคนบันทึก
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(debtMapper.toResponse(repaymentService.receive(tripId, receiverId, senderId, request)));
     }
 
-    private Object tripOfExpense(Long expenseId) {
-        if (!expenseRepo.existsById(expenseId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found");
-        }
-        return expenseId;
+    @DeleteMapping("/repay/{repaymentId}")
+    public ResponseEntity<Void> undoRepayment(@PathVariable Long repaymentId, @RequestParam Long memberId) {
+        guard.self(guard.tripOfRepayment(repaymentId), memberId);
+        repaymentService.undo(repaymentId, memberId);
+        return ResponseEntity.noContent().build();
     }
 
     // คนบันทึก = เจ้าของ token (คนจ่ายเลือกเป็นเพื่อนได้)
     @PostMapping("/add/{tripId}")
-    public ResponseEntity<Expense> addExpense(
+    public ResponseEntity<ExpenseResponse> addExpense(
             @PathVariable Long tripId,
             @RequestParam Long paidByMemberId,
-            @RequestBody ExpenseRequest expense,
-            @RequestParam(required = false) List<Long> participantIds) {
-        Expense savedExpense = expenseService.createExpense(tripId, paidByMemberId, expense, participantIds);
-        return ResponseEntity.ok(savedExpense);
+            @Valid @RequestBody ExpenseRequest expense,
+            @RequestParam(required = false) List<Long> participantIds,
+            @RequestParam(required = false) Long recordedByMemberId) {
+        Long recorder = guard.self(tripId, recordedByMemberId).getId();
+        var saved = expenseService.createExpense(tripId, paidByMemberId, recorder, expense, participantIds);
+        return ResponseEntity.status(HttpStatus.CREATED).body(expenseMapper.toResponse(saved));
     }
 
-    // แก้บิล (memberId = คนที่กำลังแก้ ต้องเป็นคนจ่ายหรือคนบันทึก, paidByMemberId =
-    // เปลี่ยนคนจ่าย)
+    // แก้บิล (memberId = คนที่กำลังแก้ ต้องเป็นคนจ่ายหรือคนบันทึก, paidByMemberId = เปลี่ยนคนจ่าย)
     @PutMapping("/{expenseId}")
-    public ResponseEntity<Expense> updateExpense(
+    public ResponseEntity<ExpenseResponse> updateExpense(
             @PathVariable Long expenseId,
             @RequestParam Long memberId,
-            @RequestBody ExpenseRequest expense,
+            @Valid @RequestBody ExpenseRequest expense,
             @RequestParam(required = false) List<Long> participantIds,
             @RequestParam(required = false) Long paidByMemberId,
             @RequestParam(required = false) Integer revision) {
-        guardSelf(tripOfExpense(expenseId), memberId);
-
-        return ResponseEntity.ok(expenseService.updateExpense(expenseId, expense, memberId,
-                participantIds, paidByMemberId, revision));
+        guard.self(guard.tripOfExpense(expenseId), memberId);
+        return ResponseEntity.ok(expenseMapper.toResponse(expenseService.updateExpense(expenseId, memberId,
+                paidByMemberId, expense, participantIds, revision)));
     }
 
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam Long memberId) {
-        guardSelf(tripOfExpense(expenseId), memberId);
-        expenseService.deleteExpense(expenseId, memberId);
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam Long memberId,
+            @RequestParam(required = false) Integer revision) {
+        guard.self(guard.tripOfExpense(expenseId), memberId);
+        expenseService.deleteExpense(expenseId, memberId, revision);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/trip/{tripId}")
-    @Transactional(readOnly = true)
-    public ResponseEntity<List<Map<String, Object>>> getExpensesByTrip(@PathVariable Long tripId) {
-        List<Expense> expenses = expenseRepo.findByTripId(tripId);
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        if (expenses != null) {
-            for (Expense exp : expenses) {
-                Map<String, Object> expMap = new HashMap<>();
-                expMap.put("id", exp.getId());
-                expMap.put("title", exp.getTitle());
-                expMap.put("totalAmount", exp.getTotalAmount());
-                expMap.put("category", exp.getCategory());
-                expMap.put("splitType", exp.getSplitType());
-                expMap.put("expenseDate", exp.getExpenseDate());
-
-                if (exp.getUser() != null) {
-                    Map<String, Object> userMap = new HashMap<>();
-                    userMap.put("id", exp.getUser().getId());
-                    userMap.put("guestName", exp.getUser().getGuestName());
-                    expMap.put("user", userMap);
-                }
-
-                List<ExpenseSplit> splits = expenseSplitRepo.findByExpenseId(exp.getId());
-                List<Map<String, Object>> splitsList = new ArrayList<>();
-
-                if (splits != null) {
-                    for (ExpenseSplit split : splits) {
-                        Map<String, Object> splitMap = new HashMap<>();
-                        splitMap.put("id", split.getId());
-                        splitMap.put("amountOwed", split.getAmountOwed());
-
-                        boolean isPaidStatus = false;
-                        try {
-                            isPaidStatus = split.isPaid();
-                        } catch (Exception e) {
-                            isPaidStatus = false;
-                        }
-                        splitMap.put("isPaid", isPaidStatus);
-
-                        if (split.getTripMember() != null) {
-                            Map<String, Object> tmMap = new HashMap<>();
-                            tmMap.put("id", split.getTripMember().getId());
-                            tmMap.put("guestName", split.getTripMember().getGuestName());
-                            splitMap.put("tripMember", tmMap);
-                        }
-                        splitsList.add(splitMap);
-                    }
-                }
-
-                expMap.put("expenseSplits", splitsList);
-                expMap.put("splits", splitsList);
-
-                result.add(expMap);
-            }
-        }
-        return ResponseEntity.ok(result);
+    public ResponseEntity<List<ExpenseViewResponse>> getExpensesByTrip(@PathVariable Long tripId) {
+        guard.me(tripId);
+        return ResponseEntity.ok(expenseService.getTripExpenseViews(tripId));
     }
 
-    @PutMapping("/splits/{expenseId}/{memberId}/pay")
-    public ResponseEntity<?> markSplitAsPaid(@PathVariable Long expenseId, @PathVariable Long memberId) {
-        List<ExpenseSplit> splits = expenseSplitRepo.findByExpenseId(expenseId);
+    // แบ่งหน้า: ?page=0&size=10&sort=totalAmount,desc (ไม่ส่ง sort = ใหม่สุดก่อน, size สูงสุด 50)
+    @GetMapping("/trip/{tripId}/page")
+    public ResponseEntity<PageResponse<ExpenseViewResponse>> getExpensesByTripPage(@PathVariable Long tripId,
+            @PageableDefault(size = 10) Pageable pageable) {
+        guard.me(tripId);
+        return ResponseEntity.ok(PageResponse.of(expenseService.getTripExpenseViewsPage(tripId, pageable),
+                view -> view));
+    }
 
-        if (splits != null) {
-            for (ExpenseSplit split : splits) {
-                if (split.getTripMember() != null && split.getTripMember().getId().equals(memberId)) {
-                    split.setPaid(true);
-                    expenseSplitRepo.save(split);
-                    return ResponseEntity.ok().body(Map.of("message", "อัปเดตสถานะสำเร็จ"));
-                }
-            }
-        }
-        return ResponseEntity.notFound().build();
+    // ยืนยันรับเงินได้เฉพาะคนจ่ายบิล (หรือคนที่บันทึกบิลแทน) ตรวจใน service
+    @PutMapping("/splits/{expenseId}/{memberId}/pay")
+    public ResponseEntity<MessageResponse> markSplitAsPaid(@PathVariable Long expenseId,
+            @PathVariable Long memberId) {
+        Long me = guard.me(guard.tripOfExpense(expenseId)).getId();
+        expenseService.markSplitPaid(expenseId, memberId, me);
+        return ResponseEntity.ok(new MessageResponse("อัปเดตสถานะสำเร็จ"));
     }
 }

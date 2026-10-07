@@ -13,12 +13,18 @@ public class ActivityMapper {
                 : a.getStops().stream()
                         .map(s -> new ActivityResponse.Stop(s.getPlace(), s.getArriveTime(), s.getDepartTime()))
                         .toList();
-        return new ActivityResponse(a.getId(), a.getTitle(), a.getCategory(), a.getActivityDate(), a.getEndDate(),
-                a.getStartTime(), a.getEndTime(), a.getLocation(), a.getLatitude(), a.getLongitude(), a.getNotes(),
-                a.getOrigin(), a.getTransportMode(), stops, a.getMealType(), a.getRooms(), a.getGuestsPerRoom(),
-                a.getBookingMethod(), a.getBookingRef(), a.getBooked(), a.getContact(), a.getCost(),
-                a.getCostCurrency(), a.getCostRate(), List.copyOf(a.getParticipantIds()), a.getPollId(),
-                a.getCreatedByMemberId(), a.getCreatedAt());
+        return ActivityResponse.builder()
+                .id(a.getId()).title(a.getTitle()).category(a.getCategory())
+                .activityDate(a.getActivityDate()).endDate(a.getEndDate())
+                .startTime(a.getStartTime()).endTime(a.getEndTime())
+                .location(a.getLocation()).latitude(a.getLatitude()).longitude(a.getLongitude())
+                .notes(a.getNotes()).origin(a.getOrigin()).transportMode(a.getTransportMode()).stops(stops)
+                .mealType(a.getMealType()).rooms(a.getRooms()).guestsPerRoom(a.getGuestsPerRoom())
+                .bookingMethod(a.getBookingMethod()).bookingRef(a.getBookingRef()).booked(a.getBooked())
+                .contact(a.getContact()).cost(a.getCost()).costCurrency(a.getCostCurrency())
+                .costRate(a.getCostRate()).participantIds(List.copyOf(a.getParticipantIds()))
+                .pollId(a.getPollId()).createdByMemberId(a.getCreatedByMemberId()).createdAt(a.getCreatedAt())
+                .build();
     }
 
     public List<ActivityResponse> toResponses(List<Activity> activities) {

@@ -1,5 +1,6 @@
 package com.cp.party_trip.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.cp.party_trip.config.AuthGuard;
 import com.cp.party_trip.dto.request.ActivityRequest;
 import com.cp.party_trip.dto.response.ActivityResponse;
@@ -9,12 +10,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@Tag(name = "Activities - แพลนของทริป")
 @RestController
-@RequestMapping("/api/activities")
+@RequestMapping("/api/v1/activities")
 public class ActivityController {
 
     private final ActivityService activityService;
