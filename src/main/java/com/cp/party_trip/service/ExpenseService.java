@@ -3,6 +3,9 @@ package com.cp.party_trip.service;
 import com.cp.party_trip.dto.response.ExpenseViewResponse;
 import com.cp.party_trip.dto.request.ExpenseRequest;
 import com.cp.party_trip.model.Expense;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 // บิลค่าใช้จ่าย: สร้าง/แก้/ลบบิล แบ่งเงิน และยืนยันการรับเงิน
@@ -33,6 +36,9 @@ public interface ExpenseService {
 
     // บิลทั้งทริป + การแบ่งเงินของแต่ละบิล ในรูปที่หน้าเว็บใช้
     List<ExpenseViewResponse> getTripExpenseViews(Long tripId);
+
+    // เหมือนด้านบนแต่แบ่งหน้า/เรียงลำดับ (เรียงได้เฉพาะ expenseDate, totalAmount, title, id ไม่งั้น 400)
+    Page<ExpenseViewResponse> getTripExpenseViewsPage(Long tripId, Pageable pageable);
 
     // คนจ่ายบิล (หรือคนบันทึกแทน) ยืนยันว่าได้รับเงินส่วนของ memberId ครบแล้ว
     // actingMemberId = สมาชิกของเจ้าของ token

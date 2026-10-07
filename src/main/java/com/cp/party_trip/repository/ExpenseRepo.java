@@ -2,6 +2,8 @@ package com.cp.party_trip.repository;
 
 import com.cp.party_trip.model.Expense;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +16,11 @@ public interface ExpenseRepo extends JpaRepository<Expense, Long> {
     // ใช้ @Query เพื่อค้นหาผ่านความสัมพันธ์ของออบเจกต์ Trip
     @Query("SELECT e FROM Expense e WHERE e.trip.id = :tripId")
     List<Expense> findByTripId(@Param("tripId") Long tripId);
+
+    // แบ่งหน้า + เรียงลำดับ (ใช้กับ GET /expenses/trip/{id}/page)
+    @Query(value = "SELECT e FROM Expense e WHERE e.trip.id = :tripId",
+            countQuery = "SELECT COUNT(e) FROM Expense e WHERE e.trip.id = :tripId")
+    Page<Expense> findPageByTripId(@Param("tripId") Long tripId, Pageable pageable);
 
     // ล็อกบิลไว้จนจบ transaction: แก้/ลบบิลเดียวกันพร้อมกันหลายเครื่องจะต่อคิวกัน ไม่ชนกันจน error
     @Lock(LockModeType.PESSIMISTIC_WRITE)
