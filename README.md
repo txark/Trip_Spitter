@@ -18,8 +18,8 @@
 
 | ลำดับ | ชื่อ-นามสกุล | รหัสนักศึกษา | Section | Branch | หน้าที่รับผิดชอบ |
 |---|---|---|---|---|---|
-| 1 | นางสาวอาทิตยา โคตรธิสาร | 643021259-2 | 01 | `artitaya_6430212592_01` & `artitaya` | - ทำทั้งระบบ: Backend (Spring Boot, REST API) |
-|   |                       |             |    |                                       |   - ออกแบบฐานข้อมูลและ Flyway, Frontend, Unit/API Test, Docker, CI/CD และ Deploy |
+| 1 | นางสาวอาทิตยา โคตรธิสาร | 643021259-2 | 01 | `artitaya_6430212592_01` & `artitaya` | - ทำทั้งระบบ: Backend (Spring Boot, REST API) 
+- ออกแบบฐานข้อมูลและ Flyway, Frontend, Unit/API Test, Docker, CI/CD และ Deploy |
 
 ## Tech Stack
 
