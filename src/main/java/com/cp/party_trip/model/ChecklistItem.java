@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "checklist_items")
+@Table(name = "checklist_items", indexes = @Index(name = "idx_checklist_items_trip", columnList = "trip_id"))
 public class ChecklistItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,12 +31,15 @@ public class ChecklistItem {
     @Column(name = "assigned_to_member_id")
     private Long assignedToMemberId;
 
-    // ผู้รับผิดชอบทั้งหมด (มีได้หลายคน)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "checklist_item_assignees", joinColumns = @JoinColumn(name = "item_id"))
-    @Column(name = "member_id")
+    // ผู้รับผิดชอบทั้งหมด (มีได้หลายคน) Many-to-Many กับ TripMember ผ่านตารางกลาง checklist_item_assignees
+    // ไม่ใช้ cascade: สมาชิกเป็นของทริป ลบรายการสิ่งของแล้วต้องลบแค่แถวในตารางกลาง
+    // EAGER: ใช้แสดงอวตารผู้รับผิดชอบทุกครั้งที่อ่านรายการ (ชุดเล็ก)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "checklist_item_assignees",
+            joinColumns = @JoinColumn(name = "item_id"),
+            inverseJoinColumns = @JoinColumn(name = "member_id"))
     @OrderColumn(name = "position")
-    private List<Long> assigneeIds = new ArrayList<>();
+    private List<TripMember> assignees = new ArrayList<>();
 
     @Column(name = "is_checked")
     private boolean isChecked = false; // สถานะการเตรียมของ
@@ -99,25 +102,29 @@ public class ChecklistItem {
         return assignedToMemberId;
     }
 
-    // ตั้งคนเดียว = รายชื่อผู้รับผิดชอบมีคนนั้นคนเดียว (null = ไม่มีใครรับ)
+    // คอลัมน์เดิม (ผู้รับผิดชอบคนแรก) ใช้กับข้อมูลเก่าเท่านั้น
     public void setAssignedToMemberId(Long assignedToMemberId) {
-        setAssigneeIds(assignedToMemberId == null ? List.of() : List.of(assignedToMemberId));
+        this.assignedToMemberId = assignedToMemberId;
     }
 
-    // ข้อมูลเก่าที่มีแค่ assigned_to_member_id ให้ถือว่าเป็นรายชื่อ 1 คน
+    public List<TripMember> getAssignees() {
+        return assignees;
+    }
+
+    public void setAssignees(List<TripMember> members) {
+        assignees.clear();
+        if (members != null) {
+            assignees.addAll(members);
+        }
+        assignedToMemberId = assignees.isEmpty() ? null : assignees.get(0).getId();
+    }
+
+    // รหัสผู้รับผิดชอบ (ข้อมูลเก่าที่มีแค่ assigned_to_member_id ให้ถือว่าเป็นรายชื่อ 1 คน)
     public List<Long> getAssigneeIds() {
-        if (assigneeIds.isEmpty() && assignedToMemberId != null) {
+        if (assignees.isEmpty() && assignedToMemberId != null) {
             return List.of(assignedToMemberId);
         }
-        return List.copyOf(assigneeIds);
-    }
-
-    public void setAssigneeIds(List<Long> ids) {
-        assigneeIds.clear();
-        if (ids != null) {
-            assigneeIds.addAll(ids);
-        }
-        assignedToMemberId = assigneeIds.isEmpty() ? null : assigneeIds.get(0);
+        return assignees.stream().map(TripMember::getId).toList();
     }
 
     public boolean isChecked() {

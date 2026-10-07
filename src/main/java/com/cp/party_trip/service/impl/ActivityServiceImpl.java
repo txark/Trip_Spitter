@@ -186,7 +186,7 @@ public class ActivityServiceImpl implements ActivityService {
         Integer guestsPerRoom = null;
         String bookingMethod = null;
         String contact = null;
-        List<Long> participants = List.of();
+        List<TripMember> participants = List.of();
         List<ActivityStop> stops = new ArrayList<>();
         switch (category) {
             case "TRAVEL" -> {
@@ -270,7 +270,7 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setGuestsPerRoom(guestsPerRoom);
         activity.setBookingMethod(bookingMethod);
         activity.setContact(contact);
-        activity.setParticipantIds(participants);
+        activity.setParticipants(participants);
         activity.setStops(stops);
 
         // พิกัดต้องมาคู่กันและอยู่ในช่วงที่เป็นไปได้ ไม่มีสถานที่ = ไม่มีพิกัด
@@ -312,11 +312,11 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     // ตัดซ้ำ คงลำดับ และต้องเป็นสมาชิกของทริปนี้ทุกคน
-    private List<Long> cleanParticipants(Long tripId, List<Long> memberIds) {
+    private List<TripMember> cleanParticipants(Long tripId, List<Long> memberIds) {
         if (memberIds == null) {
             return List.of();
         }
-        List<Long> result = new ArrayList<>();
+        List<TripMember> result = new ArrayList<>();
         for (Long id : new LinkedHashSet<>(memberIds)) {
             if (id == null) {
                 continue;
@@ -325,7 +325,7 @@ public class ActivityServiceImpl implements ActivityService {
             if (member == null || member.getTrip() == null || !tripId.equals(member.getTrip().getId())) {
                 throw badRequest("ผู้ร่วมกิจกรรมต้องเป็นสมาชิกในทริปนี้");
             }
-            result.add(id);
+            result.add(member);
         }
         return result;
     }

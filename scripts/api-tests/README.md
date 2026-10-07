@@ -8,6 +8,8 @@
 | `test_auth.py` | token ต่อเครื่อง, PIN, ทำแทนคนอื่นไม่ได้, อ่านข้อมูลทริปได้เฉพาะสมาชิก, CORS วง LAN |
 | `test_concurrency.py` | หลายเครื่องสมัคร/เข้าร่วม/เพิ่มบิล/แก้บิล/โหวต/รับเงินพร้อมกัน ข้อมูลต้องไม่ซ้ำหรือเพี้ยน |
 | `test_rename.py` | เปลี่ยนชื่อเล่นแล้วทริป บิล หนี้ ประวัติตามไปด้วย |
+| `test_relations.py` | One-to-One (ตั้งค่าทริป) และ Many-to-Many (ผู้ร่วมกิจกรรม/ผู้รับผิดชอบเช็กลิสต์) |
+| `test_features.py` | วิธีหาร (Strategy), ประวัติความเคลื่อนไหว (Observer), แบ่งหน้า/เรียงลำดับ, Swagger |
 | `test_recovery.py` | รหัสกู้คืนที่คนสร้างทริปออกให้เพื่อนที่เปลี่ยนเครื่อง |
 
 ## วิธีรัน
@@ -21,7 +23,7 @@ python scripts/api-tests/run_all.py rename   # เฉพาะชุดที่
 python scripts/api-tests/run_all.py --keep   # ไม่ลบข้อมูลทดสอบ (ไว้เปิดดูในเว็บ)
 ```
 
-backend อยู่พอร์ตอื่น: ตั้ง `API_BASE` เช่น `API_BASE=http://localhost:8091/api python scripts/api-tests/run_all.py`
+backend อยู่พอร์ตอื่น: ตั้ง `API_BASE` เช่น `API_BASE=http://localhost:8091/api/v1 python scripts/api-tests/run_all.py`
 
 ## ข้อมูลทดสอบ
 

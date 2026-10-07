@@ -53,11 +53,8 @@ def add_bill(n, k):
             "currency": "THB", "expenseDate": "2026-10-02"}
     return amt, call("POST", f"/expenses/add/{tripId}?paidByMemberId={mid[n]}&participantIds={everyone}", token=tok[n], body=body)
 adds = parallel([lambda n=n, k=k: add_bill(n, k) for n in names for k in range(5)], workers=40)
-ok_adds = [a for a, (s, _) in adds if s == 200]
-check("40 bills added concurrently -> all 200", len(ok_adds) == 40, [s for _, (s, _) in adds if s != 200][:5])
 ok_adds = [a for a, (s, _) in adds if s == 201]
 check("40 bills added concurrently -> all 201", len(ok_adds) == 40, [s for _, (s, _) in adds if s != 201][:5])
-
 st, bills = call("GET", f"/expenses/trip/{tripId}")
 check("server has exactly 40 bills", len(bills) == 40, len(bills))
 total_server = sum(Decimal(str(b["totalAmount"])) for b in bills)
@@ -118,10 +115,7 @@ st, summ2 = call("GET", f"/debts/summary-details/{tripId}?userId={mid[payer2]}",
 received = sum(Decimal(str(s.get("paidAmount") or 0)) for b in summ2["myPaidBills"] for s in b["splits"] if s["memberId"] == mid[debtor2])
 check("two concurrent lump repayments never exceed what was owed", received <= owed + Decimal("0.01"),
       ([s for s, _ in reps], owed, received))
-
-check("at least one repayment accepted", any(s == 200 for s, _ in reps), reps)
 check("at least one repayment accepted", any(s == 201 for s, _ in reps), reps)
-
 
 # ---------- 10. คนจ่ายแก้บิลเดียวกันจาก 2 เครื่องพร้อมกัน ----------
 b1 = next(b for b in bills if b["user"]["id"] == mid[names[5]])
