@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Checklist - Party & Trip Expense Splitter Pro</title>
+    <title>Checklist - Trip Expense Splitter</title>
 
     <link rel="stylesheet" href="css/all.css" />
     <!-- Sidebar สำหรับจอคอม (≥1024px) -->
@@ -1072,14 +1072,18 @@
             <i class="fa-solid fa-list-check tone-primary"></i>
             ของทั้งหมด
           </div>
-          <div class="stat-value" id="stat-total"><div class="skeleton-line"></div></div>
+          <div class="stat-value" id="stat-total">
+            <div class="skeleton-line"></div>
+          </div>
         </div>
         <div class="stat-tile">
           <div class="stat-label">
             <i class="fa-solid fa-circle-check tone-success"></i>
             เตรียมแล้ว
           </div>
-          <div class="stat-value" id="stat-done"><div class="skeleton-line"></div></div>
+          <div class="stat-value" id="stat-done">
+            <div class="skeleton-line"></div>
+          </div>
           <div class="stat-sub" id="stat-done-sub"></div>
         </div>
         <div class="stat-tile highlight">
@@ -1087,7 +1091,9 @@
             <i class="fa-solid fa-suitcase tone-amber"></i>
             คุณต้องเอาไป
           </div>
-          <div class="stat-value" id="stat-mine"><div class="skeleton-line"></div></div>
+          <div class="stat-value" id="stat-mine">
+            <div class="skeleton-line"></div>
+          </div>
           <div class="stat-sub" id="stat-mine-sub"></div>
         </div>
       </div>
@@ -1133,12 +1139,19 @@
               <button type="button" class="add-row-btn" id="add-row-btn">
                 <i class="fa-solid fa-plus"></i> เพิ่มอีกชิ้น
               </button>
-              <div class="field-error" id="name-error">กรุณากรอกชื่อสิ่งของ</div>
+              <div class="field-error" id="name-error">
+                กรุณากรอกชื่อสิ่งของ
+              </div>
             </div>
 
             <div class="input-group">
               <span class="label">หมวดหมู่</span>
-              <div class="cat-grid" id="cat-grid" role="radiogroup" aria-label="หมวดหมู่"></div>
+              <div
+                class="cat-grid"
+                id="cat-grid"
+                role="radiogroup"
+                aria-label="หมวดหมู่"
+              ></div>
             </div>
 
             <div class="input-group">
@@ -1174,7 +1187,11 @@
               aria-valuemax="100"
               id="progress-track"
             >
-              <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+              <div
+                class="progress-bar"
+                id="progress-bar"
+                style="width: 0%"
+              ></div>
             </div>
             <div class="progress-sub" id="progress-sub"></div>
           </article>
@@ -1189,7 +1206,13 @@
               role="group"
               aria-label="กรองรายการของ"
             ></div>
-            <button type="button" class="mine-toggle hidden" id="mine-toggle" role="switch" aria-checked="false">
+            <button
+              type="button"
+              class="mine-toggle hidden"
+              id="mine-toggle"
+              role="switch"
+              aria-checked="false"
+            >
               เฉพาะของคุณ <span class="switch" aria-hidden="true"></span>
             </button>
           </div>
@@ -1219,12 +1242,42 @@
 
       // หมวดหมู่ (เก็บรหัสภาษาอังกฤษในฐานข้อมูล แสดงชื่อไทย)
       const CATEGORIES = [
-        { value: "GEAR", label: "อุปกรณ์", icon: "fa-solid fa-campground", color: "#0284c7" },
-        { value: "CLOTHES", label: "เสื้อผ้า", icon: "fa-solid fa-shirt", color: "#db2777" },
-        { value: "MEDICINE", label: "ยา", icon: "fa-solid fa-kit-medical", color: "#dc2626" },
-        { value: "FOOD", label: "อาหาร/ขนม", icon: "fa-solid fa-utensils", color: "#ea580c" },
-        { value: "DOCUMENT", label: "เอกสาร", icon: "fa-solid fa-passport", color: "#4f46e5" },
-        { value: "OTHER", label: "อื่นๆ", icon: "fa-solid fa-box", color: "#71717a" },
+        {
+          value: "GEAR",
+          label: "อุปกรณ์",
+          icon: "fa-solid fa-campground",
+          color: "#0284c7",
+        },
+        {
+          value: "CLOTHES",
+          label: "เสื้อผ้า",
+          icon: "fa-solid fa-shirt",
+          color: "#db2777",
+        },
+        {
+          value: "MEDICINE",
+          label: "ยา",
+          icon: "fa-solid fa-kit-medical",
+          color: "#dc2626",
+        },
+        {
+          value: "FOOD",
+          label: "อาหาร/ขนม",
+          icon: "fa-solid fa-utensils",
+          color: "#ea580c",
+        },
+        {
+          value: "DOCUMENT",
+          label: "เอกสาร",
+          icon: "fa-solid fa-passport",
+          color: "#4f46e5",
+        },
+        {
+          value: "OTHER",
+          label: "อื่นๆ",
+          icon: "fa-solid fa-box",
+          color: "#71717a",
+        },
       ];
       const DEFAULT_CATEGORY = "OTHER";
 
@@ -1240,9 +1293,24 @@
       }
 
       const FILTERS = [
-        { value: "ALL", label: "ทั้งหมด", icon: "fa-solid fa-layer-group", color: "#18181b" },
-        { value: "TODO", label: "ยังไม่ได้เตรียม", icon: "fa-regular fa-square", color: "#d97706" },
-        { value: "DONE", label: "เตรียมแล้ว", icon: "fa-solid fa-square-check", color: "#16a34a" },
+        {
+          value: "ALL",
+          label: "ทั้งหมด",
+          icon: "fa-solid fa-layer-group",
+          color: "#18181b",
+        },
+        {
+          value: "TODO",
+          label: "ยังไม่ได้เตรียม",
+          icon: "fa-regular fa-square",
+          color: "#d97706",
+        },
+        {
+          value: "DONE",
+          label: "เตรียมแล้ว",
+          icon: "fa-solid fa-square-check",
+          color: "#16a34a",
+        },
       ];
       let mineOnly = false; // สวิตช์ "เฉพาะของคุณ" (ใช้ร่วมกับตัวกรองสถานะ)
       const editAssignees = new Set(); // ผู้รับผิดชอบในแผงแก้ไขที่เปิดอยู่ (ยังไม่บันทึก)
@@ -1256,7 +1324,8 @@
       const busyItems = new Set(); // รายการที่กำลังรอเซิร์ฟเวอร์ (กันกดซ้ำ)
       let editingNoteId = null;
 
-      document.getElementById("back-dashboard-btn").href = `dashboard.html?tripId=${tripId}`;
+      document.getElementById("back-dashboard-btn").href =
+        `dashboard.html?tripId=${tripId}`;
 
       // ข้อความ error จากหลังบ้านเป็นภาษาไทย (ChecklistController ส่ง reason กลับมา)
       async function request(url, options) {
@@ -1265,7 +1334,8 @@
         if (!res.ok) {
           let message = text;
           try {
-            message = JSON.parse(text).message || JSON.parse(text).error || text;
+            message =
+              JSON.parse(text).message || JSON.parse(text).error || text;
           } catch {}
           throw new Error(message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
         }
@@ -1285,20 +1355,26 @@
             ? [item.assignedToMemberId]
             : []
         ).map(String);
-      const isMine = (item) => myMemberId != null && assigneesOf(item).includes(String(myMemberId));
+      const isMine = (item) =>
+        myMemberId != null && assigneesOf(item).includes(String(myMemberId));
 
       // 2.00 -> "2", 1.50 -> "1.5"
-      const formatQty = (q) => Number(q).toLocaleString("th-TH", { maximumFractionDigits: 2 });
+      const formatQty = (q) =>
+        Number(q).toLocaleString("th-TH", { maximumFractionDigits: 2 });
       const qtyText = (item) =>
-        item.quantity == null ? "" : `${formatQty(item.quantity)}${item.unit ? ` ${item.unit}` : ""}`;
-      const memberName = (id) => members.find((m) => String(m.id) === String(id))?.guestName;
+        item.quantity == null
+          ? ""
+          : `${formatQty(item.quantity)}${item.unit ? ` ${item.unit}` : ""}`;
+      const memberName = (id) =>
+        members.find((m) => String(m.id) === String(id))?.guestName;
 
       function matchesFilter(item) {
         if (activeFilter === "TODO" && item.checked) return false;
         if (activeFilter === "DONE" && !item.checked) return false;
         if (mineOnly && !isMine(item)) return false;
         if (searchText) {
-          const haystack = `${item.itemName || ""} ${item.notes || ""} ${item.unit || ""}`.toLowerCase();
+          const haystack =
+            `${item.itemName || ""} ${item.notes || ""} ${item.unit || ""}`.toLowerCase();
           if (!haystack.includes(searchText)) return false;
         }
         return true;
@@ -1309,7 +1385,7 @@
         const savedSearch = searchText;
         activeFilter = value;
         searchText = "";
-        const n = items.filter(matchesFilter).length; // รวมเงื่อนไข "เฉพาะของคุณ" 
+        const n = items.filter(matchesFilter).length; // รวมเงื่อนไข "เฉพาะของคุณ"
         activeFilter = saved;
         searchText = savedSearch;
         return n;
@@ -1325,8 +1401,12 @@
 
         document.getElementById("stat-total").textContent = total;
         document.getElementById("stat-done").textContent = `${done}/${total}`;
-        document.getElementById("stat-done-sub").textContent = total ? `${percent}%` : "";
-        document.getElementById("stat-mine").textContent = canEdit() ? minePending : "-";
+        document.getElementById("stat-done-sub").textContent = total
+          ? `${percent}%`
+          : "";
+        document.getElementById("stat-mine").textContent = canEdit()
+          ? minePending
+          : "-";
         document.getElementById("stat-mine-sub").textContent = !canEdit()
           ? ""
           : mine.length === 0
@@ -1338,32 +1418,42 @@
         const tag = document.getElementById("progress-tag");
         tag.classList.toggle("hidden", total === 0);
         document.getElementById("progress-title").textContent =
-          done === total && total > 0 ? "เตรียมของครบแล้ว พร้อมออกเดินทาง!" : "ความคืบหน้าการเตรียมของ";
+          done === total && total > 0
+            ? "เตรียมของครบแล้ว พร้อมออกเดินทาง!"
+            : "ความคืบหน้าการเตรียมของ";
         document.getElementById("progress-percent").textContent = `${percent}%`;
         document.getElementById("progress-bar").style.width = `${percent}%`;
-        document.getElementById("progress-track").setAttribute("aria-valuenow", String(percent));
-        const unassigned = items.filter((i) => assigneesOf(i).length === 0 && !i.checked).length;
+        document
+          .getElementById("progress-track")
+          .setAttribute("aria-valuenow", String(percent));
+        const unassigned = items.filter(
+          (i) => assigneesOf(i).length === 0 && !i.checked,
+        ).length;
         document.getElementById("progress-sub").textContent =
-          `เหลืออีก ${total - done} ชิ้น` + (unassigned ? ` · ${unassigned} ชิ้นยังไม่มีคนรับ` : "");
+          `เหลืออีก ${total - done} ชิ้น` +
+          (unassigned ? ` · ${unassigned} ชิ้นยังไม่มีคนรับ` : "");
       }
 
       function renderFilters() {
         const bar = document.getElementById("filter-bar");
         const hasItems = items.length > 0;
-        document.getElementById("filter-row").classList.toggle("hidden", !hasItems);
-        document.getElementById("search-box").classList.toggle("hidden", !hasItems);
+        document
+          .getElementById("filter-row")
+          .classList.toggle("hidden", !hasItems);
+        document
+          .getElementById("search-box")
+          .classList.toggle("hidden", !hasItems);
         const toggle = document.getElementById("mine-toggle");
         toggle.classList.toggle("hidden", !canEdit());
         toggle.setAttribute("aria-checked", String(mineOnly));
         bar.innerHTML = FILTERS.map((f) => {
-            const active = f.value === activeFilter;
-            return `
+          const active = f.value === activeFilter;
+          return `
               <button type="button" class="filter-chip${active ? " active" : ""}" style="--chip: ${f.color}"
                       data-filter="${f.value}" aria-pressed="${active}">
                 <i class="${f.icon}"></i> ${f.label} <span class="chip-count">${countFor(f.value)}</span>
               </button>`;
-          })
-          .join("");
+        }).join("");
       }
 
       document.getElementById("filter-bar").addEventListener("click", (e) => {
@@ -1393,7 +1483,11 @@
         const me = String(myMemberId);
         return [...assigneesOf(item)]
           .sort((a, b) => Number(b === me) - Number(a === me))
-          .map((id) => ({ id, mine: id === me, name: memberName(id) || `สมาชิก #${id}` }));
+          .map((id) => ({
+            id,
+            mine: id === me,
+            name: memberName(id) || `สมาชิก #${id}`,
+          }));
       }
 
       // ปุ่มรูปย่อ: กดเพื่อรับผิดชอบด้วย (มี +) หรือเอาชื่อตัวเองออก (มี ✓)
@@ -1403,7 +1497,12 @@
         const names = people.map((p) => (p.mine ? "คุณ" : p.name)).join(", ");
         const shown = people
           .slice(0, MAX_STACK)
-          .map((p) => avatar(p.name).replace('class="avatar ', `class="avatar ${p.mine ? "me " : ""}`))
+          .map((p) =>
+            avatar(p.name).replace(
+              'class="avatar ',
+              `class="avatar ${p.mine ? "me " : ""}`,
+            ),
+          )
           .join("");
         const extra = people.length - MAX_STACK;
         const stack = people.length
@@ -1412,7 +1511,9 @@
 
         if (!editable) {
           return `<span class="avatar-stack" title="${esc(names || "ยังไม่มีคนรับ")}">${
-            stack ? shown : '<span class="avatar none"><i class="fa-regular fa-user"></i></span>'
+            stack
+              ? shown
+              : '<span class="avatar none"><i class="fa-regular fa-user"></i></span>'
           }</span>`;
         }
 
@@ -1502,13 +1603,18 @@
         if (items.length === 0) {
           container.innerHTML = emptyBox(
             "fa-solid fa-suitcase-rolling",
-            canEdit() ? "ยังไม่มีของในเช็คลิสต์ เริ่มเพิ่มชิ้นแรกได้เลย" : "ยังไม่มีของในเช็คลิสต์",
+            canEdit()
+              ? "ยังไม่มีของในเช็คลิสต์ เริ่มเพิ่มชิ้นแรกได้เลย"
+              : "ยังไม่มีของในเช็คลิสต์",
           );
           return;
         }
         const visible = items.filter(matchesFilter);
         if (visible.length === 0) {
-          container.innerHTML = emptyBox("fa-solid fa-filter", "ไม่มีของที่ตรงกับตัวกรองนี้");
+          container.innerHTML = emptyBox(
+            "fa-solid fa-filter",
+            "ไม่มีของที่ตรงกับตัวกรองนี้",
+          );
           return;
         }
 
@@ -1528,10 +1634,14 @@
           .sort(([a], [b]) => order(a) - order(b))
           .map(([key, list]) => {
             const cat = categoryOf(key);
-            const all = items.filter((i) => (i.category || DEFAULT_CATEGORY) === key);
+            const all = items.filter(
+              (i) => (i.category || DEFAULT_CATEGORY) === key,
+            );
             const done = all.filter((i) => i.checked).length;
             const rows = [...list]
-              .sort((a, b) => Number(a.checked) - Number(b.checked) || a.id - b.id)
+              .sort(
+                (a, b) => Number(a.checked) - Number(b.checked) || a.id - b.id,
+              )
               .map(renderItem)
               .join("");
             return `
@@ -1545,7 +1655,9 @@
           })
           .join("");
 
-        const editInput = container.querySelector("[data-role='note-form'] .qty-input");
+        const editInput = container.querySelector(
+          "[data-role='note-form'] .qty-input",
+        );
         if (editInput) editInput.focus();
       }
 
@@ -1556,7 +1668,9 @@
       }
 
       function replaceItem(updated) {
-        items = items.map((i) => (String(i.id) === String(updated.id) ? updated : i));
+        items = items.map((i) =>
+          String(i.id) === String(updated.id) ? updated : i,
+        );
       }
 
       // ---------- การกระทำในแถว ----------
@@ -1576,166 +1690,194 @@
         }
       }
 
-      document.getElementById("item-groups").addEventListener("click", async (e) => {
-        const btn = e.target.closest("[data-action]");
-        if (!btn || btn.disabled || !canEdit()) return;
-        const row = btn.closest("[data-item-id]");
-        const id = row.dataset.itemId;
-        const item = items.find((i) => String(i.id) === id);
-        if (!item) return;
-        const action = btn.dataset.action;
+      document
+        .getElementById("item-groups")
+        .addEventListener("click", async (e) => {
+          const btn = e.target.closest("[data-action]");
+          if (!btn || btn.disabled || !canEdit()) return;
+          const row = btn.closest("[data-item-id]");
+          const id = row.dataset.itemId;
+          const item = items.find((i) => String(i.id) === id);
+          if (!item) return;
+          const action = btn.dataset.action;
 
-        if (action === "edit-note") {
-          const opening = String(editingNoteId) !== id;
-          editingNoteId = opening ? id : null;
-          editAssignees.clear();
-          if (opening) assigneesOf(item).forEach((x) => editAssignees.add(x));
-          renderList();
-          return;
-        }
+          if (action === "edit-note") {
+            const opening = String(editingNoteId) !== id;
+            editingNoteId = opening ? id : null;
+            editAssignees.clear();
+            if (opening) assigneesOf(item).forEach((x) => editAssignees.add(x));
+            renderList();
+            return;
+          }
 
-        if (action === "cancel-edit") {
-          editingNoteId = null;
-          renderList();
-          row.querySelector(".edit-btn")?.focus();
-          return;
-        }
+          if (action === "cancel-edit") {
+            editingNoteId = null;
+            renderList();
+            row.querySelector(".edit-btn")?.focus();
+            return;
+          }
 
-        // เลือก/ไม่เลือกผู้รับผิดชอบในแผง (บันทึกตอนกด "บันทึก") ไม่วาดหน้าใหม่ ช่องที่พิมพ์ค้างไว้จะไม่หาย
-        if (action === "edit-assignee") {
-          const memberId = btn.dataset.memberId;
-          if (editAssignees.has(memberId)) editAssignees.delete(memberId);
-          else editAssignees.add(memberId);
-          btn.setAttribute("aria-checked", String(editAssignees.has(memberId)));
-          return;
-        }
+          // เลือก/ไม่เลือกผู้รับผิดชอบในแผง (บันทึกตอนกด "บันทึก") ไม่วาดหน้าใหม่ ช่องที่พิมพ์ค้างไว้จะไม่หาย
+          if (action === "edit-assignee") {
+            const memberId = btn.dataset.memberId;
+            if (editAssignees.has(memberId)) editAssignees.delete(memberId);
+            else editAssignees.add(memberId);
+            btn.setAttribute(
+              "aria-checked",
+              String(editAssignees.has(memberId)),
+            );
+            return;
+          }
 
-        if (action === "delete" && !btn.classList.contains("confirming")) {
-          // กดครั้งแรกให้ยืนยันก่อน กันลบพลาด
-          btn.classList.add("confirming");
-          btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> กดอีกครั้งเพื่อลบ';
-          btn.dataset.timer = setTimeout(() => {
-            if (!btn.isConnected) return;
-            btn.classList.remove("confirming");
-            btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> ลบ';
-          }, 3000);
-          return;
-        }
+          if (action === "delete" && !btn.classList.contains("confirming")) {
+            // กดครั้งแรกให้ยืนยันก่อน กันลบพลาด
+            btn.classList.add("confirming");
+            btn.innerHTML =
+              '<i class="fa-solid fa-trash-can"></i> กดอีกครั้งเพื่อลบ';
+            btn.dataset.timer = setTimeout(() => {
+              if (!btn.isConnected) return;
+              btn.classList.remove("confirming");
+              btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> ลบ';
+            }, 3000);
+            return;
+          }
 
-        if (action === "toggle") {
-          const wasDoneAll = items.length > 0 && items.every((i) => i.checked);
-          await withItem(id, async () => {
-            // อัปเดตทันที (ไม่ต้องรอเซิร์ฟเวอร์) ถ้าล้มเหลวค่อยย้อนกลับ
-            replaceItem({ ...item, checked: !item.checked });
-            renderAll();
-            try {
+          if (action === "toggle") {
+            const wasDoneAll =
+              items.length > 0 && items.every((i) => i.checked);
+            await withItem(id, async () => {
+              // อัปเดตทันที (ไม่ต้องรอเซิร์ฟเวอร์) ถ้าล้มเหลวค่อยย้อนกลับ
+              replaceItem({ ...item, checked: !item.checked });
+              renderAll();
+              try {
+                const updated = await request(
+                  `${API_BASE_URL}/checklist/${id}/toggle?memberId=${myMemberId}`,
+                  { method: "PATCH" },
+                );
+                replaceItem(updated);
+              } catch (error) {
+                replaceItem(item);
+                throw error;
+              }
+            });
+            const allDone = items.length > 0 && items.every((i) => i.checked);
+            if (allDone && !wasDoneAll) {
+              launchConfetti();
+              showToast("เตรียมของครบทุกชิ้นแล้ว พร้อมออกเดินทาง!");
+            }
+            return;
+          }
+
+          if (action === "claim" || action === "unclaim") {
+            await withItem(id, async () => {
+              const me = String(myMemberId);
+              const current = assigneesOf(item);
+              const next =
+                action === "claim"
+                  ? [...current.filter((x) => x !== me), me]
+                  : current.filter((x) => x !== me);
               const updated = await request(
-                `${API_BASE_URL}/checklist/${id}/toggle?memberId=${myMemberId}`,
-                { method: "PATCH" },
+                `${API_BASE_URL}/checklist/${id}/assignees`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(next.map(Number)),
+                },
               );
               replaceItem(updated);
-            } catch (error) {
-              replaceItem(item);
-              throw error;
-            }
-          });
-          const allDone = items.length > 0 && items.every((i) => i.checked);
-          if (allDone && !wasDoneAll) {
-            launchConfetti();
-            showToast("เตรียมของครบทุกชิ้นแล้ว พร้อมออกเดินทาง!");
-          }
-          return;
-        }
-
-        if (action === "claim" || action === "unclaim") {
-          await withItem(id, async () => {
-            const me = String(myMemberId);
-            const current = assigneesOf(item);
-            const next =
-              action === "claim" ? [...current.filter((x) => x !== me), me] : current.filter((x) => x !== me);
-            const updated = await request(`${API_BASE_URL}/checklist/${id}/assignees`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(next.map(Number)),
+              showToast(
+                action === "claim"
+                  ? `คุณรับผิดชอบ "${item.itemName}" แล้ว`
+                  : `เอาชื่อคุณออกจาก "${item.itemName}" แล้ว`,
+              );
             });
-            replaceItem(updated);
-            showToast(
-              action === "claim"
-                ? `คุณรับผิดชอบ "${item.itemName}" แล้ว`
-                : `เอาชื่อคุณออกจาก "${item.itemName}" แล้ว`,
-            );
-          });
-          return;
-        }
+            return;
+          }
 
-        if (action === "delete") {
-          clearTimeout(Number(btn.dataset.timer));
-          await withItem(id, async () => {
-            await request(`${API_BASE_URL}/checklist/${id}`, { method: "DELETE" });
-            items = items.filter((i) => String(i.id) !== id);
-            if (String(editingNoteId) === id) editingNoteId = null;
-            if (items.length === 0) setFormCollapsed(false);
-            showToast(`ลบ "${item.itemName}" แล้ว`);
-          });
-        }
-      });
+          if (action === "delete") {
+            clearTimeout(Number(btn.dataset.timer));
+            await withItem(id, async () => {
+              await request(`${API_BASE_URL}/checklist/${id}`, {
+                method: "DELETE",
+              });
+              items = items.filter((i) => String(i.id) !== id);
+              if (String(editingNoteId) === id) editingNoteId = null;
+              if (items.length === 0) setFormCollapsed(false);
+              showToast(`ลบ "${item.itemName}" แล้ว`);
+            });
+          }
+        });
 
       // บันทึกโน้ต
-      document.getElementById("item-groups").addEventListener("submit", async (e) => {
-        const form = e.target.closest("[data-role='note-form']");
-        if (!form) return;
-        e.preventDefault();
-        const id = form.closest("[data-item-id]").dataset.itemId;
-        const qtyRaw = form.querySelector(".qty-input").value.trim();
-        const quantity = qtyRaw === "" ? null : Number(qtyRaw);
-        if (quantity !== null && !(quantity > 0)) {
-          showToast("จำนวนต้องมากกว่า 0", "error");
-          form.querySelector(".qty-input").focus();
-          return;
-        }
-        const item = items.find((i) => String(i.id) === id);
-        const nextAssignees = [...editAssignees];
-        const before = item ? assigneesOf(item) : [];
-        const assigneesChanged =
-          nextAssignees.length !== before.length || nextAssignees.some((x) => !before.includes(x));
-        await withItem(id, async () => {
-          let updated = await request(`${API_BASE_URL}/checklist/${id}/details`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              quantity,
-              unit: form.querySelector(".unit-input").value.trim() || null,
-              notes: form.querySelector(".note-input").value.trim() || null,
-              memberId: myMemberId,
-            }),
-          });
-          if (assigneesChanged) {
-            // คงลำดับเดิม คนใหม่ต่อท้าย
-            const ordered = [
-              ...before.filter((x) => nextAssignees.includes(x)),
-              ...nextAssignees.filter((x) => !before.includes(x)),
-            ];
-            updated = await request(`${API_BASE_URL}/checklist/${id}/assignees`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(ordered.map(Number)),
-            });
+      document
+        .getElementById("item-groups")
+        .addEventListener("submit", async (e) => {
+          const form = e.target.closest("[data-role='note-form']");
+          if (!form) return;
+          e.preventDefault();
+          const id = form.closest("[data-item-id]").dataset.itemId;
+          const qtyRaw = form.querySelector(".qty-input").value.trim();
+          const quantity = qtyRaw === "" ? null : Number(qtyRaw);
+          if (quantity !== null && !(quantity > 0)) {
+            showToast("จำนวนต้องมากกว่า 0", "error");
+            form.querySelector(".qty-input").focus();
+            return;
           }
-          replaceItem(updated);
-          editingNoteId = null;
-          showToast("บันทึกแล้ว");
+          const item = items.find((i) => String(i.id) === id);
+          const nextAssignees = [...editAssignees];
+          const before = item ? assigneesOf(item) : [];
+          const assigneesChanged =
+            nextAssignees.length !== before.length ||
+            nextAssignees.some((x) => !before.includes(x));
+          await withItem(id, async () => {
+            let updated = await request(
+              `${API_BASE_URL}/checklist/${id}/details`,
+              {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  quantity,
+                  unit: form.querySelector(".unit-input").value.trim() || null,
+                  notes: form.querySelector(".note-input").value.trim() || null,
+                  memberId: myMemberId,
+                }),
+              },
+            );
+            if (assigneesChanged) {
+              // คงลำดับเดิม คนใหม่ต่อท้าย
+              const ordered = [
+                ...before.filter((x) => nextAssignees.includes(x)),
+                ...nextAssignees.filter((x) => !before.includes(x)),
+              ];
+              updated = await request(
+                `${API_BASE_URL}/checklist/${id}/assignees`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(ordered.map(Number)),
+                },
+              );
+            }
+            replaceItem(updated);
+            editingNoteId = null;
+            showToast("บันทึกแล้ว");
+          });
         });
-      });
 
       // Esc ปิดช่องแก้โน้ต
-      document.getElementById("item-groups").addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && e.target.closest("[data-role='note-form']")) {
-          const id = editingNoteId;
-          editingNoteId = null;
-          renderList();
-          document.querySelector(`[data-item-id="${id}"] .edit-btn`)?.focus();
-        }
-      });
+      document
+        .getElementById("item-groups")
+        .addEventListener("keydown", (e) => {
+          if (
+            e.key === "Escape" &&
+            e.target.closest("[data-role='note-form']")
+          ) {
+            const id = editingNoteId;
+            editingNoteId = null;
+            renderList();
+            document.querySelector(`[data-item-id="${id}"] .edit-btn`)?.focus();
+          }
+        });
 
       // ---------- ฟอร์มเพิ่มของ ----------
       const addForm = document.getElementById("add-form");
@@ -1791,13 +1933,17 @@
             <i class="fa-solid fa-check check-mark" aria-hidden="true"></i>
           </button>`;
         assigneeGrid.innerHTML =
-          (me ? chip(me, "คุณ") : "") + others.map((m) => chip(m, m.guestName)).join("");
+          (me ? chip(me, "คุณ") : "") +
+          others.map((m) => chip(m, m.guestName)).join("");
         syncAssigneeChips();
       }
 
       function syncAssigneeChips() {
         assigneeGrid.querySelectorAll(".assignee-chip").forEach((chip) => {
-          chip.setAttribute("aria-checked", String(selectedAssignees.has(chip.dataset.value)));
+          chip.setAttribute(
+            "aria-checked",
+            String(selectedAssignees.has(chip.dataset.value)),
+          );
         });
       }
 
@@ -1844,10 +1990,18 @@
         const rows = [...nameList.querySelectorAll(".name-row")];
         rows.forEach((row, i) => {
           row.querySelector(".name-no").textContent = i + 1;
-          row.querySelector(".name-input").setAttribute("aria-label", `ชื่อสิ่งของชิ้นที่ ${i + 1}`);
-          row.querySelector(".qty-input").setAttribute("aria-label", `จำนวนของชิ้นที่ ${i + 1}`);
-          row.querySelector(".unit-input").setAttribute("aria-label", `หน่วยของชิ้นที่ ${i + 1}`);
-          row.querySelector(".note-input").setAttribute("aria-label", `โน้ตของชิ้นที่ ${i + 1}`);
+          row
+            .querySelector(".name-input")
+            .setAttribute("aria-label", `ชื่อสิ่งของชิ้นที่ ${i + 1}`);
+          row
+            .querySelector(".qty-input")
+            .setAttribute("aria-label", `จำนวนของชิ้นที่ ${i + 1}`);
+          row
+            .querySelector(".unit-input")
+            .setAttribute("aria-label", `หน่วยของชิ้นที่ ${i + 1}`);
+          row
+            .querySelector(".note-input")
+            .setAttribute("aria-label", `โน้ตของชิ้นที่ ${i + 1}`);
           row.querySelector(".row-remove").disabled = rows.length <= 1;
           row.classList.toggle("dup", parsed[i].duplicate);
         });
@@ -1925,7 +2079,8 @@
           const row = field.closest(".name-row");
           const nextName = row.nextElementSibling?.querySelector(".name-input");
           if (nextName) return nextName.focus();
-          if (row.querySelector(".name-input").value.trim()) addNameRow("", row)?.focus();
+          if (row.querySelector(".name-input").value.trim())
+            addNameRow("", row)?.focus();
           return;
         }
         const input = field;
@@ -1955,7 +2110,10 @@
       nameList.addEventListener("paste", (e) => {
         const input = e.target.closest(".name-input");
         const text = e.clipboardData?.getData("text") || "";
-        const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        const lines = text
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean);
         if (!input || lines.length < 2) return;
         e.preventDefault();
         const before = input.value.slice(0, input.selectionStart);
@@ -1982,7 +2140,10 @@
         // จำนวนที่กรอกต้องมากกว่า 0 (เว้นว่างได้)
         const badQty = parseNames().find((n) => {
           if (!n.name || n.duplicate) return false;
-          const raw = n.input.closest(".name-row").querySelector(".qty-input").value.trim();
+          const raw = n.input
+            .closest(".name-row")
+            .querySelector(".qty-input")
+            .value.trim();
           return raw !== "" && !(Number(raw) > 0);
         });
         const error =
@@ -1996,11 +2157,14 @@
                   ? `จำนวนของ "${badQty.name}" ต้องมากกว่า 0`
                   : "";
         document.getElementById("name-error").textContent = error;
-        document.getElementById("group-name").classList.toggle("invalid", Boolean(error));
+        document
+          .getElementById("group-name")
+          .classList.toggle("invalid", Boolean(error));
         if (error) {
           const target = badQty
             ? badQty.input.closest(".name-row").querySelector(".qty-input")
-            : parseNames().find((n) => n.name.length > MAX_NAME_LENGTH)?.input || nameInputs()[0];
+            : parseNames().find((n) => n.name.length > MAX_NAME_LENGTH)
+                ?.input || nameInputs()[0];
           return target?.focus();
         }
 
@@ -2039,7 +2203,9 @@
           resetForm();
           renderAll();
           showToast(
-            created.length === 1 ? `เพิ่ม "${created[0].itemName}" แล้ว` : `เพิ่มของ ${created.length} ชิ้นแล้ว`,
+            created.length === 1
+              ? `เพิ่ม "${created[0].itemName}" แล้ว`
+              : `เพิ่มของ ${created.length} ชิ้นแล้ว`,
           );
           nameInputs()[0]?.focus(); // เพิ่มชิ้นต่อไปได้ทันที
         } catch (error) {
@@ -2056,9 +2222,13 @@
         try {
           // TripMember ผูกกับ User ด้วยชื่อ (guestName = username) ไม่ใช่ ID
           // หาไม่เจอ = ดูอย่างเดียว (ไม่สวมรอยเป็นสมาชิกคนแรก)
-          members = await request(`${API_BASE_URL}/trips/${tripId}/members`).catch(() => []);
+          members = await request(
+            `${API_BASE_URL}/trips/${tripId}/members`,
+          ).catch(() => []);
           const currentUsername = localStorage.getItem("username");
-          const me = members.find((m) => currentUsername && m.guestName === currentUsername);
+          const me = members.find(
+            (m) => currentUsername && m.guestName === currentUsername,
+          );
           myMemberId = me ? me.id : null;
 
           // ผู้รับผิดชอบเริ่มต้น = ตัวเอง (ส่วนใหญ่คนเพิ่มของคือคนที่จะเอาไปเอง)
@@ -2066,7 +2236,9 @@
           if (me) selectedAssignees.add(String(me.id));
           renderAssigneeOptions();
           if (!canEdit()) {
-            document.getElementById("readonly-notice").classList.remove("hidden");
+            document
+              .getElementById("readonly-notice")
+              .classList.remove("hidden");
             addForm.classList.add("hidden");
             document.querySelector(".two-col").classList.add("single");
           }

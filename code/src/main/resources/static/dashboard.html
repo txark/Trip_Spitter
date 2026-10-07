@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trip Dashboard - Party & Trip Expense Splitter Pro</title>
+    <title>Trip Dashboard - Trip Expense Splitter</title>
 
     <!-- CSS กลาง -->
     <link rel="stylesheet" href="css/all.css" />
@@ -1007,7 +1007,13 @@
               </div>
               <div class="bp-line">
                 <span class="bp-ornament" aria-hidden="true">⋆.° 𓆉 𓆝 𓆡⋆.°</span>
-                <button type="button" class="bp-edit" id="bp-edit" onclick="openDatesDialog()" aria-label="แก้วันเดินทาง">
+                <button
+                  type="button"
+                  class="bp-edit"
+                  id="bp-edit"
+                  onclick="openDatesDialog()"
+                  aria-label="แก้วันเดินทาง"
+                >
                   <span class="bp-days" id="bp-days"></span>
                   <i class="fa-solid fa-pen" aria-hidden="true"></i>
                 </button>
@@ -1048,7 +1054,11 @@
       </header>
 
       <!-- แก้วันเดินทาง -->
-      <dialog class="dates-dialog" id="dates-dialog" aria-labelledby="dates-title">
+      <dialog
+        class="dates-dialog"
+        id="dates-dialog"
+        aria-labelledby="dates-title"
+      >
         <form id="dates-form" method="dialog" novalidate>
           <h3 id="dates-title">แก้วันเดินทาง</h3>
           <div class="dates-fields">
@@ -1064,7 +1074,9 @@
           <p class="dates-note" id="dates-note" aria-live="polite"></p>
           <div class="dates-actions">
             <button type="button" onclick="closeDatesDialog()">ยกเลิก</button>
-            <button type="submit" class="primary" id="dates-save">บันทึก</button>
+            <button type="submit" class="primary" id="dates-save">
+              บันทึก
+            </button>
           </div>
         </form>
       </dialog>
@@ -1104,7 +1116,12 @@
       </div>
 
       <!-- รายการถัดไปในแพลนเที่ยว (โหลดแพลนไม่ได้ = ซ่อน) -->
-      <a class="next-card hidden" id="next-card" href="plan.html" aria-live="polite"></a>
+      <a
+        class="next-card hidden"
+        id="next-card"
+        href="plan.html"
+        aria-live="polite"
+      ></a>
 
       <!-- เมนูลัด (จอคอมซ่อน เพราะมี sidebar แล้ว) -->
       <nav class="quick-nav">
@@ -1143,7 +1160,11 @@
           <section>
             <div class="section-title">
               <span>แผน vs จ่ายจริง</span>
-              <button type="button" class="summary-open-btn" onclick="openTripSummary(tripId)">
+              <button
+                type="button"
+                class="summary-open-btn"
+                onclick="openTripSummary(tripId)"
+              >
                 <i class="fa-solid fa-share-nodes"></i> แชร์สรุปทริป
               </button>
             </div>
@@ -1191,7 +1212,9 @@
         });
 
       // หมวดหมู่ใช้ร่วมกับหน้าค่าใช้จ่าย/แพลน (ui.js)
-      const CATEGORIES = Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c.value, c]));
+      const CATEGORIES = Object.fromEntries(
+        EXPENSE_CATEGORIES.map((c) => [c.value, c]),
+      );
       // ข้อมูลล่าสุดของหน้า (การ์ดแผน vs จ่ายจริงต้องใช้ทั้งบิลและแพลน ซึ่งโหลดแยกกัน)
       let dashTrip = null;
       let dashMembers = [];
@@ -1247,17 +1270,30 @@
         }
         const start = datesStart.value;
         const end = datesEnd.value;
-        const days = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
+        const days =
+          Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
         const outside = (d) => d && (d < start || d > end);
-        const bills = dashExpenses.filter((e) => outside(isoDay(e.expenseDate))).length;
-        const plans = (planActivities || []).filter((a) => outside(isoDay(a.activityDate))).length;
-        const extra = [bills && `${bills} บิล`, plans && `${plans} รายการในแพลน`].filter(Boolean).join(" และ ");
-        datesNote.textContent = `${days} วัน` + (extra ? ` · มี ${extra} อยู่นอกช่วงนี้ (ยังเก็บไว้ ไม่ถูกลบ)` : "");
+        const bills = dashExpenses.filter((e) =>
+          outside(isoDay(e.expenseDate)),
+        ).length;
+        const plans = (planActivities || []).filter((a) =>
+          outside(isoDay(a.activityDate)),
+        ).length;
+        const extra = [
+          bills && `${bills} บิล`,
+          plans && `${plans} รายการในแพลน`,
+        ]
+          .filter(Boolean)
+          .join(" และ ");
+        datesNote.textContent =
+          `${days} วัน` +
+          (extra ? ` · มี ${extra} อยู่นอกช่วงนี้ (ยังเก็บไว้ ไม่ถูกลบ)` : "");
       }
 
       datesStart.addEventListener("input", () => {
         // เลื่อนวันเริ่มไปหลังวันสิ้นสุด = เลื่อนวันสิ้นสุดตาม
-        if (datesEnd.value && datesStart.value > datesEnd.value) datesEnd.value = datesStart.value;
+        if (datesEnd.value && datesStart.value > datesEnd.value)
+          datesEnd.value = datesStart.value;
         updateDatesNote();
       });
       datesEnd.addEventListener("input", updateDatesNote);
@@ -1265,34 +1301,37 @@
         if (e.target === datesDialog) closeDatesDialog();
       });
 
-      document.getElementById("dates-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const problem = datesProblem();
-        if (problem) {
-          updateDatesNote();
-          return;
-        }
-        const save = document.getElementById("dates-save");
-        save.disabled = true;
-        try {
-          const res = await fetch(
-            `${API_BASE_URL}/trips/${tripId}/dates?memberId=${dashMyMemberId ?? ""}&startDate=${datesStart.value}&endDate=${datesEnd.value}`,
-            { method: "PUT" },
-          );
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.message || "บันทึกวันเดินทางไม่สำเร็จ");
-          dashTrip = data;
-          renderTripDates(data);
-          renderNextCard();
-          closeDatesDialog();
-          showToast("แก้วันเดินทางแล้ว");
-        } catch (error) {
-          datesNote.classList.add("error");
-          datesNote.textContent = error.message;
-        } finally {
-          save.disabled = false;
-        }
-      });
+      document
+        .getElementById("dates-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const problem = datesProblem();
+          if (problem) {
+            updateDatesNote();
+            return;
+          }
+          const save = document.getElementById("dates-save");
+          save.disabled = true;
+          try {
+            const res = await fetch(
+              `${API_BASE_URL}/trips/${tripId}/dates?memberId=${dashMyMemberId ?? ""}&startDate=${datesStart.value}&endDate=${datesEnd.value}`,
+              { method: "PUT" },
+            );
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok)
+              throw new Error(data.message || "บันทึกวันเดินทางไม่สำเร็จ");
+            dashTrip = data;
+            renderTripDates(data);
+            renderNextCard();
+            closeDatesDialog();
+            showToast("แก้วันเดินทางแล้ว");
+          } catch (error) {
+            datesNote.classList.add("error");
+            datesNote.textContent = error.message;
+          } finally {
+            save.disabled = false;
+          }
+        });
 
       function formatDay(d, withYear = false) {
         return d.toLocaleDateString("th-TH", {
@@ -1385,7 +1424,10 @@
         document.getElementById("stat-share").textContent = fmt(myShare);
         // ตั้งงบต่อคนไว้ (หน้าแพลน) = เทียบส่วนของคุณกับงบ
         const shareSub = document.getElementById("stat-share-sub");
-        shareSub.classList.toggle("text-danger", budget > 0 && myShare > budget);
+        shareSub.classList.toggle(
+          "text-danger",
+          budget > 0 && myShare > budget,
+        );
         shareSub.textContent =
           budget > 0
             ? myShare > budget
@@ -1400,11 +1442,7 @@
         netEl.textContent = fmt(Math.abs(net));
         netEl.className = `stat-value${net > 0 ? " text-success" : net < 0 ? " text-danger" : ""}`;
         document.getElementById("stat-net-sub").textContent =
-          net > 0
-            ? "คุณจะได้รับคืน"
-            : net < 0
-              ? "คุณต้องจ่ายเพิ่ม"
-              : " "; // ไม่ค้างใคร: ว่างไว้ ให้การ์ดสูงเท่ากัน
+          net > 0 ? "คุณจะได้รับคืน" : net < 0 ? "คุณต้องจ่ายเพิ่ม" : " "; // ไม่ค้างใคร: ว่างไว้ ให้การ์ดสูงเท่ากัน
       }
 
       // --- ค่าใช้จ่ายล่าสุด: แสดงทีละวัน (เริ่มที่วันนี้ ถ้าวันนี้ยังไม่มีบิล = วันล่าสุดที่มี) ---
@@ -1434,14 +1472,21 @@
           0,
         );
         // วันที่มีบิล เรียงเก่า -> ใหม่
-        const days = [...new Set(expenses.map(dayKeyOf).filter(Boolean))].sort();
+        const days = [
+          ...new Set(expenses.map(dayKeyOf).filter(Boolean)),
+        ].sort();
         if (!days.includes(recentDay)) {
           const today = todayKey();
           recentDay = days.includes(today) ? today : days.at(-1) || null;
         }
         const index = days.indexOf(recentDay);
-        const dayItems = expenses.filter((e) => (dayKeyOf(e) || null) === recentDay);
-        const dayTotal = dayItems.reduce((sum, e) => sum + Number(e.totalAmount || 0), 0);
+        const dayItems = expenses.filter(
+          (e) => (dayKeyOf(e) || null) === recentDay,
+        );
+        const dayTotal = dayItems.reduce(
+          (sum, e) => sum + Number(e.totalAmount || 0),
+          0,
+        );
         const isToday = recentDay === todayKey();
 
         const rows = [...dayItems]
@@ -1496,16 +1541,21 @@
           </div>`;
       }
 
-      document.getElementById("expenses-feed-container").addEventListener("click", (e) => {
-        const btn = e.target.closest("[data-day-step]");
-        if (!btn || btn.disabled) return;
-        const days = [...new Set(recentExpenses.map(dayKeyOf).filter(Boolean))].sort();
-        const next = days[days.indexOf(recentDay) + Number(btn.dataset.dayStep)];
-        if (next) {
-          recentDay = next;
-          renderRecent(recentExpenses);
-        }
-      });
+      document
+        .getElementById("expenses-feed-container")
+        .addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-day-step]");
+          if (!btn || btn.disabled) return;
+          const days = [
+            ...new Set(recentExpenses.map(dayKeyOf).filter(Boolean)),
+          ].sort();
+          const next =
+            days[days.indexOf(recentDay) + Number(btn.dataset.dayStep)];
+          if (next) {
+            recentDay = next;
+            renderRecent(recentExpenses);
+          }
+        });
 
       // --- แผน vs จ่ายจริง แยกตามหมวด (หมวดเดียวกับในแพลน) ---
       function renderCategories() {
@@ -1523,9 +1573,14 @@
         });
         const totalActual = Object.values(actual).reduce((a, b) => a + b, 0);
         const totalPlan = Object.values(planned).reduce((a, b) => a + b, 0);
-        const budget = (Number(dashTrip?.budgetPerPerson) || 0) * Math.max(dashMembers.length, 1);
+        const budget =
+          (Number(dashTrip?.budgetPerPerson) || 0) *
+          Math.max(dashMembers.length, 1);
         if (totalActual === 0 && totalPlan === 0) {
-          panel.innerHTML = emptyBox("fa-solid fa-chart-pie", "ยังไม่มีบิลหรือราคาในแพลน");
+          panel.innerHTML = emptyBox(
+            "fa-solid fa-chart-pie",
+            "ยังไม่มีบิลหรือราคาในแพลน",
+          );
           return;
         }
 
@@ -1535,7 +1590,11 @@
         const over = target > 0 && totalActual > target;
         const keys = EXPENSE_CATEGORIES.map((c) => c.value)
           .filter((k) => actual[k] > 0 || planned[k] > 0)
-          .sort((a, b) => (actual[b] || 0) - (actual[a] || 0) || (planned[b] || 0) - (planned[a] || 0));
+          .sort(
+            (a, b) =>
+              (actual[b] || 0) - (actual[a] || 0) ||
+              (planned[b] || 0) - (planned[a] || 0),
+          );
 
         const head = `
           <div class="pva-head">
@@ -1605,7 +1664,9 @@
         });
 
         // คนสร้างทริป: ปุ่มออกรหัสกู้คืนให้เพื่อน (เปลี่ยนเครื่องแล้วเข้าชื่อเดิมไม่ได้)
-        const iAmAdmin = members.some((m) => String(m.id) === String(myMemberId) && m.role === "ADMIN");
+        const iAmAdmin = members.some(
+          (m) => String(m.id) === String(myMemberId) && m.role === "ADMIN",
+        );
         panel.innerHTML = [...members]
           .sort((a, b) => (paidBy[b.id] || 0) - (paidBy[a.id] || 0))
           .map((m) => {
@@ -1633,32 +1694,40 @@
           .join("");
       }
 
-      document.getElementById("members-panel").addEventListener("click", async (e) => {
-        const btn = e.target.closest(".member-recover");
-        if (!btn) return;
-        const name = btn.dataset.name;
-        if (
-          !confirm(
-            `ออกรหัสกู้คืนให้ "${name}"?\nใช้เมื่อ ${name} เปลี่ยนเครื่องหรือล้างเบราว์เซอร์ แล้วเข้าชื่อเดิมไม่ได้\nเครื่องเดิมของ ${name} จะถูกออกจากระบบเมื่อใช้รหัสนี้`,
+      document
+        .getElementById("members-panel")
+        .addEventListener("click", async (e) => {
+          const btn = e.target.closest(".member-recover");
+          if (!btn) return;
+          const name = btn.dataset.name;
+          if (
+            !confirm(
+              `ออกรหัสกู้คืนให้ "${name}"?\nใช้เมื่อ ${name} เปลี่ยนเครื่องหรือล้างเบราว์เซอร์ แล้วเข้าชื่อเดิมไม่ได้\nเครื่องเดิมของ ${name} จะถูกออกจากระบบเมื่อใช้รหัสนี้`,
+            )
           )
-        )
-          return;
-        btn.disabled = true;
-        try {
-          const res = await fetch(`${API_BASE_URL}/trips/${tripId}/members/${btn.dataset.id}/recovery`, {
-            method: "POST",
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.message || "ออกรหัสไม่สำเร็จ");
-          const text = `รหัสกู้คืนของ ${data.name}: ${data.code}\nเข้าหน้าแรก พิมพ์ชื่อ "${data.name}" แล้วใส่รหัสนี้ในช่อง PIN (ใช้ได้ครั้งเดียว ภายใน ${data.expiresInMinutes} นาที)`;
-          const copied = await copyText(text);
-          alert(text + (copied ? "\n\n(คัดลอกไว้แล้ว ส่งให้เพื่อนในแชทได้เลย)" : ""));
-        } catch (error) {
-          showToast(error.message || "ออกรหัสไม่สำเร็จ", "error");
-        } finally {
-          btn.disabled = false;
-        }
-      });
+            return;
+          btn.disabled = true;
+          try {
+            const res = await fetch(
+              `${API_BASE_URL}/trips/${tripId}/members/${btn.dataset.id}/recovery`,
+              {
+                method: "POST",
+              },
+            );
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message || "ออกรหัสไม่สำเร็จ");
+            const text = `รหัสกู้คืนของ ${data.name}: ${data.code}\nเข้าหน้าแรก พิมพ์ชื่อ "${data.name}" แล้วใส่รหัสนี้ในช่อง PIN (ใช้ได้ครั้งเดียว ภายใน ${data.expiresInMinutes} นาที)`;
+            const copied = await copyText(text);
+            alert(
+              text +
+                (copied ? "\n\n(คัดลอกไว้แล้ว ส่งให้เพื่อนในแชทได้เลย)" : ""),
+            );
+          } catch (error) {
+            showToast(error.message || "ออกรหัสไม่สำเร็จ", "error");
+          } finally {
+            btn.disabled = false;
+          }
+        });
 
       // --- ถัดไปในแพลน ---
       const PLAN_ICONS = {
@@ -1684,7 +1753,8 @@
 
       const hhmm = (t) => (t ? String(t).slice(0, 5) : "");
       const dayKey = (v) => String(v || "").slice(0, 10);
-      const atTime = (key, time) => new Date(`${key}T${time ? hhmm(time) : "00:00"}:00`);
+      const atTime = (key, time) =>
+        new Date(`${key}T${time ? hhmm(time) : "00:00"}:00`);
       const localKey = (d) =>
         `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -1698,11 +1768,26 @@
           const base = { act, icon, color };
           if (act.category === "STAY") {
             const start = atTime(key, act.startTime);
-            events.push({ ...base, key, time: act.startTime, start, end: new Date(+start + DEFAULT_DURATION_MS), label: `เช็คอิน ${act.title}` });
+            events.push({
+              ...base,
+              key,
+              time: act.startTime,
+              start,
+              end: new Date(+start + DEFAULT_DURATION_MS),
+              label: `เช็คอิน ${act.title}`,
+            });
             const outKey = dayKey(act.endDate) || key;
             if (outKey !== key || act.endTime) {
               const out = atTime(outKey, act.endTime);
-              events.push({ ...base, key: outKey, time: act.endTime, start: out, end: new Date(+out + DEFAULT_DURATION_MS), label: `เช็คเอาท์ ${act.title}`, icon: "fa-solid fa-right-from-bracket" });
+              events.push({
+                ...base,
+                key: outKey,
+                time: act.endTime,
+                start: out,
+                end: new Date(+out + DEFAULT_DURATION_MS),
+                label: `เช็คเอาท์ ${act.title}`,
+                icon: "fa-solid fa-right-from-bracket",
+              });
             }
             return;
           }
@@ -1712,19 +1797,36 @@
             end = new Date(+start + 86400000); // ทั้งวัน
           } else if (act.endTime) {
             // เวลาถัดไปที่น้อยกว่าเวลาก่อนหน้า = ข้ามวัน (เครื่องบินต่อเครื่องข้ามได้หลายวัน)
-            const stops = act.category === "TRAVEL" && act.transportMode === "PLANE" ? act.stops || [] : [];
-            const times = [act.startTime, ...stops.flatMap((st) => [st.arriveTime, st.departTime]), act.endTime]
+            const stops =
+              act.category === "TRAVEL" && act.transportMode === "PLANE"
+                ? act.stops || []
+                : [];
+            const times = [
+              act.startTime,
+              ...stops.flatMap((st) => [st.arriveTime, st.departTime]),
+              act.endTime,
+            ]
               .filter(Boolean)
               .map((t) => atTime(key, t));
             for (let i = 1; i < times.length; i++) {
-              while (times[i] <= times[i - 1]) times[i] = new Date(+times[i] + 86400000);
+              while (times[i] <= times[i - 1])
+                times[i] = new Date(+times[i] + 86400000);
             }
             end = times[times.length - 1];
           } else {
             end = new Date(+start + DEFAULT_DURATION_MS);
           }
-          const modeIcon = act.category === "TRAVEL" ? MODE_ICONS[act.transportMode] : null;
-          events.push({ ...base, key, time: act.startTime, start, end, label: act.title, icon: modeIcon || icon });
+          const modeIcon =
+            act.category === "TRAVEL" ? MODE_ICONS[act.transportMode] : null;
+          events.push({
+            ...base,
+            key,
+            time: act.startTime,
+            start,
+            end,
+            label: act.title,
+            icon: modeIcon || icon,
+          });
         });
         return events.sort((a, b) => a.start - b.start || !!a.time - !!b.time);
       }
@@ -1750,7 +1852,10 @@
       function eventSub(ev) {
         const act = ev.act;
         if (act.category === "TRAVEL" && act.origin && act.location) {
-          const via = act.transportMode === "PLANE" ? (act.stops || []).map((st) => st.place) : [];
+          const via =
+            act.transportMode === "PLANE"
+              ? (act.stops || []).map((st) => st.place)
+              : [];
           return [act.origin, ...via, act.location].join(" → ");
         }
         return act.location || "";
@@ -1793,7 +1898,9 @@
         }
 
         const now = zoneNow(tripTimeZone);
-        const current = events.find((ev) => ev.time && ev.start <= now && now < ev.end);
+        const current = events.find(
+          (ev) => ev.time && ev.start <= now && now < ev.end,
+        );
         const upcoming = events.filter((ev) => ev.start > now);
         const main = current || upcoming[0];
         if (!main) {
@@ -1812,7 +1919,9 @@
         const after = upcoming.find((ev) => ev !== main);
         const label = current
           ? `<span class="now">ตอนนี้</span>${
-              current.act.endTime && current.act.category !== "STAY" ? ` ถึง ${esc(hhmm(current.act.endTime))}` : ""
+              current.act.endTime && current.act.category !== "STAY"
+                ? ` ถึง ${esc(hhmm(current.act.endTime))}`
+                : ""
             }`
           : `ถัดไป · ${esc(untilText(main, now))}`;
         const subParts = [
