@@ -5,7 +5,7 @@ services:
     name: trip-spitter
     runtime: docker
     plan: free
-    region: singapore   # ให้อยู่ region เดียวกับฐานข้อมูล Neon (AWS Singapore) ลดเวลาตอบสนอง
+    region: oregon      # ตรงกับ service ที่ deploy อยู่จริง (Render เปลี่ยน region ของ service เดิมไม่ได้)
     branch: main
     healthCheckPath: /home.html
     autoDeploy: true
