@@ -41,7 +41,11 @@ class ExpenseServiceImplTest {
         activityRepo = mock(ActivityRepo.class);
         service = new ExpenseServiceImpl(expenseRepo, tripRepo, tripMemberRepo, activityRepo,
                 mock(com.cp.party_trip.repository.ExpenseSplitRepo.class),
-                new com.cp.party_trip.mapper.ExpenseMapper(new com.cp.party_trip.mapper.MemberMapper()));
+                new com.cp.party_trip.mapper.ExpenseMapper(new com.cp.party_trip.mapper.MemberMapper()),
+                new com.cp.party_trip.service.split.SplitStrategyFactory(java.util.List.of(
+                        new com.cp.party_trip.service.split.EqualSplitStrategy(),
+                        new com.cp.party_trip.service.split.CustomSplitStrategy())),
+                mock(org.springframework.context.ApplicationEventPublisher.class));
 
         trip.setId(1L);
         otherTrip.setId(2L);
