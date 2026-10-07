@@ -10,6 +10,9 @@ jobs:
   test:
     name: Build and test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code
     services:
       postgres:
         image: postgres:17-alpine
@@ -42,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: target/surefire-reports
+          path: code/target/surefire-reports
 
   docker:
     name: Build Docker image

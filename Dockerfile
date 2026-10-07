@@ -3,11 +3,11 @@ FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 
 # ดึง dependency ก่อน (layer นี้ถูก cache ตราบใดที่ pom.xml ไม่เปลี่ยน build รอบต่อไปเร็วขึ้นมาก)
-COPY mvnw pom.xml ./
-COPY .mvn .mvn
+COPY code/mvnw code/pom.xml ./
+COPY code/.mvn .mvn
 RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
 
-COPY src src
+COPY code/src src
 # ข้ามเทสต์ใน image: เทสต์ต้องใช้ฐานข้อมูล ให้รันใน CI (GitHub Actions) แทน
 RUN ./mvnw -B -q -DskipTests package
 
