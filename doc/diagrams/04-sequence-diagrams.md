@@ -1,6 +1,6 @@
 # Sequence Diagram
 
-5 scenario หลัก ทุกลำดับเขียนตามโค้ดจริง (ชื่อคลาส/เมธอดตรงกับ `src/main/java/com/cp/party_trip/`)
+5 scenario หลัก ทุกลำดับเขียนตามโค้ดจริง (ชื่อคลาส/เมธอดตรงกับ `code/src/main/java/com/cp/party_trip/`)
 
 ## 1) เข้าสู่ระบบด้วยชื่อเล่น (รวมกรณีเครื่องอื่น)
 

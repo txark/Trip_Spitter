@@ -27,7 +27,7 @@ CI (GitHub Actions) รัน build + unit test + docker build ทุกคร�
 
 ## 1) Unit Test
 
-**คำสั่ง:** `./mvnw test` (ผลรวม `BUILD SUCCESS` ใช้เวลา 26.7 วินาที)
+**คำสั่ง:** `cd code && ./mvnw test` (โค้ดเทสต์อยู่ที่ `test/java` ผลรวม `BUILD SUCCESS` ใช้เวลา 26.7 วินาที)
 
 | คลาสทดสอบ | จำนวน | ผล | เวลา (วินาที) | ครอบคลุม |
 |---|---|---|---|---|
@@ -44,7 +44,7 @@ CI (GitHub Actions) รัน build + unit test + docker build ทุกคร�
 
 ## 2) API Test
 
-**คำสั่ง:** `python scripts/api-tests/run_all.py` (ต้องเปิด backend ก่อน) ในรอบนี้ backend รันที่พอร์ต 8091 บนฐานข้อมูลว่าง ยิงผ่าน `/api/v1`
+**คำสั่ง:** `python test/api-tests/run_all.py` (ต้องเปิด backend ก่อน) ในรอบนี้ backend รันที่พอร์ต 8091 บนฐานข้อมูลว่าง ยิงผ่าน `/api/v1`
 
 | ชุดทดสอบ | จำนวน | ผล | ทดสอบอะไร |
 |---|---|---|---|
@@ -72,11 +72,13 @@ CI (GitHub Actions) รัน build + unit test + docker build ทุกคร�
 
 ```bash
 # Unit test (ต้องมีฐานข้อมูลตาม .env เพราะมี test โหลด context)
+cd code
 ./mvnw test
 
 # API test (เปิด backend ก่อน)
-./mvnw spring-boot:run
-python scripts/api-tests/run_all.py
+./mvnw spring-boot:run   # ใน code/ อีกหน้าต่างหนึ่ง
+cd ..
+python test/api-tests/run_all.py
 ```
 
-รายละเอียดชุด API Test ดูที่ [scripts/api-tests/README.md](../scripts/api-tests/README.md)
+รายละเอียดชุด API Test ดูที่ [test/api-tests/README.md](../test/api-tests/README.md)

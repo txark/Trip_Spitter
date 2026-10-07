@@ -32,7 +32,7 @@
 | ORM / Database | Spring Data JPA (Hibernate), PostgreSQL, Flyway (migration) |
 | Validation / Error | Jakarta Bean Validation, `@RestControllerAdvice` |
 | API Docs | springdoc-openapi 3.1.1 (Swagger UI) |
-| Frontend | HTML + CSS + JavaScript (เสิร์ฟจาก Spring Boot ที่ `src/main/resources/static`) |
+| Frontend | HTML + CSS + JavaScript (เสิร์ฟจาก Spring Boot ที่ `code/src/main/resources/static`) |
 | Testing | JUnit 5, Mockito, Spring Boot Test, ชุดทดสอบ API (Python) |
 | DevOps | Docker, Docker Compose, GitHub Actions, Render (แอป), Neon (PostgreSQL) |
 
@@ -145,7 +145,7 @@ erDiagram
 `CASCADE` กับข้อมูลลูกที่ไม่มีแม่แล้วไม่มีความหมาย (ตัวเลือก/คะแนนโหวต), `SET NULL` กับ "ใครทำ" (ผู้สร้างโหวต/กิจกรรม),
 และค่าเริ่มต้น (ห้ามลบ) กับข้อมูลเงิน (บิล, ส่วนแบ่ง, การรับเงินคืน)
 
-ฐานข้อมูลสร้างและเปลี่ยนแปลงด้วย Flyway ที่ `src/main/resources/db/migration/`
+ฐานข้อมูลสร้างและเปลี่ยนแปลงด้วย Flyway ที่ `code/src/main/resources/db/migration/`
 (`V1` schema ตั้งต้น, `V2` trip_settings + ตารางกลาง + Index, `V3` trip_events, `V4` Foreign Key ที่เหลือ)
 เอกสารเชิงลึก: [Data Dictionary + ER Diagram เต็ม](doc/data-dictionary.md) (ทุกตาราง ทุกคอลัมน์ คีย์ และ Index)
 
@@ -182,6 +182,7 @@ erDiagram
 
 **วิธี A: Maven**
 ```bash
+cd code
 ./mvnw spring-boot:run
 ```
 
@@ -217,15 +218,16 @@ docker compose up --build
 
 **Unit test** (JUnit 5 + Mockito + Spring Boot Test) ต้องมีฐานข้อมูลที่ตั้งค่าใน `.env` (ใช้โหลด context):
 ```bash
+cd code
 ./mvnw test
 ```
 
 **API test** ยิง API จริงของ backend ที่เปิดอยู่ (ใช้ Python 3 ไม่ต้องติดตั้งแพ็กเกจ):
 ```bash
-python scripts/api-tests/run_all.py
+python test/api-tests/run_all.py
 ```
 ครอบคลุมสิทธิ์/การยืนยันตัวตน, การใช้งานพร้อมกัน, ความสัมพันธ์ของฐานข้อมูล, Strategy/Observer/แบ่งหน้า/Swagger
-รายละเอียดดู `scripts/api-tests/README.md`
+รายละเอียดดู [`test/api-tests/README.md`](test/api-tests/README.md)
 
 CI (GitHub Actions) รัน build + unit test + build Docker image ทุกครั้งที่ push และเปิด PR
 
@@ -238,26 +240,34 @@ CI (GitHub Actions) รัน build + unit test + build Docker image ทุก�
 
 ## Project Structure
 
+โครงโฟลเดอร์ตามใบงาน (`code/`, `test/`, `doc/`, `img/`):
+
 ```
 .
-├── src/main/java/com/cp/party_trip/
-│   ├── controller/        # REST Controller
-│   ├── service/           # Interface (+ impl/, split/ = Strategy)
-│   ├── repository/        # Spring Data JPA
-│   ├── model/             # Entity
-│   ├── dto/{request,response}/
-│   ├── mapper/
-│   ├── event/             # Observer
-│   ├── config/            # AuthGuard, ErrorHandler, OpenAPI, CORS
-│   └── common/
-├── src/main/resources/
-│   ├── db/migration/      # Flyway V1-V4
-│   ├── static/            # หน้าเว็บ (home, dashboard, plan, expenses, debts, polls, checklist)
-│   └── application.properties
-├── src/test/              # Unit test
-├── doc/                   # เอกสาร: SOLID, design patterns, data dictionary, test report, diagrams/
-├── scripts/api-tests/     # ชุดทดสอบ API (Python)
-├── Dockerfile, docker-compose.yml, render.yaml
-├── .github/workflows/ci.yml
-└── party-trip-frontend/   # โครง Next.js เริ่มต้น (ไม่ได้ใช้ในระบบ)
+├── code/                          # ซอร์สโค้ดและการตั้งค่า (Maven project)
+│   ├── pom.xml, mvnw, .mvn/
+│   ├── src/main/java/com/cp/party_trip/
+│   │   ├── controller/            # REST Controller
+│   │   ├── service/               # Interface (+ impl/, split/ = Strategy)
+│   │   ├── repository/            # Spring Data JPA
+│   │   ├── model/                 # Entity
+│   │   ├── dto/{request,response}/
+│   │   ├── mapper/
+│   │   ├── event/                 # Observer
+│   │   ├── config/                # AuthGuard, ErrorHandler, OpenAPI, CORS
+│   │   └── common/
+│   ├── src/main/resources/
+│   │   ├── db/migration/          # Flyway V1-V4
+│   │   ├── static/                # หน้าเว็บ (home, dashboard, plan, expenses, debts, polls, checklist)
+│   │   └── application.properties
+│   └── party-trip-frontend/       # โครง Next.js เริ่มต้น (ไม่ได้ใช้ในระบบ)
+├── test/                          # การทดสอบทั้งหมด
+│   ├── java/                      # Unit test (JUnit 5 + Mockito)
+│   └── api-tests/                 # ชุดทดสอบ API (Python)
+├── doc/                           # เอกสาร: SOLID, design patterns, data dictionary, test report, diagrams/
+├── img/                           # รูปภาพและมัลติมีเดีย
+├── Dockerfile, docker-compose.yml, render.yaml, .env.example
+└── .github/workflows/ci.yml
 ```
+
+Dockerfile, docker-compose.yml และ render.yaml อยู่ที่รากของ repository (Docker build context เป็นราก) ส่วนคำสั่ง Maven ให้รันในโฟลเดอร์ `code/`
