@@ -147,7 +147,17 @@ erDiagram
 
 ฐานข้อมูลสร้างและเปลี่ยนแปลงด้วย Flyway ที่ `src/main/resources/db/migration/`
 (`V1` schema ตั้งต้น, `V2` trip_settings + ตารางกลาง + Index, `V3` trip_events, `V4` Foreign Key ที่เหลือ)
-เอกสารเชิงลึก: Data Dictionary ที่ `doc/` (ดูหัวข้อ Project Structure)
+เอกสารเชิงลึก: [Data Dictionary + ER Diagram เต็ม](doc/data-dictionary.md) (ทุกตาราง ทุกคอลัมน์ คีย์ และ Index)
+
+### เอกสารประกอบ (โฟลเดอร์ `doc/`)
+
+| เอกสาร | เนื้อหา |
+|---|---|
+| [doc/solid-analysis.md](doc/solid-analysis.md) | หลัก SOLID แต่ละข้อปรากฏที่ไฟล์ไหน บรรทัดไหน |
+| [doc/design-patterns.md](doc/design-patterns.md) | Design Pattern ที่ใช้ ปัญหาที่แก้ และ Class Diagram |
+| [doc/data-dictionary.md](doc/data-dictionary.md) | พจนานุกรมข้อมูลและ ER Diagram |
+| [doc/diagrams/](doc/diagrams/README.md) | Use Case, Domain Model, Class, Sequence, Activity, Component, Deployment, State |
+| [doc/test-report.md](doc/test-report.md) | ผลการทดสอบ Unit Test และ API Test |
 
 ## Installation & Setup
 
@@ -245,6 +255,7 @@ CI (GitHub Actions) รัน build + unit test + build Docker image ทุก�
 │   ├── static/            # หน้าเว็บ (home, dashboard, plan, expenses, debts, polls, checklist)
 │   └── application.properties
 ├── src/test/              # Unit test
+├── doc/                   # เอกสาร: SOLID, design patterns, data dictionary, test report, diagrams/
 ├── scripts/api-tests/     # ชุดทดสอบ API (Python)
 ├── Dockerfile, docker-compose.yml, render.yaml
 ├── .github/workflows/ci.yml
