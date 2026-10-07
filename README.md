@@ -137,10 +137,12 @@ erDiagram
     }
 ```
 
-> ตาราง `polls`, `poll_options`, `poll_votes`, `repayments` อ้างอิงกันด้วย id (ความสัมพันธ์ระดับตรรกะ ยังไม่มี FK constraint ในฐานข้อมูล)
+ทุกความสัมพันธ์มี Foreign Key constraint จริงในฐานข้อมูล (รวม 34 ตัว) เลือก `ON DELETE` ตามความหมายของข้อมูล:
+`CASCADE` กับข้อมูลลูกที่ไม่มีแม่แล้วไม่มีความหมาย (ตัวเลือก/คะแนนโหวต), `SET NULL` กับ "ใครทำ" (ผู้สร้างโหวต/กิจกรรม),
+และค่าเริ่มต้น (ห้ามลบ) กับข้อมูลเงิน (บิล, ส่วนแบ่ง, การรับเงินคืน)
 
 ฐานข้อมูลสร้างและเปลี่ยนแปลงด้วย Flyway ที่ `src/main/resources/db/migration/`
-(`V1` schema ตั้งต้น, `V2` trip_settings + ตารางกลาง + Index, `V3` trip_events)
+(`V1` schema ตั้งต้น, `V2` trip_settings + ตารางกลาง + Index, `V3` trip_events, `V4` Foreign Key ที่เหลือ)
 เอกสารเชิงลึก: Data Dictionary ที่ `doc/` (ดูหัวข้อ Project Structure)
 
 ## Installation & Setup
@@ -235,7 +237,7 @@ CI (GitHub Actions) รัน build + unit test + build Docker image ทุก�
 │   ├── config/            # AuthGuard, ErrorHandler, OpenAPI, CORS
 │   └── common/
 ├── src/main/resources/
-│   ├── db/migration/      # Flyway V1-V3
+│   ├── db/migration/      # Flyway V1-V4
 │   ├── static/            # หน้าเว็บ (home, dashboard, plan, expenses, debts, polls, checklist)
 │   └── application.properties
 ├── src/test/              # Unit test
