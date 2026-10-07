@@ -2,6 +2,8 @@ package com.cp.party_trip.repository;
 
 import com.cp.party_trip.model.Expense;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -15,32 +17,18 @@ public interface ExpenseRepo extends JpaRepository<Expense, Long> {
     @Query("SELECT e FROM Expense e WHERE e.trip.id = :tripId")
     List<Expense> findByTripId(@Param("tripId") Long tripId);
 
-    // ล็อกบิลไว้จนจบ transaction: แก้/ลบบิลเดียวกันพร้อมกันหลายเครื่องจะต่อคิวกัน
-    // ไม่ชนกันจน error
+    // แบ่งหน้า + เรียงลำดับ (ใช้กับ GET /expenses/trip/{id}/page)
+    @Query(value = "SELECT e FROM Expense e WHERE e.trip.id = :tripId",
+            countQuery = "SELECT COUNT(e) FROM Expense e WHERE e.trip.id = :tripId")
+    Page<Expense> findPageByTripId(@Param("tripId") Long tripId, Pageable pageable);
+
+    // ล็อกบิลไว้จนจบ transaction: แก้/ลบบิลเดียวกันพร้อมกันหลายเครื่องจะต่อคิวกัน ไม่ชนกันจน error
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Expense e WHERE e.id = :id")
     Optional<Expense> lockById(@Param("id") Long id);
 
-    // แค่รหัสทริปของบิล (ไม่โหลดบิลเข้า persistence context ก่อน transaction
-    // ที่ล็อกแถว
-    // ไม่งั้น lockById จะได้ออบเจกต์เดิมที่ค้างอยู่
-    // เห็นข้อมูลเก่าทั้งที่ล็อกได้แล้ว)
-    @Query("SELECT e.trip.id FROM Expense e WHERE e.id = :id")
-    Optional<Long> findTripIdById(@Param("id") Long id);
-
-    // บิลที่บันทึกจากรายการในแพลน (ใช้ตอนลบรายการ)
-    List<Expense> findByActivityId(Long activityId);
-
-    // ล็อกบิลไว้จนจบ transaction: แก้/ลบบิลเดียวกันพร้อมกันหลายเครื่องจะต่อคิวกัน
-    // ไม่ชนกันจน error
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT e FROM Expense e WHERE e.id = :id")
-    Optional<Expense> lockById(@Param("id") Long id);
-
-    // แค่รหัสทริปของบิล (ไม่โหลดบิลเข้า persistence context ก่อน transaction
-    // ที่ล็อกแถว
-    // ไม่งั้น lockById จะได้ออบเจกต์เดิมที่ค้างอยู่
-    // เห็นข้อมูลเก่าทั้งที่ล็อกได้แล้ว)
+    // แค่รหัสทริปของบิล (ไม่โหลดบิลเข้า persistence context ก่อน transaction ที่ล็อกแถว
+    // ไม่งั้น lockById จะได้ออบเจกต์เดิมที่ค้างอยู่ เห็นข้อมูลเก่าทั้งที่ล็อกได้แล้ว)
     @Query("SELECT e.trip.id FROM Expense e WHERE e.id = :id")
     Optional<Long> findTripIdById(@Param("id") Long id);
 

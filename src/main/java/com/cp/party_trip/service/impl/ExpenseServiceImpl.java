@@ -21,6 +21,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import com.cp.party_trip.event.ExpenseAddedEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import com.cp.party_trip.service.split.SplitContext;
+import com.cp.party_trip.service.split.SplitShare;
+import com.cp.party_trip.service.split.SplitStrategy;
+import com.cp.party_trip.service.split.SplitStrategyFactory;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -36,16 +46,21 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ActivityRepo activityRepo;
     private final ExpenseSplitRepo expenseSplitRepo;
     private final ExpenseMapper expenseMapper;
+    private final SplitStrategyFactory splitStrategyFactory;
+    private final ApplicationEventPublisher events;
 
     public ExpenseServiceImpl(ExpenseRepo expenseRepo, TripRepo tripRepo, TripMemberRepo tripMemberRepo,
             ActivityRepo activityRepo, ExpenseSplitRepo expenseSplitRepo,
-            ExpenseMapper expenseMapper) {
+            ExpenseMapper expenseMapper, SplitStrategyFactory splitStrategyFactory,
+            ApplicationEventPublisher events) {
         this.expenseRepo = expenseRepo;
         this.tripRepo = tripRepo;
         this.tripMemberRepo = tripMemberRepo;
         this.activityRepo = activityRepo;
         this.expenseSplitRepo = expenseSplitRepo;
         this.expenseMapper = expenseMapper;
+        this.splitStrategyFactory = splitStrategyFactory;
+        this.events = events;
     }
 
     @Override
@@ -72,7 +87,10 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setRecordedById(recorder.getId());
         expense.setExpenseSplits(new ArrayList<>());
         apply(expense, tripId, paidBy, request, participantIds);
-        return expenseRepo.save(expense);
+        Expense saved = expenseRepo.save(expense);
+        events.publishEvent(new ExpenseAddedEvent(tripId, recorder.getId(), recorder.getGuestName(),
+                saved.getTitle(), saved.getTotalAmount()));
+        return saved;
     }
 
     // แก้บิล: เฉพาะคนจ่าย และยังไม่มีเพื่อนคนไหนจ่ายคืน (ไม่งั้นยอดที่คืนไปแล้วจะไม่ตรงกับบิลใหม่)
@@ -168,13 +186,8 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw badRequest("กรุณาตั้งชื่อรายการ");
         }
 
-        // ไม่ระบุวิธีหาร = หารเท่ากัน, ระบุแบบที่ไม่รองรับ = ผิด (เดิมบันทึกบิลโดยไม่มีผู้ร่วมหาร ทำให้ยอดหนี้เพี้ยน)
-        String splitType = request.getSplitType() == null || request.getSplitType().isBlank()
-                ? "EQUAL"
-                : request.getSplitType().trim().toUpperCase();
-        if (!"EQUAL".equals(splitType) && !"CUSTOM".equals(splitType)) {
-            throw badRequest("วิธีหารไม่ถูกต้อง (รองรับ EQUAL หรือ CUSTOM)");
-        }
+        // เลือกวิธีหารจาก splitType (ไม่ระบุ = หารเท่ากัน, ไม่รองรับ = 400) ตรรกะการหารอยู่ใน SplitStrategy
+        SplitStrategy splitStrategy = splitStrategyFactory.forType(request.getSplitType());
 
         expense.setTitle(request.getTitle().trim());
         expense.setTotalAmount(totalAmount);
@@ -224,60 +237,13 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
         expense.setActivityId(request.getActivityId());
-        expense.setSplitType(splitType);
+        expense.setSplitType(splitStrategy.type());
 
         List<ExpenseSplit> splits = expense.getExpenseSplits();
 
-        if ("CUSTOM".equals(expense.getSplitType())) {
-            // CUSTOM SPLIT: แต่ละคนจ่ายไม่เท่ากัน ตามยอดที่กรอกมา
-            List<ExpenseRequest.SplitAmount> custom = request.getSplits();
-            if (custom == null || custom.isEmpty()) {
-                throw badRequest("กรุณาระบุยอดของผู้ร่วมหารแต่ละคน");
-            }
-
-            BigDecimal sum = BigDecimal.ZERO;
-            Set<Long> seen = new HashSet<>();
-            for (ExpenseRequest.SplitAmount s : custom) {
-                if (s.getMemberId() == null || !seen.add(s.getMemberId())) {
-                    throw badRequest("รายชื่อผู้ร่วมหารไม่ถูกต้อง");
-                }
-                if (s.getAmount() == null || s.getAmount().compareTo(BigDecimal.ZERO) < 0) {
-                    throw badRequest("ยอดของแต่ละคนต้องไม่ติดลบ");
-                }
-                if (s.getAmount().stripTrailingZeros().scale() > 2) {
-                    throw badRequest("ยอดของแต่ละคนใส่ทศนิยมได้ไม่เกิน 2 ตำแหน่ง");
-                }
-                sum = sum.add(s.getAmount());
-            }
-            if (sum.setScale(2, RoundingMode.HALF_UP).compareTo(totalAmount) != 0) {
-                throw badRequest("ผลรวมของแต่ละคน (" + sum + ") ไม่เท่ากับยอดบิล (" + totalAmount + ")");
-            }
-
-            for (ExpenseRequest.SplitAmount s : custom) {
-                // คนที่ยอด 0 ไม่ต้องสร้าง split (ไม่ได้ร่วมจ่ายบิลนี้)
-                if (s.getAmount().compareTo(BigDecimal.ZERO) == 0)
-                    continue;
-                splits.add(newSplit(expense, findTripMember(tripId, s.getMemberId()),
-                        s.getAmount().setScale(2, RoundingMode.HALF_UP)));
-            }
-        } else {
-            // EQUAL SPLIT: ตัดรายชื่อซ้ำออก (ซ้ำแล้วคนเดียวจะมี 2 split และกดจ่ายได้แค่อันเดียว)
-            // ไม่มีผู้ร่วมหารเลย = ผู้จ่ายออกเองทั้งหมด
-            List<Long> people = new ArrayList<>(new LinkedHashSet<>(
-                    participantIds == null ? List.<Long>of() : participantIds));
-            people.removeIf(java.util.Objects::isNull);
-            if (people.isEmpty()) {
-                people.add(paidBy.getId());
-            }
-            int count = people.size();
-            BigDecimal perPerson = totalAmount.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
-            // เศษจากการปัดทศนิยม (เช่น 100/3) ให้คนแรกรับไป เพื่อให้ผลรวม splits เท่ากับยอดบิลพอดี
-            BigDecimal remainder = totalAmount.subtract(perPerson.multiply(BigDecimal.valueOf(count)));
-
-            for (Long memberId : people) {
-                splits.add(newSplit(expense, findTripMember(tripId, memberId),
-                        splits.isEmpty() ? perPerson.add(remainder) : perPerson));
-            }
+        SplitContext context = new SplitContext(totalAmount, paidBy.getId(), participantIds, request.getSplits());
+        for (SplitShare share : splitStrategy.split(context)) {
+            splits.add(newSplit(expense, findTripMember(tripId, share.memberId()), share.amount()));
         }
     }
 
@@ -315,6 +281,29 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseRepo.findByTripId(tripId).stream()
                 .map(exp -> expenseMapper.toView(exp, expenseSplitRepo.findByExpenseId(exp.getId())))
                 .toList();
+    }
+
+    private static final int MAX_PAGE_SIZE = 50;
+    private static final Set<String> SORTABLE = Set.of("expenseDate", "totalAmount", "title", "id");
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ExpenseViewResponse> getTripExpenseViewsPage(Long tripId, Pageable pageable) {
+        // เรียงได้เฉพาะช่องที่อนุญาต (ชื่อช่องมาจากผู้ใช้ ถ้าไม่ตรวจจะได้ 500 หรือเรียงด้วยช่องที่ไม่ควรเปิด)
+        for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
+            if (!SORTABLE.contains(order.getProperty())) {
+                throw badRequest("เรียงลำดับด้วย '" + order.getProperty() + "' ไม่ได้ (ใช้ได้: expenseDate, totalAmount, title, id)");
+            }
+        }
+        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+            throw badRequest("ขอได้ไม่เกินหน้าละ " + MAX_PAGE_SIZE + " รายการ");
+        }
+        Pageable effective = pageable.getSort().isSorted() ? pageable
+                : org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC,
+                                "expenseDate", "id"));
+        return expenseRepo.findPageByTripId(tripId, effective)
+                .map(exp -> expenseMapper.toView(exp, expenseSplitRepo.findByExpenseId(exp.getId())));
     }
 
     // คนจ่ายบิล (หรือคนบันทึกแทน) ยืนยันว่าได้รับเงินส่วนของ memberId ครบแล้ว

@@ -9,7 +9,7 @@ import java.util.List;
 
 // เพื่อนโอนคืนเป็นยอดรวม (ไม่ระบุรายการ) แล้วระบบหักเคลียร์รายการให้ตามลำดับ
 @Entity
-@Table(name = "repayments")
+@Table(name = "repayments", indexes = @Index(name = "idx_repayments_trip", columnList = "trip_id"))
 public class Repayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
