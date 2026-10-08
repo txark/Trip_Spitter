@@ -270,7 +270,7 @@ sequenceDiagram
     C-->>U: 201 ExpenseResponse
 ```
 
-## ข้อจำกัด (ตรงไปตรงมา)
+## ข้อจำกัด
 
 - **Singleton** ใช้ผ่านกลไกของ Spring ไม่ได้เขียนคลาส Singleton เอง
 - **Factory** เป็น Simple Factory ไม่ใช่ Factory Method แบบมี Creator subclass
