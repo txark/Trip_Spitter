@@ -1363,9 +1363,9 @@
         // ยกเลิกไม่ได้ จึงถามยืนยันก่อน
         if (
           !(await uiConfirm(
-            `ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} ค่า "${title}" แล้ว?`,
+            `ยืนยันว่าได้รับเงินจาก ${memberName} ค่า "${title}" แล้ว?`,
             {
-              title: "ยืนยันการรับเงิน",
+              title: `ยืนยันการรับเงิน ${fmt(amount)}`,
               confirmText: "ยืนยันรับเงิน",
               cancelText: "ยกเลิก",
             },
