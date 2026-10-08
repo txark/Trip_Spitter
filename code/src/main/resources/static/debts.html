@@ -766,7 +766,9 @@
                   String(r.fromMemberId) === String(myId) &&
                   String(r.toMemberId) === String(debtGroup.creditorId),
               );
-              return lumpGroupHtml(`out-${debtGroup.creditorId}`, sent, { sent: true });
+              return lumpGroupHtml(`out-${debtGroup.creditorId}`, sent, {
+                sent: true,
+              });
             })()}
             <div class="card-hint">
               <i class="fa-solid fa-circle-info" style="margin-top: 3px;"></i>
@@ -885,8 +887,12 @@
       const openLumpGroups = new Set();
       function lumpGroupHtml(key, lumps, { sent = false } = {}) {
         if (!lumps.length) return "";
-        const total = roundMoney(lumps.reduce((s, r) => s + Number(r.amount || 0), 0));
-        const label = sent ? "โอนไม่ระบุรายการแล้ว" : "รับเงินไม่ระบุรายการแล้ว";
+        const total = roundMoney(
+          lumps.reduce((s, r) => s + Number(r.amount || 0), 0),
+        );
+        const label = sent
+          ? "โอนไม่ระบุรายการแล้ว"
+          : "รับเงินไม่ระบุรายการแล้ว";
         const open = openLumpGroups.has(key);
         // ยกเลิกได้เฉพาะรายการล่าสุดของคนนี้ (หลังบ้านบังคับเหมือนกัน)
         const latestId = Math.max(...lumps.map((r) => Number(r.id)));
@@ -1096,7 +1102,7 @@
           const myMemberId = String(myMember.id);
           myId = myMemberId;
 
-          // 2. ดึงข้อมูลสรุปหนี้และบิลสำรองจ่าย
+          // 2. ดึงข้อมูลสรุปยอดคืนและบิลสำรองจ่าย
           const res = await fetch(
             `${API_BASE_URL}/debts/summary-details/${tripId}?userId=${myMemberId}`,
           );
@@ -1322,7 +1328,15 @@
         const r = allRepayments.find((x) => String(x.id) === String(id));
         if (
           !r ||
-          !(await uiConfirm(`ยกเลิกการรับเงิน ${fmt(r.amount)} จาก ${r.fromName}? รายการที่หักไว้จะกลับมาเป็นยอดค้าง`, { title: "ยกเลิกการรับเงิน", confirmText: "ยกเลิกการรับเงิน", cancelText: "ไม่ยกเลิก", tone: "danger" }))
+          !(await uiConfirm(
+            `ยกเลิกการรับเงิน ${fmt(r.amount)} จาก ${r.fromName}? รายการที่หักไว้จะกลับมาเป็นยอดค้าง`,
+            {
+              title: "ยกเลิกการรับเงิน",
+              confirmText: "ยกเลิกการรับเงิน",
+              cancelText: "ไม่ยกเลิก",
+              tone: "danger",
+            },
+          ))
         )
           return;
         try {
@@ -1348,7 +1362,14 @@
 
         // ยกเลิกไม่ได้ จึงถามยืนยันก่อน
         if (
-          !(await uiConfirm(`ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} ค่า "${title}" แล้ว?`, { title: "ยืนยันการรับเงิน", confirmText: "ยืนยันรับเงิน", cancelText: "ยกเลิก" }))
+          !(await uiConfirm(
+            `ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} ค่า "${title}" แล้ว?`,
+            {
+              title: "ยืนยันการรับเงิน",
+              confirmText: "ยืนยันรับเงิน",
+              cancelText: "ยกเลิก",
+            },
+          ))
         ) {
           return;
         }
@@ -1412,7 +1433,7 @@
 
           showToast(
             nobodyOwesMe
-              ? "ได้เงินคืนครบทุกบิลแล้ว 🎉"
+              ? "ได้เงินคืนครบทุกบิลแล้ว"
               : billDone
                 ? `${memberName} คืนครบทุกรายการแล้ว`
                 : `บันทึกแล้ว: ${memberName} จ่ายค่า "${title}" แล้ว`,

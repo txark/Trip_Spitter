@@ -20,10 +20,10 @@ CI (GitHub Actions) รัน build + unit test + docker build ทุกคร�
 | ระบบปฏิบัติการ | Windows 11 |
 | Java / Build | Java 25, Maven Wrapper (`./mvnw`) |
 | Framework | Spring Boot 4.1.1 |
-| ฐานข้อมูล | PostgreSQL 18 (เครื่องทดสอบ) ว่างเปล่าทุกครั้งก่อนเริ่ม Flyway สร้างตาราง V1-V4 เอง |
+| ฐานข้อมูล | PostgreSQL 18 (เครื่องทดสอบ) ว่างเปล่าทุกครั้งก่อนเริ่ม Flyway สร้างตาราง V1-V5 เอง |
 | โค้ดที่ทดสอบ | branch `artitaya_6430212592_01` (ต่อจาก commit `ea6c84b`) |
 
-การทดสอบแต่ละรอบใช้ฐานข้อมูลใหม่ที่ว่างเปล่า จึงเป็นการทดสอบ migration ตั้งแต่ V1 ถึง V4 ไปด้วยในตัว
+การทดสอบแต่ละรอบใช้ฐานข้อมูลใหม่ที่ว่างเปล่า จึงเป็นการทดสอบ migration ตั้งแต่ V1 ถึง V5 ไปด้วยในตัว
 
 ## 1) Unit Test
 
@@ -37,7 +37,7 @@ CI (GitHub Actions) รัน build + unit test + docker build ทุกคร�
 | `ChecklistServiceImplTest` | 9 | ผ่านทั้งหมด | 0.15 | เช็กลิสต์: เพิ่มหลายชิ้น ผู้รับผิดชอบหลายคน จำนวน/หน่วย ข้อมูลเก่าที่มีผู้รับผิดชอบคนเดียว |
 | `TripServiceImplTest` | 8 | ผ่านทั้งหมด | 0.23 | ตั้งค่าทริป: เขตเวลา (ปฏิเสธโซนที่ไม่ถูกต้อง), งบต่อคน, สกุลเงินและเรท, สิทธิ์เฉพาะสมาชิก, ไม่พบทริป |
 | `UserServiceImplTest` | 7 | ผ่านทั้งหมด | 0.76 | ผู้ใช้: สร้างบัญชีพร้อม token, เครื่องเดิมเข้าได้, เครื่องอื่นต้องใช้ PIN, ล็อกชื่อเมื่อกรอก PIN ผิดหลายครั้ง, รูปแบบ PIN, ชื่อที่ไม่ถูกต้อง |
-| `PartyTripApplicationTests` | 1 | ผ่าน | 13.86 | โหลด Spring context ทั้งระบบและรัน Flyway V1-V4 บนฐานข้อมูลจริง ตรวจว่า schema ตรงกับ Entity (`ddl-auto=validate`) |
+| `PartyTripApplicationTests` | 1 | ผ่าน | 13.86 | โหลด Spring context ทั้งระบบและรัน Flyway V1-V5 บนฐานข้อมูลจริง ตรวจว่า schema ตรงกับ Entity (`ddl-auto=validate`) |
 | **รวม** | **89** | **ผ่าน** | **16.44** | |
 
 วิธีทดสอบ: Service Layer ทดสอบด้วย Mockito โดยจำลอง Repository (ไม่ต้องใช้ฐานข้อมูล) ซึ่งทำได้เพราะ Service ขึ้นกับ interface และใช้ Constructor Injection (ดู [solid-analysis.md](solid-analysis.md))
@@ -55,7 +55,8 @@ CI (GitHub Actions) รัน build + unit test + docker build ทุกคร�
 | `test_trip_dates` | 12 | ผ่านทั้งหมด | แก้วันเริ่ม/สิ้นสุดทริป และตรวจข้อมูลที่ไม่ถูกต้อง |
 | `test_features` | 14 | ผ่านทั้งหมด | Strategy วิธีหาร, Observer ประวัติทริป, แบ่งหน้า/เรียงลำดับ, Swagger UI |
 | `test_relations` | 8 | ผ่านทั้งหมด | One-to-One (ตั้งค่าทริป) และ Many-to-Many (ผู้ร่วมกิจกรรม/ผู้รับผิดชอบเช็กลิสต์) |
-| **รวม** | **126** | **ผ่าน** | |
+| `test_repayment_order` | 14 | ผ่านทั้งหมด | รับเงินยอดรวมหักบิลที่ค้างน้อยที่สุดก่อน, ยกเลิกได้เฉพาะรายการล่าสุด (รายการเก่า 409) |
+| **รวม** | **140** | **ผ่าน** | |
 
 ใน log ของแอประหว่างทดสอบมีข้อความ `duplicate key value violates unique constraint "poll_votes_poll_id_member_id_key"` 1 ครั้ง
 เป็นสิ่งที่ตั้งใจ: `test_concurrency` กดโหวตซ้อนกันเพื่อให้ชนกัน ระบบจับได้และตอบ 409 ตามออกแบบ ไม่ใช่ข้อผิดพลาด
