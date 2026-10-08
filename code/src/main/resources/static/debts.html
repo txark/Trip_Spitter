@@ -235,6 +235,62 @@
         margin-top: 10px;
       }
 
+      /* รายการรับ/โอนเงินยอดรวม: พับเก็บเป็นแถวเดียว กดเพื่อขยาย */
+      .lump-group {
+        margin-top: 10px;
+      }
+
+      .lump-toggle {
+        display: flex;
+        width: 100%;
+        gap: 8px;
+        align-items: center;
+        padding: 9px 12px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(22, 163, 74, 0.07);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .lump-toggle.sent {
+        background: var(--surface-muted);
+      }
+
+      .lump-toggle > i:first-child {
+        color: #15803d;
+      }
+
+      .lump-toggle.sent > i:first-child {
+        color: var(--text-muted);
+      }
+
+      .lump-toggle .lump-toggle-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .lump-toggle .chevron {
+        color: var(--text-muted);
+        transition: transform 0.18s ease;
+      }
+
+      .lump-group.open .lump-toggle .chevron {
+        transform: rotate(180deg);
+      }
+
+      .lump-group .lump-list {
+        display: none;
+      }
+
+      .lump-group.open .lump-list {
+        display: grid;
+      }
+
       .lump-row {
         display: flex;
         gap: 10px;
@@ -273,17 +329,26 @@
         color: var(--text-muted);
       }
 
+      /* ไอคอนถังขยะ (ยกเลิกรายการล่าสุด): พื้นที่กดอย่างน้อย 32px */
       .lump-undo {
         flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        margin: -6px -6px -6px 0;
         border: none;
+        border-radius: 8px;
         background: none;
-        padding: 0;
         color: var(--text-muted);
-        font-family: inherit;
-        font-size: 0.78rem;
-        font-weight: 600;
+        font-size: 0.9rem;
         cursor: pointer;
-        text-decoration: underline;
+      }
+
+      .lump-undo:hover,
+      .lump-undo:focus-visible {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--danger, #dc2626);
       }
 
       .badge-status.status-partial.small {
@@ -701,9 +766,7 @@
                   String(r.fromMemberId) === String(myId) &&
                   String(r.toMemberId) === String(debtGroup.creditorId),
               );
-              return sent.length
-                ? `<div class="lump-list">${sent.map((r) => lumpHtml(r, { sent: true })).join("")}</div>`
-                : "";
+              return lumpGroupHtml(`out-${debtGroup.creditorId}`, sent, { sent: true });
             })()}
             <div class="card-hint">
               <i class="fa-solid fa-circle-info" style="margin-top: 3px;"></i>
@@ -815,9 +878,39 @@
               <strong>${sent ? "โอนให้แล้ว" : "ได้รับแล้ว"} ${fmt(r.amount)} (ไม่ระบุรายการ)</strong>
               <span>${esc(shortDate(r.createdAt))}</span>${used}
             </div>
-            ${undo ? `<button type="button" class="lump-undo" data-repay-id="${esc(r.id)}">ยกเลิก</button>` : ""}
+            ${undo ? `<button type="button" class="lump-undo" data-repay-id="${esc(r.id)}" title="ยกเลิกการรับเงินนี้" aria-label="ยกเลิกการรับเงินนี้"><i class="fa-regular fa-trash-can"></i></button>` : ""}
           </div>`;
       }
+      // รายการรับ/โอนยอดรวมของแต่ละคน: พับเก็บไว้ก่อน (จำสถานะที่เปิดไว้ข้ามการวาดการ์ดใหม่)
+      const openLumpGroups = new Set();
+      function lumpGroupHtml(key, lumps, { sent = false } = {}) {
+        if (!lumps.length) return "";
+        const total = roundMoney(lumps.reduce((s, r) => s + Number(r.amount || 0), 0));
+        const label = sent ? "โอนไม่ระบุรายการแล้ว" : "รับเงินไม่ระบุรายการแล้ว";
+        const open = openLumpGroups.has(key);
+        // ยกเลิกได้เฉพาะรายการล่าสุดของคนนี้ (หลังบ้านบังคับเหมือนกัน)
+        const latestId = Math.max(...lumps.map((r) => Number(r.id)));
+        return `
+          <div class="lump-group${open ? " open" : ""}" data-lump-group="${esc(key)}">
+            <button type="button" class="lump-toggle${sent ? " sent" : ""}" data-lump-toggle aria-expanded="${open}">
+              <i class="fa-solid fa-money-bill-transfer"></i>
+              <span class="lump-toggle-text">${label} ${lumps.length} ครั้ง · รวม ${fmt(total)}</span>
+              <i class="fa-solid fa-chevron-down chevron"></i>
+            </button>
+            <div class="lump-list">${lumps.map((r) => lumpHtml(r, sent ? { sent: true } : { undo: Number(r.id) === latestId })).join("")}</div>
+          </div>`;
+      }
+
+      document.addEventListener("click", (e) => {
+        const toggle = e.target.closest("[data-lump-toggle]");
+        if (!toggle) return;
+        const group = toggle.closest("[data-lump-group]");
+        const open = group.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(open));
+        if (open) openLumpGroups.add(group.dataset.lumpGroup);
+        else openLumpGroups.delete(group.dataset.lumpGroup);
+      });
+
       let billFilter = "ALL";
 
       function renderBillFilter() {
@@ -932,7 +1025,7 @@
                 <div class="item-icon"><i class="fa-solid fa-receipt"></i></div>
                 <div class="participant-info">
                   <div class="participant-name">${esc(item.title)}${partial}</div>
-                  <div class="participant-amount money">${fmt(item.amount)} <span class="bill-of">จากบิล ${fmt(item.billTotal)}</span></div>
+                  <div class="participant-amount money">เหลือ ${fmt(item.remaining)} <span class="bill-of">จาก ${fmt(item.amount)}</span></div>
                 </div>
                 ${action}
               </li>`;
@@ -971,7 +1064,7 @@
                    </button>`
                 : ""
             }
-            ${lumps.length ? `<div class="lump-list">${lumps.map((r) => lumpHtml(r, { undo: true })).join("")}</div>` : ""}
+            ${lumpGroupHtml(`in-${person.memberId}`, lumps)}
             <hr class="receipt-divider" />
             <ul class="participant-list">${rows}</ul>
             ${status === "PAID" ? paidStampHtml("คืนครบแล้ว") : ""}
@@ -1237,10 +1330,14 @@
             `${API_BASE_URL}/expenses/repay/${id}?memberId=${myId}`,
             { method: "DELETE" },
           );
-          if (!res.ok) throw new Error();
+          if (!res.ok) {
+            // หลังบ้านบอกเหตุผล เช่น ยกเลิกได้เฉพาะรายการล่าสุด
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.message || "");
+          }
           showToast("ยกเลิกการรับเงินแล้ว");
-        } catch {
-          showToast("ยกเลิกไม่สำเร็จ กรุณาลองใหม่", "error");
+        } catch (err) {
+          showToast(err.message || "ยกเลิกไม่สำเร็จ กรุณาลองใหม่", "error");
         }
         await loadDebts();
       }
