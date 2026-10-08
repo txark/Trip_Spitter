@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// เพื่อนโอนคืนเป็นยอดรวม: หักเคลียร์รายการที่ค้างเราตั้งแต่บิลเก่าสุด ยอดไม่พอ = รายการสุดท้ายจ่ายบางส่วน
+// เพื่อนโอนคืนเป็นยอดรวม: หักเคลียร์รายการที่ค้างเราโดยเริ่มจากรายการที่ค้างน้อยที่สุด ยอดไม่พอ = รายการสุดท้ายจ่ายบางส่วน
 @Service
 public class RepaymentServiceImpl implements RepaymentService {
 
@@ -123,6 +123,7 @@ public class RepaymentServiceImpl implements RepaymentService {
     }
 
     // ยกเลิก (เช่น กรอกยอดผิด): คืนยอดที่หักไปให้แต่ละรายการ เฉพาะคนที่รับเงิน
+    // และเฉพาะรายการล่าสุดของคู่นี้ (กันย้อนรายการเก่าที่ถูกรายการหลังหักซ้อนอยู่)
     @Override
     @Transactional
     public void undo(Long repaymentId, Long memberId) {
@@ -130,6 +131,15 @@ public class RepaymentServiceImpl implements RepaymentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบรายการรับเงินนี้"));
         if (memberId == null || !memberId.equals(repayment.getToMemberId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ยกเลิกได้เฉพาะคนที่รับเงิน");
+        }
+        // ต่อคิวเดียวกับตอนรับเงิน แล้วค่อยดูว่าเป็นรายการล่าสุดจริงหรือไม่
+        tripMemberRepo.lockById(repayment.getFromMemberId());
+        Long latestId = repaymentRepo
+                .findFirstByTripIdAndFromMemberIdAndToMemberIdOrderByIdDesc(repayment.getTripId(),
+                        repayment.getFromMemberId(), repayment.getToMemberId())
+                .map(Repayment::getId).orElse(null);
+        if (!repayment.getId().equals(latestId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "ยกเลิกได้เฉพาะรายการรับเงินล่าสุด ให้ยกเลิกรายการที่ใหม่กว่าก่อน");
         }
         for (RepaymentItem item : repayment.getItems()) {
             if (item.getSplitId() == null) {

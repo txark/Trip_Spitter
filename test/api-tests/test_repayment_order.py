@@ -47,4 +47,17 @@ check("undo repayment -> 204", st == 204, (st, r))
 check("after undo: small unpaid again", split_of_b("small")["isPaid"] is False, split_of_b("small"))
 check("after undo: big has no paid amount", not split_of_b("big").get("paidAmount"), split_of_b("big"))
 
+# ยกเลิกได้เฉพาะรายการรับเงินล่าสุดของคู่นี้: รับ 2 ครั้ง แล้วลองยกเลิกครั้งแรกก่อน
+st, first, _ = call_h("POST", f"/expenses/repay/{tid}?receiverId={mA}&senderId={mB}", token=ta, body={"amount": 10})
+st, second, _ = call_h("POST", f"/expenses/repay/{tid}?receiverId={mA}&senderId={mB}", token=ta, body={"amount": 5})
+check("two repayments recorded", first["id"] < second["id"], (first, second))
+st, r, _ = call_h("DELETE", f"/expenses/repay/{first['id']}?memberId={mA}", token=ta)
+check("undo an older repayment -> 409", st == 409, (st, r))
+st, r, _ = call_h("DELETE", f"/expenses/repay/{second['id']}?memberId={mA}", token=ta)
+check("undo the latest repayment -> 204", st == 204, (st, r))
+st, r, _ = call_h("DELETE", f"/expenses/repay/{first['id']}?memberId={mA}", token=ta)
+check("after the newer one is undone, the older one can be undone -> 204", st == 204, (st, r))
+st, r, _ = call_h("DELETE", f"/expenses/repay/{first['id']}?memberId={mA}", token=ta)
+check("undo twice -> 404", st == 404, (st, r))
+
 finish()
