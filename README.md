@@ -159,6 +159,7 @@ erDiagram
 | [doc/diagrams/](doc/diagrams/README.md) | Use Case, Domain Model, Class, Sequence, Activity, Component, Deployment, State |
 | [doc/test-report.md](doc/test-report.md) | ผลการทดสอบ Unit Test และ API Test |
 | [doc/user-manual.md](doc/user-manual.md) | คู่มือการใช้งานพร้อมภาพหน้าจอ |
+| [doc/slide/trip-expense-splitter-slides.pdf](doc/slide/trip-expense-splitter-slides.pdf) | สไลด์นำเสนอโปรเจค (13 หน้า) |
 
 ## Installation & Setup
 
@@ -286,7 +287,7 @@ CI (GitHub Actions) รัน build + unit test + build Docker image ทุก�
 ├── test/                          # การทดสอบทั้งหมด
 │   ├── java/                      # Unit test (JUnit 5 + Mockito)
 │   └── api-tests/                 # ชุดทดสอบ API (Python)
-├── doc/                           # เอกสาร: คู่มือการใช้งาน, SOLID, design patterns, data dictionary, test report, diagrams/
+├── doc/                           # เอกสาร: คู่มือการใช้งาน, SOLID, design patterns, data dictionary, test report, สไลด์ (slide/), diagrams/
 ├── img/                           # รูปภาพและมัลติมีเดีย
 ├── Dockerfile, docker-compose.yml, render.yaml, .env.example
 └── .github/workflows/ci.yml
