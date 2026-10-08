@@ -16,7 +16,7 @@ import java.util.List;
 
 @Tag(name = "History - ทริปที่เปิดล่าสุด")
 @RestController
-@RequestMapping("/api/v1/history")
+@RequestMapping("/api/v1/users/{userId}/trip-history")
 public class UserTripHistoryController {
 
     private final UserTripHistoryService historyService;
@@ -30,7 +30,7 @@ public class UserTripHistoryController {
     }
 
     // ประวัติทริปล่าสุดของเจ้าของ token (userId ในลิงก์ต้องเป็นตัวเอง)
-    @GetMapping("/recent/{userId}")
+    @GetMapping
     public ResponseEntity<List<TripHistoryResponse>> getRecentTrips(@PathVariable Long userId) {
         User me = guard.user();
         if (!me.getId().equals(userId)) {
@@ -40,10 +40,14 @@ public class UserTripHistoryController {
     }
 
     // บันทึกประวัติเมื่อผู้ใช้กดเข้าดูทริป (เฉพาะของตัวเอง และเฉพาะทริปที่เป็นสมาชิก)
-    @PostMapping("/view")
-    public ResponseEntity<MessageResponse> recordView(@RequestParam Long userId, @RequestParam Long tripId) {
+    @PutMapping("/{tripId}")
+    public ResponseEntity<MessageResponse> recordView(@PathVariable Long userId, @PathVariable Long tripId) {
         guard.me(tripId);
-        historyService.recordTripView(guard.user().getId(), tripId);
+        User me = guard.user();
+        if (!me.getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "บันทึกได้เฉพาะประวัติของตัวเอง");
+        }
+        historyService.recordTripView(me.getId(), tripId);
         return ResponseEntity.ok(new MessageResponse("บันทึกประวัติการเข้าชมสำเร็จ"));
     }
 }

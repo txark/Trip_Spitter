@@ -2565,7 +2565,7 @@
         const container = document.getElementById("expenses-list-container");
         try {
           const response = await fetch(
-            `${API_BASE_URL}/expenses/trip/${tripId}`,
+            `${API_BASE_URL}/trips/${tripId}/expenses`,
           );
           if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลบิลได้");
 
@@ -2760,7 +2760,7 @@
           const response = await fetch(
             editing
               ? `${API_BASE_URL}/expenses/${editing.id}?memberId=${currentMemberId}&paidByMemberId=${paidByMemberId}&revision=${editing.revision ?? 0}&${query}`
-              : `${API_BASE_URL}/expenses/add/${tripId}?paidByMemberId=${paidByMemberId}&recordedByMemberId=${currentMemberId}&${query}`,
+              : `${API_BASE_URL}/trips/${tripId}/expenses?paidByMemberId=${paidByMemberId}&recordedByMemberId=${currentMemberId}&${query}`,
             {
               method: editing ? "PUT" : "POST",
               headers: {
@@ -3073,7 +3073,7 @@
         if (!planActivityId) return;
         const banner = document.getElementById("plan-link");
         try {
-          const res = await fetch(`${API_BASE_URL}/activities/trip/${tripId}`);
+          const res = await fetch(`${API_BASE_URL}/trips/${tripId}/activities`);
           if (!res.ok) throw new Error("load failed");
           const act = (await res.json()).find(
             (a) => String(a.id) === String(planActivityId),

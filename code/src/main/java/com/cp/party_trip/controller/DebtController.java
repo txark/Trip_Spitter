@@ -13,7 +13,7 @@ import java.util.List;
 
 @Tag(name = "Debts - หนี้และการสรุปยอด")
 @RestController
-@RequestMapping("/api/v1/debts")
+@RequestMapping("/api/v1")
 public class DebtController {
 
     private final DebtService debtService;
@@ -27,17 +27,17 @@ public class DebtController {
     }
 
     // ใครต้องโอนให้ใคร (รวบยอดแล้ว)
-    @GetMapping("/simplify/{tripId}")
+    @GetMapping("/trips/{tripId}/debt-transfers")
     public ResponseEntity<List<DebtTransferResponse>> getSimplifiedDebts(@PathVariable Long tripId) {
         guard.me(tripId);
         return ResponseEntity.ok(debtMapper.toResponses(debtService.calculateDebtSimplification(tripId)));
     }
 
     // สรุปหนี้ "ของฉัน" (หนี้ที่ต้องจ่าย + บิลที่สำรองจ่าย + การรับเงินก้อน): ขอดูของสมาชิกคนอื่นไม่ได้
-    @GetMapping("/summary-details/{tripId}")
+    @GetMapping("/trips/{tripId}/members/{memberId}/debt-summary")
     public ResponseEntity<MemberDebtSummaryResponse> getTripDebtSummary(@PathVariable Long tripId,
-            @RequestParam Long userId) {
-        guard.self(tripId, userId);
-        return ResponseEntity.ok(debtService.getMemberSummary(tripId, userId));
+            @PathVariable Long memberId) {
+        guard.self(tripId, memberId);
+        return ResponseEntity.ok(debtService.getMemberSummary(tripId, memberId));
     }
 }

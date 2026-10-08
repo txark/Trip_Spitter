@@ -8,7 +8,7 @@ N = 8
 names = [name(f"c{i}_") for i in range(N)]
 
 # ---------- 1. สมัครพร้อมกัน 8 คน ----------
-logins = parallel([lambda n=n: call("POST", f"/users/login?username={n}") for n in names])
+logins = parallel([lambda n=n: call("POST", f"/sessions?username={n}") for n in names])
 check("8 users sign up at once -> all 200", all(s == 200 for s, _ in logins), [s for s, _ in logins])
 tok = {n: r["token"] for n, (s, r) in zip(names, logins)}
 for _, r in logins:
@@ -16,10 +16,10 @@ for _, r in logins:
 
 # ---------- 2. ชื่อใหม่ชื่อเดียวกัน 2 เครื่องพร้อมกัน ----------
 same = name("twin")
-twin = parallel([lambda: call("POST", f"/users/login?username={same}") for _ in range(2)])
+twin = parallel([lambda: call("POST", f"/sessions?username={same}") for _ in range(2)])
 codes = sorted(s for s, _ in twin)
 check("same NEW name on 2 devices at once -> one 200, other 409 (no duplicate account)", codes == [200, 409], twin)
-st, r = call("POST", f"/users/login?username={same}", token=next((x["token"] for s, x in twin if s == 200), None))
+st, r = call("POST", f"/sessions?username={same}", token=next((x["token"] for s, x in twin if s == 200), None))
 check("that name still logs in afterwards (no 500 from duplicate rows)", st == 200, (st, r))
 for s, x in twin:
     if s == 200:
@@ -27,18 +27,18 @@ for s, x in twin:
 
 # ---------- 3. คนเดียว 2 เครื่อง (PIN) ----------
 owner = names[0]
-call("POST", "/users/pin?pin=2468", token=tok[owner])
-st, dev2 = call("POST", f"/users/login?username={owner}&pin=2468")
+call("PUT", f"/users/me/pin?pin=2468", token=tok[owner])
+st, dev2 = call("POST", f"/sessions?username={owner}&pin=2468")
 check("same user, 2nd device via PIN gets same token", st == 200 and dev2["token"] == tok[owner], (st, dev2))
 
 # ---------- 4. สร้างทริป + เข้าร่วมพร้อมกัน (รวมคนเดิมกดซ้ำ 2 เครื่อง) ----------
-st, trip = call("POST", "/trips/create", token=tok[owner],
+st, trip = call("POST", "/trips", token=tok[owner],
                 body=TRIP)
 tripId, code = trip["id"], trip["inviteCode"]
 set_read_token(tok[owner])
 created["trips"].add(tripId)
 joiners = names[1:] + [names[1]]  # คนที่ 1 กดเข้าร่วมซ้ำจากอีกเครื่องพร้อมกัน
-joins = parallel([lambda n=n: call("POST", f"/trips/join/{code}", token=tok[n]) for n in joiners])
+joins = parallel([lambda n=n: call("POST", f"/invitations/{code}/members", token=tok[n]) for n in joiners])
 check("7 people (+1 double-tap) join at once -> all 200", all(s == 200 for s, _ in joins), [s for s, _ in joins])
 st, members = call("GET", f"/trips/{tripId}/members")
 gn = [m["guestName"] for m in members]
@@ -51,11 +51,11 @@ def add_bill(n, k):
     amt = 100 + k * 37 + names.index(n)
     body = {"title": f"bill {n[-1]}-{k}", "totalAmount": amt, "splitType": "EQUAL", "category": "FOOD",
             "currency": "THB", "expenseDate": "2026-10-02"}
-    return amt, call("POST", f"/expenses/add/{tripId}?paidByMemberId={mid[n]}&participantIds={everyone}", token=tok[n], body=body)
+    return amt, call("POST", f"/trips/{tripId}/expenses?paidByMemberId={mid[n]}&participantIds={everyone}", token=tok[n], body=body)
 adds = parallel([lambda n=n, k=k: add_bill(n, k) for n in names for k in range(5)], workers=40)
 ok_adds = [a for a, (s, _) in adds if s == 201]
 check("40 bills added concurrently -> all 201", len(ok_adds) == 40, [s for _, (s, _) in adds if s != 201][:5])
-st, bills = call("GET", f"/expenses/trip/{tripId}")
+st, bills = call("GET", f"/trips/{tripId}/expenses")
 check("server has exactly 40 bills", len(bills) == 40, len(bills))
 total_server = sum(Decimal(str(b["totalAmount"])) for b in bills)
 check("bill totals match what was sent", total_server == Decimal(sum(ok_adds)), (total_server, sum(ok_adds)))
@@ -63,7 +63,7 @@ bad_split = [b["id"] for b in bills if sum(Decimal(str(s["amountOwed"])) for s i
 check("every bill's splits sum to its total", not bad_split, bad_split)
 
 # ---------- 6. ยอดหนี้สุทธิสมดุล ----------
-st, transfers = call("GET", f"/debts/simplify/{tripId}")
+st, transfers = call("GET", f"/trips/{tripId}/debt-transfers")
 net = {}
 for t in transfers:
     a = Decimal(str(t["amount"]))
@@ -82,11 +82,11 @@ check("simplified transfers match paid-minus-share for every member", not diff, 
 # ---------- 7. ทุกคนโหวตพร้อมกัน + คนเดียวกดโหวตจาก 2 เครื่องพร้อมกัน ----------
 st, poll = call("POST", "/polls", token=tok[owner], body={"tripId": tripId, "question": "กินอะไร", "options": ["A", "B"]})
 pollId = poll["id"]
-st, polls = call("GET", f"/polls/trip/{tripId}?memberId={mid[owner]}")
+st, polls = call("GET", f"/trips/{tripId}/polls?memberId={mid[owner]}")
 opts = next(p for p in polls if p.get("id", p.get("pollId")) == pollId)
 opt_ids = [o.get("id", o.get("optionId")) for o in opts.get("options", [])]
 voters = names + [names[2]]  # คนที่ 2 กดซ้ำจากอีกเครื่อง
-votes = parallel([lambda n=n, i=i: call("POST", f"/polls/{pollId}/vote?optionId={opt_ids[i % 2]}&memberId={mid[n]}", token=tok[n])
+votes = parallel([lambda n=n, i=i: call("POST", f"/polls/{pollId}/votes?optionId={opt_ids[i % 2]}&memberId={mid[n]}", token=tok[n])
                   for i, n in enumerate(voters)])
 st, res = call("GET", f"/polls/{pollId}/results")
 total_votes = sum(int(r.get("voteCount", r.get("votes", 0))) for r in res) if isinstance(res, list) else -1
@@ -96,22 +96,22 @@ check("at most one vote per member (≤ 8 votes counted)", 0 < total_votes <= N,
 # ---------- 8. ยืนยันรับเงินบิลเดียวกันจาก 2 เครื่องพร้อมกัน ----------
 b0 = next(b for b in bills if b["user"]["id"] == mid[owner])
 debtor = next(s["tripMember"]["id"] for s in b0["splits"] if s["tripMember"]["id"] != mid[owner])
-confirms = parallel([lambda: call("PUT", f"/expenses/splits/{b0['id']}/{debtor}/pay", token=tok[owner]) for _ in range(2)])
+confirms = parallel([lambda: call("PUT", f"/expenses/{b0['id']}/splits/{debtor}/paid", token=tok[owner]) for _ in range(2)])
 check("double confirm same split at once -> no error", all(s == 200 for s, _ in confirms), confirms)
-st, b0n = call("GET", f"/expenses/trip/{tripId}")
+st, b0n = call("GET", f"/trips/{tripId}/expenses")
 sp = next(s for b in b0n if b["id"] == b0["id"] for s in b["splits"] if s["tripMember"]["id"] == debtor)
 check("split marked paid once (paidAmount == owed)", sp["isPaid"] and Decimal(str(sp["paidAmount"])) == Decimal(str(sp["amountOwed"])), sp)
 
 # ---------- 9. รับเงินก้อน (repay) ซ้อนกัน 2 ครั้งพร้อมกัน เกินยอดค้าง ----------
 payer2 = names[3]
 debtor2 = names[4]
-st, summ = call("GET", f"/debts/summary-details/{tripId}?userId={mid[payer2]}", token=tok[payer2])
+st, summ = call("GET", f"/trips/{tripId}/members/{mid[payer2]}/debt-summary", token=tok[payer2])
 owed = sum(Decimal(str(s["amountOwed"])) - Decimal(str(s.get("paidAmount") or 0))
            for b in summ["myPaidBills"] for s in b["splits"] if s["memberId"] == mid[debtor2] and not s["isPaid"])
 half = (owed * Decimal("0.6")).quantize(Decimal("0.01"))  # 2 × 60% = เกินยอดค้าง
-reps = parallel([lambda: call("POST", f"/expenses/repay/{tripId}?receiverId={mid[payer2]}&senderId={mid[debtor2]}",
+reps = parallel([lambda: call("POST", f"/trips/{tripId}/repayments?receiverId={mid[payer2]}&senderId={mid[debtor2]}",
                               token=tok[payer2], body={"amount": float(half)}) for _ in range(2)])
-st, summ2 = call("GET", f"/debts/summary-details/{tripId}?userId={mid[payer2]}", token=tok[payer2])
+st, summ2 = call("GET", f"/trips/{tripId}/members/{mid[payer2]}/debt-summary", token=tok[payer2])
 received = sum(Decimal(str(s.get("paidAmount") or 0)) for b in summ2["myPaidBills"] for s in b["splits"] if s["memberId"] == mid[debtor2])
 check("two concurrent lump repayments never exceed what was owed", received <= owed + Decimal("0.01"),
       ([s for s, _ in reps], owed, received))
@@ -123,7 +123,7 @@ rev = b1.get("revision", 0)
 edits = parallel([lambda a=a: call("PUT", f"/expenses/{b1['id']}?memberId={mid[names[5]]}&revision={rev}&participantIds={everyone}",
                                    token=tok[names[5]], body={"title": f"edit {a}", "totalAmount": a, "splitType": "EQUAL",
                                                               "category": "FOOD", "currency": "THB"}) for a in (500, 800)])
-st, after = call("GET", f"/expenses/trip/{tripId}")
+st, after = call("GET", f"/trips/{tripId}/expenses")
 eb = next(b for b in after if b["id"] == b1["id"])
 splits_sum = sum(Decimal(str(s["amountOwed"])) for s in eb["splits"])
 check("same bill edited from 2 devices at once -> one saved, other rejected 409",
@@ -140,7 +140,7 @@ sets = parallel([lambda n=n, i=i: call("PUT", f"/trips/{tripId}/budget?memberId=
 check("8 concurrent budget updates -> all 200", all(s == 200 for s, _ in sets), [s for s, _ in sets])
 
 # ---------- 12. อ่านหนัก ๆ ระหว่างเขียน ----------
-reads = parallel([lambda: call("GET", f"/expenses/trip/{tripId}") for _ in range(40)], workers=40)
+reads = parallel([lambda: call("GET", f"/trips/{tripId}/expenses") for _ in range(40)], workers=40)
 check("40 concurrent reads -> all 200", all(s == 200 for s, _ in reads), [s for s, _ in reads if s != 200][:5])
 
 

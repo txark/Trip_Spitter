@@ -15,7 +15,7 @@ import java.util.List;
 
 @Tag(name = "Activities - แพลนของทริป")
 @RestController
-@RequestMapping("/api/v1/activities")
+@RequestMapping("/api/v1")
 public class ActivityController {
 
     private final ActivityService activityService;
@@ -29,14 +29,14 @@ public class ActivityController {
     }
 
     // แพลนทั้งทริป เรียงตามวันและเวลาแล้ว
-    @GetMapping("/trip/{tripId}")
+    @GetMapping("/trips/{tripId}/activities")
     public ResponseEntity<List<ActivityResponse>> getActivitiesByTrip(@PathVariable Long tripId) {
         guard.me(tripId);
         return ResponseEntity.ok(activityMapper.toResponses(activityService.getTripActivities(tripId)));
     }
 
     // คนทำรายการ = เจ้าของ token (ส่ง memberId ของคนอื่นมา = 403)
-    @PostMapping("/add/{tripId}")
+    @PostMapping("/trips/{tripId}/activities")
     public ResponseEntity<ActivityResponse> addActivity(@PathVariable Long tripId,
             @Valid @RequestBody ActivityRequest request) {
         request.setMemberId(guard.self(tripId, request.getMemberId()).getId());
@@ -44,14 +44,14 @@ public class ActivityController {
                 .body(activityMapper.toResponse(activityService.addActivity(tripId, request)));
     }
 
-    @PutMapping("/{activityId}")
+    @PutMapping("/activities/{activityId}")
     public ResponseEntity<ActivityResponse> updateActivity(@PathVariable Long activityId,
             @Valid @RequestBody ActivityRequest request) {
         request.setMemberId(guard.self(guard.tripOfActivity(activityId), request.getMemberId()).getId());
         return ResponseEntity.ok(activityMapper.toResponse(activityService.updateActivity(activityId, request)));
     }
 
-    @DeleteMapping("/{activityId}")
+    @DeleteMapping("/activities/{activityId}")
     public ResponseEntity<Void> deleteActivity(@PathVariable Long activityId,
             @RequestParam(required = false) Long memberId) {
         Long me = guard.self(guard.tripOfActivity(activityId), memberId).getId();

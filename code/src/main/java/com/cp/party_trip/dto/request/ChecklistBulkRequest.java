@@ -2,7 +2,6 @@ package com.cp.party_trip.dto.request;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.Valid;
 
@@ -12,8 +11,6 @@ import java.util.List;
 // เพิ่มของหลายชิ้นในครั้งเดียว: ทุกชิ้นใช้หมวดและผู้รับผิดชอบชุดเดียวกัน
 // แต่ละชิ้นมีจำนวน/หน่วย/โน้ตของตัวเอง
 public class ChecklistBulkRequest {
-    @NotNull(message = "ไม่ได้ระบุทริป")
-    private Long tripId;
     private String category;
     private List<Long> assigneeIds;
     @NotEmpty(message = "กรุณาเพิ่มอย่างน้อย 1 ชิ้น")
@@ -64,13 +61,6 @@ public class ChecklistBulkRequest {
         }
     }
 
-    public Long getTripId() {
-        return tripId;
-    }
-
-    public void setTripId(Long tripId) {
-        this.tripId = tripId;
-    }
 
     public String getCategory() {
         return category;

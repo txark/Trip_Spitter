@@ -1707,7 +1707,7 @@
           btn.disabled = true;
           try {
             const res = await fetch(
-              `${API_BASE_URL}/trips/${tripId}/members/${btn.dataset.id}/recovery`,
+              `${API_BASE_URL}/trips/${tripId}/members/${btn.dataset.id}/recovery-codes`,
               {
                 method: "POST",
               },
@@ -1939,7 +1939,7 @@
       // แพลนแยกโหลด: โหลดไม่ได้ก็ไม่กระทบส่วนอื่นของหน้า
       async function loadPlan() {
         try {
-          const res = await fetch(`${API_BASE_URL}/activities/trip/${tripId}`);
+          const res = await fetch(`${API_BASE_URL}/trips/${tripId}/activities`);
           if (!res.ok) throw new Error("load plan failed");
           planActivities = (await res.json()) || [];
         } catch (error) {
@@ -1954,8 +1954,8 @@
         // 1. บันทึกประวัติการเข้าชมทริปล่าสุดลงฐานข้อมูล (ไม่ต้องรอ และไม่ให้พังทั้งหน้าถ้าล้มเหลว)
         if (currentUserId) {
           fetch(
-            `${API_BASE_URL}/history/view?userId=${currentUserId}&tripId=${tripId}`,
-            { method: "POST" },
+            `${API_BASE_URL}/users/${currentUserId}/trip-history/${tripId}`,
+            { method: "PUT" },
           ).catch((err) => console.error("Error saving history:", err));
         }
 
@@ -1964,7 +1964,7 @@
           const [tripRes, membersRes, expensesRes] = await Promise.all([
             fetch(`${API_BASE_URL}/trips/${tripId}`),
             fetch(`${API_BASE_URL}/trips/${tripId}/members`),
-            fetch(`${API_BASE_URL}/expenses/trip/${tripId}`),
+            fetch(`${API_BASE_URL}/trips/${tripId}/expenses`),
           ]);
           if (!tripRes.ok) throw new Error("ไม่สามารถดึงข้อมูลทริปได้");
 

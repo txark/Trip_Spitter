@@ -24,7 +24,7 @@ import java.util.List;
 
 @Tag(name = "Expenses - บิลและการหาร")
 @RestController
-@RequestMapping("/api/v1/expenses")
+@RequestMapping("/api/v1")
 public class ExpenseController {
 
     private final ExpenseService expenseService;
@@ -43,7 +43,7 @@ public class ExpenseController {
     }
 
     // เพื่อนโอนคืนเป็นยอดรวม: receiverId = คนที่สำรองจ่าย (คนกด), senderId = คนที่โอนมา
-    @PostMapping("/repay/{tripId}")
+    @PostMapping("/trips/{tripId}/repayments")
     public ResponseEntity<RepaymentResponse> receiveRepayment(@PathVariable Long tripId,
             @RequestParam Long receiverId, @RequestParam Long senderId, @Valid @RequestBody RepaymentRequest request) {
         guard.self(tripId, receiverId); // คนรับเงินเป็นคนบันทึก
@@ -51,7 +51,7 @@ public class ExpenseController {
                 .body(debtMapper.toResponse(repaymentService.receive(tripId, receiverId, senderId, request)));
     }
 
-    @DeleteMapping("/repay/{repaymentId}")
+    @DeleteMapping("/repayments/{repaymentId}")
     public ResponseEntity<Void> undoRepayment(@PathVariable Long repaymentId, @RequestParam Long memberId) {
         guard.self(guard.tripOfRepayment(repaymentId), memberId);
         repaymentService.undo(repaymentId, memberId);
@@ -59,7 +59,7 @@ public class ExpenseController {
     }
 
     // คนบันทึก = เจ้าของ token (คนจ่ายเลือกเป็นเพื่อนได้)
-    @PostMapping("/add/{tripId}")
+    @PostMapping("/trips/{tripId}/expenses")
     public ResponseEntity<ExpenseResponse> addExpense(
             @PathVariable Long tripId,
             @RequestParam Long paidByMemberId,
@@ -72,7 +72,7 @@ public class ExpenseController {
     }
 
     // แก้บิล (memberId = คนที่กำลังแก้ ต้องเป็นคนจ่ายหรือคนบันทึก, paidByMemberId = เปลี่ยนคนจ่าย)
-    @PutMapping("/{expenseId}")
+    @PutMapping("/expenses/{expenseId}")
     public ResponseEntity<ExpenseResponse> updateExpense(
             @PathVariable Long expenseId,
             @RequestParam Long memberId,
@@ -85,7 +85,7 @@ public class ExpenseController {
                 paidByMemberId, expense, participantIds, revision)));
     }
 
-    @DeleteMapping("/{expenseId}")
+    @DeleteMapping("/expenses/{expenseId}")
     public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam Long memberId,
             @RequestParam(required = false) Integer revision) {
         guard.self(guard.tripOfExpense(expenseId), memberId);
@@ -93,14 +93,14 @@ public class ExpenseController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/trip/{tripId}")
+    @GetMapping("/trips/{tripId}/expenses")
     public ResponseEntity<List<ExpenseViewResponse>> getExpensesByTrip(@PathVariable Long tripId) {
         guard.me(tripId);
         return ResponseEntity.ok(expenseService.getTripExpenseViews(tripId));
     }
 
     // แบ่งหน้า: ?page=0&size=10&sort=totalAmount,desc (ไม่ส่ง sort = ใหม่สุดก่อน, size สูงสุด 50)
-    @GetMapping("/trip/{tripId}/page")
+    @GetMapping("/trips/{tripId}/expenses/page")
     public ResponseEntity<PageResponse<ExpenseViewResponse>> getExpensesByTripPage(@PathVariable Long tripId,
             @PageableDefault(size = 10) Pageable pageable) {
         guard.me(tripId);
@@ -109,7 +109,7 @@ public class ExpenseController {
     }
 
     // ยืนยันรับเงินได้เฉพาะคนจ่ายบิล (หรือคนที่บันทึกบิลแทน) ตรวจใน service
-    @PutMapping("/splits/{expenseId}/{memberId}/pay")
+    @PutMapping("/expenses/{expenseId}/splits/{memberId}/paid")
     public ResponseEntity<MessageResponse> markSplitAsPaid(@PathVariable Long expenseId,
             @PathVariable Long memberId) {
         Long me = guard.me(guard.tripOfExpense(expenseId)).getId();

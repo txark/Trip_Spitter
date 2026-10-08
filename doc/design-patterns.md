@@ -257,7 +257,7 @@ sequenceDiagram
     participant ST as SplitStrategy
     participant R as ExpenseRepo
     participant L as TripEventListener
-    U->>C: POST /api/v1/expenses/add/{tripId}
+    U->>C: POST /api/v1/trips/{tripId}/expenses
     C->>S: createExpense(...)
     S->>F: forType(splitType)
     F-->>S: EqualSplit หรือ CustomSplit

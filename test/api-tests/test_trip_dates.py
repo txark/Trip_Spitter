@@ -2,9 +2,9 @@
 from common import *
 
 A, B, C = name("A"), name("B"), name("C")
-tA, tB, tC = (call("POST", f"/users/login?username={n}")[1]["token"] for n in (A, B, C))
-trip = call("POST", "/trips/create", tA, TRIP)[1]
-call("POST", f"/trips/join/{trip['inviteCode']}", tB)
+tA, tB, tC = (call("POST", f"/sessions?username={n}")[1]["token"] for n in (A, B, C))
+trip = call("POST", "/trips", tA, TRIP)[1]
+call("POST", f"/invitations/{trip['inviteCode']}/members", tB)
 mem = {m["guestName"]: m["id"] for m in call("GET", f"/trips/{trip['id']}/members", tA)[1]}
 url = f"/trips/{trip['id']}/dates?memberId={mem[B]}"
 

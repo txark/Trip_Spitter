@@ -1751,7 +1751,7 @@
               renderAll();
               try {
                 const updated = await request(
-                  `${API_BASE_URL}/checklist/${id}/toggle?memberId=${myMemberId}`,
+                  `${API_BASE_URL}/checklist-items/${id}/check-status?memberId=${myMemberId}`,
                   { method: "PATCH" },
                 );
                 replaceItem(updated);
@@ -1777,7 +1777,7 @@
                   ? [...current.filter((x) => x !== me), me]
                   : current.filter((x) => x !== me);
               const updated = await request(
-                `${API_BASE_URL}/checklist/${id}/assignees`,
+                `${API_BASE_URL}/checklist-items/${id}/assignees`,
                 {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -1797,7 +1797,7 @@
           if (action === "delete") {
             clearTimeout(Number(btn.dataset.timer));
             await withItem(id, async () => {
-              await request(`${API_BASE_URL}/checklist/${id}`, {
+              await request(`${API_BASE_URL}/checklist-items/${id}`, {
                 method: "DELETE",
               });
               items = items.filter((i) => String(i.id) !== id);
@@ -1831,7 +1831,7 @@
             nextAssignees.some((x) => !before.includes(x));
           await withItem(id, async () => {
             let updated = await request(
-              `${API_BASE_URL}/checklist/${id}/details`,
+              `${API_BASE_URL}/checklist-items/${id}`,
               {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -1850,7 +1850,7 @@
                 ...nextAssignees.filter((x) => !before.includes(x)),
               ];
               updated = await request(
-                `${API_BASE_URL}/checklist/${id}/assignees`,
+                `${API_BASE_URL}/checklist-items/${id}/assignees`,
                 {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -2186,11 +2186,10 @@
               };
             });
           // เพิ่มทุกชิ้นในคำขอเดียว (หลังบ้านบันทึกทั้งหมดหรือไม่บันทึกเลย)
-          const created = await request(`${API_BASE_URL}/checklist/bulk`, {
+          const created = await request(`${API_BASE_URL}/trips/${tripId}/checklist-items/bulk`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              tripId: Number(tripId),
               category: selectedCategory,
               assigneeIds: [...selectedAssignees].map(Number),
               items: rows,
@@ -2243,7 +2242,7 @@
             document.querySelector(".two-col").classList.add("single");
           }
 
-          items = await request(`${API_BASE_URL}/checklist/${tripId}`);
+          items = await request(`${API_BASE_URL}/trips/${tripId}/checklist-items`);
           renderAll();
           setFormCollapsed(items.length > 0);
         } catch (error) {

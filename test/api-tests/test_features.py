@@ -5,30 +5,30 @@ import urllib.request
 from common import *
 
 A, B, C = name("A"), name("B"), name("C")
-st, a, _ = call_h("POST", f"/users/login?username={A}")
-st, b, _ = call_h("POST", f"/users/login?username={B}")
-st, c, _ = call_h("POST", f"/users/login?username={C}")
+st, a, _ = call_h("POST", f"/sessions?username={A}")
+st, b, _ = call_h("POST", f"/sessions?username={B}")
+st, c, _ = call_h("POST", f"/sessions?username={C}")
 ta, tb, tc = a["token"], b["token"], c["token"]
-st, trip, _ = call_h("POST", "/trips/create", token=ta, body=TRIP)
+st, trip, _ = call_h("POST", "/trips", token=ta, body=TRIP)
 tid = trip["id"]
-call_h("POST", f"/trips/join/{trip['inviteCode']}", token=tb)
+call_h("POST", f"/invitations/{trip['inviteCode']}/members", token=tb)
 st, members, _ = call_h("GET", f"/trips/{tid}/members", token=ta)
 mA, mB = members[0]["id"], members[1]["id"]
 both = f"participantIds={mA},{mB}"
 
 # --- Strategy: EQUAL / CUSTOM / ชนิดที่ไม่รองรับ ---
-st, e1, _ = call_h("POST", f"/expenses/add/{tid}?paidByMemberId={mA}&{both}", token=ta,
+st, e1, _ = call_h("POST", f"/trips/{tid}/expenses?paidByMemberId={mA}&{both}", token=ta,
                    body={"title": "equal", "totalAmount": 100, "splitType": "EQUAL"})
 amounts = sorted(s["amountOwed"] for s in e1["expenseSplits"])
 check("EQUAL splits 100 -> 50/50", st == 201 and amounts == [50, 50], (st, e1))
-st, e2, _ = call_h("POST", f"/expenses/add/{tid}?paidByMemberId={mA}", token=ta,
+st, e2, _ = call_h("POST", f"/trips/{tid}/expenses?paidByMemberId={mA}", token=ta,
                    body={"title": "custom", "totalAmount": 100, "splitType": "CUSTOM",
                          "splits": [{"memberId": mA, "amount": 30}, {"memberId": mB, "amount": 70}]})
 check("CUSTOM splits 30/70", st == 201 and sorted(s["amountOwed"] for s in e2["expenseSplits"]) == [30, 70], (st, e2))
-st, r, _ = call_h("POST", f"/expenses/add/{tid}?paidByMemberId={mA}", token=ta,
+st, r, _ = call_h("POST", f"/trips/{tid}/expenses?paidByMemberId={mA}", token=ta,
                   body={"title": "x", "totalAmount": 100, "splitType": "PERCENT"})
 check("unknown splitType -> 400 with supported list", st == 400 and "EQUAL" in r["message"] and "CUSTOM" in r["message"], (st, r))
-st, r, _ = call_h("POST", f"/expenses/add/{tid}?paidByMemberId={mA}", token=ta,
+st, r, _ = call_h("POST", f"/trips/{tid}/expenses?paidByMemberId={mA}", token=ta,
                   body={"title": "x", "totalAmount": 100, "splitType": "CUSTOM",
                         "splits": [{"memberId": mA, "amount": 30}]})
 check("CUSTOM sum mismatch -> 400", st == 400, (st, r))
@@ -44,18 +44,18 @@ check("events without token -> 401", st == 401, (st, r))
 
 # --- Pagination & Sorting ---
 for i in range(3):
-    call_h("POST", f"/expenses/add/{tid}?paidByMemberId={mA}&{both}", token=ta,
+    call_h("POST", f"/trips/{tid}/expenses?paidByMemberId={mA}&{both}", token=ta,
            body={"title": f"bill{i}", "totalAmount": 10 * (i + 1), "splitType": "EQUAL"})
-st, p, _ = call_h("GET", f"/expenses/trip/{tid}/page?page=0&size=2&sort=totalAmount,desc", token=ta)
+st, p, _ = call_h("GET", f"/trips/{tid}/expenses/page?page=0&size=2&sort=totalAmount,desc", token=ta)
 check("page 0 size 2 sorted by amount desc", st == 200 and p["size"] == 2 and p["totalElements"] == 5
       and p["totalPages"] == 3 and [x["totalAmount"] for x in p["content"]] == [100, 100], (st, p))
-st, p2, _ = call_h("GET", f"/expenses/trip/{tid}/page?page=2&size=2&sort=totalAmount,asc", token=ta)
+st, p2, _ = call_h("GET", f"/trips/{tid}/expenses/page?page=2&size=2&sort=totalAmount,asc", token=ta)
 check("last page has the remaining 1 item", st == 200 and len(p2["content"]) == 1, (st, p2))
-st, r, _ = call_h("GET", f"/expenses/trip/{tid}/page?sort=splitType,asc", token=ta)
+st, r, _ = call_h("GET", f"/trips/{tid}/expenses/page?sort=splitType,asc", token=ta)
 check("sort by disallowed field -> 400", st == 400, (st, r))
-st, r, _ = call_h("GET", f"/expenses/trip/{tid}/page?size=500", token=ta)
+st, r, _ = call_h("GET", f"/trips/{tid}/expenses/page?size=500", token=ta)
 check("page size over limit -> 400", st == 400, (st, r))
-st, r, _ = call_h("GET", f"/expenses/trip/{tid}/page", token=tc)
+st, r, _ = call_h("GET", f"/trips/{tid}/expenses/page", token=tc)
 check("non-member cannot page expenses -> 403", st == 403, (st, r))
 
 # --- Swagger / OpenAPI ---

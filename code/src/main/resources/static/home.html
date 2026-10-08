@@ -1175,8 +1175,8 @@
       async function renameTo(newName) {
         const oldName = localStorage.getItem("username");
         try {
-          const res = await fetch(`${API_BASE_URL}/users/rename?username=${encodeURIComponent(newName)}`, {
-            method: "POST",
+          const res = await fetch(`${API_BASE_URL}/users/me/username?username=${encodeURIComponent(newName)}`, {
+            method: "PUT",
           });
           const data = await res.json().catch(() => ({}));
           if (res.ok) {
@@ -1195,7 +1195,7 @@
 
       async function savePin(pin) {
         try {
-          const res = await fetch(`${API_BASE_URL}/users/pin?pin=${encodeURIComponent(pin)}`, { method: "POST" });
+          const res = await fetch(`${API_BASE_URL}/users/me/pin?pin=${encodeURIComponent(pin)}`, { method: "PUT" });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.message || "ตั้ง PIN ไม่สำเร็จ");
           localStorage.setItem("pinSet", data.pinSet ? "1" : "0");
@@ -1292,7 +1292,7 @@
         setBusy("create-btn", true, "กำลังสร้างห้อง...");
         try {
           const response = await fetch(
-            `${API_BASE_URL}/trips/create?creatorName=${encodeURIComponent(creatorName)}`,
+            `${API_BASE_URL}/trips?creatorName=${encodeURIComponent(creatorName)}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -1338,7 +1338,7 @@
         setBusy("join-btn", true, "กำลังเข้าร่วม...");
         try {
           const response = await fetch(
-            `${API_BASE_URL}/trips/join/${encodeURIComponent(inviteCode)}?memberName=${encodeURIComponent(memberName)}`,
+            `${API_BASE_URL}/invitations/${encodeURIComponent(inviteCode)}/members?memberName=${encodeURIComponent(memberName)}`,
             { method: "POST" },
           );
 
@@ -1379,7 +1379,7 @@
           return;
         }
         try {
-          const response = await fetch(`${API_BASE_URL}/history/recent/${currentUserId}`);
+          const response = await fetch(`${API_BASE_URL}/users/${currentUserId}/trip-history`);
           const historyList = response.ok ? await response.json() : [];
           if (!historyList || historyList.length === 0) {
             container.innerHTML = historyEmpty("ยังไม่มีประวัติการเข้าชมทริป ลองสร้างห้องแรกได้เลย");
