@@ -1096,7 +1096,7 @@
           const myMemberId = String(myMember.id);
           myId = myMemberId;
 
-          // 2. ดึงข้อมูลสรุปหนี้และบิลสำรองจ่าย
+          // 2. ดึงข้อมูลสรุปยอดคืนและบิลสำรองจ่าย
           const res = await fetch(
             `${API_BASE_URL}/debts/summary-details/${tripId}?userId=${myMemberId}`,
           );
