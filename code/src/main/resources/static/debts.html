@@ -612,7 +612,7 @@
           </button>
         </label>
         <div class="repay-sub">
-          หักเคลียร์รายการที่ติ๊กไว้ ตั้งแต่บิลเก่าสุด
+          หักเคลียร์รายการที่ติ๊กไว้ โดยเริ่มจากบิลที่ค้างน้อยที่สุดก่อน
         </div>
         <div class="repay-items" id="repay-items"></div>
         <div class="repay-summary" id="repay-summary"></div>
@@ -802,17 +802,18 @@
           ? ""
           : d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
       };
-      // บรรทัด "ได้รับแล้ว ฿600 (ไม่ระบุรายการ) · หักค่ารถตู้ ฿500 · ข้าวซอย ฿100"
+      // "ได้รับแล้ว ฿600 (ไม่ระบุรายการ)" ตามด้วยวันที่ และ "- หักจากข้าวซอย ฿100" "- หักจากค่ารถตู้ ฿500" บรรทัดละบิล (ค้างน้อยสุดก่อน)
       function lumpHtml(r, { sent = false, undo = false } = {}) {
+        // วันที่ 1 บรรทัด แล้วแต่ละบิลที่หักขึ้นบรรทัดใหม่ (span เป็น block อยู่แล้ว)
         const used = (r.items || [])
-          .map((i) => `${esc(i.title)} ${fmt(i.amount)}`)
-          .join(" · ");
+          .map((i) => `<span>- หักจาก${esc(i.title)} ${fmt(i.amount)}</span>`)
+          .join("");
         return `
           <div class="lump-row${sent ? " sent" : ""}">
             <i class="fa-solid fa-money-bill-transfer"></i>
             <div class="lump-body">
               <strong>${sent ? "โอนให้แล้ว" : "ได้รับแล้ว"} ${fmt(r.amount)} (ไม่ระบุรายการ)</strong>
-              <span>${esc(shortDate(r.createdAt))}${used ? ` · หัก${used}` : ""}</span>
+              <span>${esc(shortDate(r.createdAt))}</span>${used}
             </div>
             ${undo ? `<button type="button" class="lump-undo" data-repay-id="${esc(r.id)}">ยกเลิก</button>` : ""}
           </div>`;
@@ -1007,7 +1008,7 @@
             `${API_BASE_URL}/debts/summary-details/${tripId}?userId=${myMemberId}`,
           );
           if (!res.ok)
-            throw new Error("ไม่สามารถเชื่อมต่อดึงข้อมูลสรุปหนี้ได้");
+            throw new Error("ไม่สามารถเชื่อมต่อดึงข้อมูลสรุปยอดคืนได้");
           const data = await res.json();
           const myDebts = data.myDebts || [];
           const myPaidBills = data.myPaidBills || [];
@@ -1080,11 +1081,16 @@
       // ---------- รับเงินเป็นยอดรวม ----------
       let repayPerson = null;
 
-      // รายการที่ยังค้าง เรียงบิลเก่าสุดก่อน (ลำดับเดียวกับที่หลังบ้านหัก)
+      // รายการที่ยังค้าง เรียงยอดค้างน้อยสุดก่อน (ลำดับเดียวกับที่หลังบ้านหัก)
+      // ยอดค้างเท่ากัน = บิลที่สร้างก่อนมาก่อน
       const openItemsOf = (person) =>
         person.items
           .filter((x) => x.remaining > 0)
-          .sort((a, b) => Number(a.expenseId) - Number(b.expenseId));
+          .sort(
+            (a, b) =>
+              a.remaining - b.remaining ||
+              Number(a.expenseId) - Number(b.expenseId),
+          );
 
       function openRepay(memberId) {
         repayPerson = allPeople.find(
@@ -1123,7 +1129,7 @@
         );
       };
 
-      // ตัวอย่างการหัก: ไล่จากบิลเก่าสุดในรายการที่ติ๊ก ยอดไม่พอ = รายการสุดท้ายจ่ายบางส่วน
+      // ตัวอย่างการหัก: ไล่จากบิลที่ค้างน้อยสุดในรายการที่ติ๊ก ยอดไม่พอ = รายการสุดท้ายจ่ายบางส่วน
       function renderRepayPreview() {
         const amount = roundMoney(
           Number(document.getElementById("repay-amount").value) || 0,
@@ -1223,9 +1229,7 @@
         const r = allRepayments.find((x) => String(x.id) === String(id));
         if (
           !r ||
-          !confirm(
-            `ยกเลิกการรับเงิน ${fmt(r.amount)} จาก ${r.fromName}? รายการที่หักไว้จะกลับมาเป็นยอดค้าง`,
-          )
+          !(await uiConfirm(`ยกเลิกการรับเงิน ${fmt(r.amount)} จาก ${r.fromName}? รายการที่หักไว้จะกลับมาเป็นยอดค้าง`, { title: "ยกเลิกการรับเงิน", confirmText: "ยกเลิกการรับเงิน", cancelText: "ไม่ยกเลิก", tone: "danger" }))
         )
           return;
         try {
@@ -1247,9 +1251,7 @@
 
         // ยกเลิกไม่ได้ จึงถามยืนยันก่อน
         if (
-          !confirm(
-            `ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} ค่า "${title}" แล้ว?`,
-          )
+          !(await uiConfirm(`ยืนยันว่าได้รับเงิน ${fmt(amount)} จาก ${memberName} ค่า "${title}" แล้ว?`, { title: "ยืนยันการรับเงิน", confirmText: "ยืนยันรับเงิน", cancelText: "ยกเลิก" }))
         ) {
           return;
         }
