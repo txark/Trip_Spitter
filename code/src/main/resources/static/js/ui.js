@@ -448,6 +448,79 @@ function showToast(message, type = "success") {
   toastTimeout = setTimeout(() => toast.classList.remove("show"), 2800);
 }
 
+// ---------- กล่องยืนยัน/แจ้งเตือนของระบบ: แทน confirm()/alert() ของเบราว์เซอร์ ----------
+// ใช้ได้ทุกหน้า (ต้อง await): if (!(await uiConfirm("ข้อความ", { title: "หัวข้อ", tone: "danger" }))) return;
+// ข้อความรองรับขึ้นบรรทัดใหม่ (\n) และแสดงเป็นข้อความล้วน ไม่แปลงเป็น HTML
+function uiDialog({ title, message, confirmText = "ตกลง", cancelText = "ยกเลิก", tone = "default", icon, showCancel = true }) {
+  return new Promise((resolve) => {
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    const overlay = document.createElement("div");
+    overlay.className = "ui-dialog-overlay";
+    const iconClass =
+      icon || (tone === "danger" ? "fa-solid fa-triangle-exclamation" : showCancel ? "fa-solid fa-circle-question" : "fa-solid fa-circle-info");
+    overlay.innerHTML = `
+      <div class="ui-dialog" role="alertdialog" aria-modal="true" aria-labelledby="ui-dialog-title" aria-describedby="ui-dialog-message">
+        <div class="ui-dialog-icon ${tone === "danger" ? "danger" : ""}"><i class="${iconClass}"></i></div>
+        <h3 id="ui-dialog-title"></h3>
+        <p id="ui-dialog-message"></p>
+        <div class="ui-dialog-actions">
+          ${showCancel ? '<button type="button" class="ui-dialog-btn" data-act="cancel"></button>' : ""}
+          <button type="button" class="ui-dialog-btn solid ${tone === "danger" ? "danger" : ""}" data-act="ok"></button>
+        </div>
+      </div>`;
+    overlay.querySelector("#ui-dialog-title").textContent = title;
+    overlay.querySelector("#ui-dialog-message").textContent = message;
+    overlay.querySelector('[data-act="ok"]').textContent = confirmText;
+    if (showCancel) overlay.querySelector('[data-act="cancel"]').textContent = cancelText;
+
+    let closed = false;
+    const close = (result) => {
+      if (closed) return;
+      closed = true;
+      document.removeEventListener("keydown", onKey, true);
+      overlay.classList.remove("show");
+      setTimeout(() => overlay.remove(), 180);
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus && previousFocus.focus) previousFocus.focus();
+      resolve(result);
+    };
+    const buttons = () => [...overlay.querySelectorAll(".ui-dialog-btn")];
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close(false);
+      } else if (e.key === "Tab") {
+        // โฟกัสวนอยู่ในกล่อง ไม่หลุดไปปุ่มด้านหลัง
+        const list = buttons();
+        const i = list.indexOf(document.activeElement);
+        e.preventDefault();
+        list[(i + (e.shiftKey ? -1 : 1) + list.length) % list.length].focus();
+      }
+    };
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close(!showCancel); // คลิกพื้นหลัง = ยกเลิก (กล่องแจ้งเตือนอย่างเดียว = ตกลง)
+      const act = e.target.closest("[data-act]")?.dataset.act;
+      if (act) close(act === "ok");
+    });
+    document.addEventListener("keydown", onKey, true);
+    document.body.style.overflow = "hidden";
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add("show"));
+    // รายการที่ย้อนกลับไม่ได้ (tone danger) ให้โฟกัสที่ "ยกเลิก" ก่อน กัน Enter พลาด
+    const first = tone === "danger" && showCancel ? overlay.querySelector('[data-act="cancel"]') : overlay.querySelector('[data-act="ok"]');
+    first.focus();
+  });
+}
+
+function uiConfirm(message, opts = {}) {
+  return uiDialog({ title: "ยืนยันการทำรายการ", message, ...opts, showCancel: true });
+}
+
+function uiAlert(message, opts = {}) {
+  return uiDialog({ title: "แจ้งเตือน", message, ...opts, showCancel: false }).then(() => undefined);
+}
+
 // ตราประทับ PAID (คู่กับ .paid-stamp ใน all.css) — animate=true เล่นอนิเมชันกระแทก
 function paidStampHtml(sub = "จ่ายครบแล้ว", animate = false) {
   return `<div class="paid-stamp${animate ? " slam" : ""}" aria-hidden="true">PAID<small>${esc(sub)}</small></div>`;

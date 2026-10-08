@@ -765,7 +765,7 @@
               <i class="fa-solid fa-sliders"></i> หารเท่า/ไม่เท่า
             </li>
             <li class="tone-success">
-              <i class="fa-solid fa-scale-balanced"></i> สรุปหนี้อัตโนมัติ
+              <i class="fa-solid fa-scale-balanced"></i> สรุปยอดคืนอัตโนมัติ
             </li>
           </ul>
         </section>
@@ -1152,9 +1152,7 @@
               showToast(`เปลี่ยนชื่อเป็น "${newName}" แล้ว ทริปเดิมยังอยู่ครบ`);
             } else if (
               result === "taken" &&
-              confirm(
-                `ชื่อ "${newName}" มีบัญชีอยู่แล้ว\nถ้าเป็นบัญชีของคุณเอง กดตกลงเพื่อสลับไปใช้บัญชีนั้น (ใส่ PIN)\nทริปของชื่อ "${oldName}" จะไม่ตามไปด้วย`,
-              )
+              (await uiConfirm(`ชื่อ "${newName}" มีบัญชีอยู่แล้ว\nถ้าเป็นบัญชีของคุณเอง กดตกลงเพื่อสลับไปใช้บัญชีนั้น (ใส่ PIN)\nทริปของชื่อ "${oldName}" จะไม่ตามไปด้วย`, { title: "ชื่อนี้มีบัญชีอยู่แล้ว", confirmText: "ใช่ เป็นบัญชีของฉัน", cancelText: "ยกเลิก", icon: "fa-solid fa-user-check" }))
             ) {
               ok = await signIn(newName);
               if (ok) showToast(`ใช้ชื่อ "${newName}" แล้ว`);
