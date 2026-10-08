@@ -18,7 +18,7 @@ flowchart LR
         EVT["Event Listener<br/>TripEventListener"]
         MAP["Mappers + DTO"]
         REPO["Repositories<br/>Spring Data JPA"]
-        MIG["Flyway<br/>db/migration V1-V4"]
+        MIG["Flyway<br/>db/migration V1-V5"]
         SEC --> API
         API --> MAP
         API --> SVC

@@ -1,6 +1,6 @@
 # Data Dictionary และ ER Diagram
 
-พจนานุกรมข้อมูลของฐานข้อมูล PostgreSQL (18 ตาราง, Foreign Key 34 ตัว) สร้างจาก schema จริงหลังรัน Flyway V1-V4 (`code/src/main/resources/db/migration/`) ชนิดข้อมูล ค่าว่างได้หรือไม่ คีย์ และ Index ในตารางมาจากฐานข้อมูลโดยตรง ไม่ได้พิมพ์เอง
+พจนานุกรมข้อมูลของฐานข้อมูล PostgreSQL (18 ตาราง, Foreign Key 34 ตัว) สร้างจาก schema จริงหลังรัน Flyway V1-V5 (`code/src/main/resources/db/migration/`) ชนิดข้อมูล ค่าว่างได้หรือไม่ คีย์ และ Index ในตารางมาจากฐานข้อมูลโดยตรง ไม่ได้พิมพ์เอง
 
 ตารางที่ Flyway เพิ่มเอง `flyway_schema_history` ไม่รวมในเอกสารนี้ ชื่อคอลัมน์ `position` ในตารางย่อยคือลำดับของรายการใน List
 
@@ -475,7 +475,7 @@ erDiagram
 | `option_id` | bigint | ว่างได้ | FK → `poll_options.id` (CASCADE) | ตัวเลือกที่เลือก |
 | `poll_id` | bigint | ว่างได้ | FK → `polls.id` (CASCADE)<br>UNIQUE ร่วม (poll_id, member_id) | โหวต |
 
-- **Unique ร่วม** `poll_votes_poll_id_member_id_key และ uk5aui3ahbiud7lch9cr4blftis`: (poll_id, member_id) (มี constraint ซ้ำกัน 2 ตัว ชนิดเดียวกัน ควรลบออก 1 ตัวในอนาคต)
+- **Unique ร่วม** `poll_votes_poll_id_member_id_key`: (poll_id, member_id) (ฐานข้อมูลเก่าที่เคยสร้างด้วย Hibernate มี constraint ซ้ำอีกตัว `uk5aui3ahbiud7lch9cr4blftis` ซึ่ง V5 ลบทิ้งให้แล้ว)
 
 #### `checklist_items`
 
