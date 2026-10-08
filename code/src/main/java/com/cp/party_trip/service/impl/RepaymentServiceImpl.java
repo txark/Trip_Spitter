@@ -66,7 +66,7 @@ public class RepaymentServiceImpl implements RepaymentService {
         Set<Long> chosen = request.getExpenseIds() == null || request.getExpenseIds().isEmpty() ? null
                 : new HashSet<>(request.getExpenseIds());
 
-        // รายการที่ผู้โอนยังค้างผู้รับ เรียงบิลเก่าสุดก่อน
+        // รายการที่ผู้โอนยังค้างผู้รับ (เริ่มจากเรียงบิลเก่าสุดก่อน แล้วค่อยเรียงตามยอดค้างด้านล่าง)
         List<Expense> bills = expenseRepo.findByTripId(tripId).stream()
                 .filter(e -> e.getUser() != null && receiver.getId().equals(e.getUser().getId()))
                 .filter(e -> chosen == null || chosen.contains(e.getId()))
@@ -82,6 +82,9 @@ public class RepaymentServiceImpl implements RepaymentService {
                 }
             }
         }
+        // หักรายการที่ค้างน้อยที่สุดก่อน: เศษเล็กๆ ถูกปิดเป็น "จ่ายครบ" ก่อน ไม่ค้างเป็น "จ่ายบางส่วน" นาน
+        // List.sort เสถียร: ยอดค้างเท่ากันจะคงลำดับเดิม (บิลที่สร้างก่อนมาก่อน)
+        open.sort(Comparator.comparing(ExpenseSplit::remainingAmount));
         BigDecimal outstanding = open.stream().map(ExpenseSplit::remainingAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         if (outstanding.signum() == 0) {
             throw badRequest(sender.getGuestName() + " ไม่มีรายการที่ค้างคุณ");

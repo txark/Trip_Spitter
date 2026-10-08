@@ -10,7 +10,7 @@
     { href: "dashboard.html", icon: "fa-solid fa-house", label: "ภาพรวม" },
     { href: "plan.html", icon: "fa-solid fa-route", label: "แพลนเที่ยว" },
     { href: "expenses.html", icon: "fa-solid fa-receipt", label: "ค่าใช้จ่าย" },
-    { href: "debts.html", icon: "fa-solid fa-scale-balanced", label: "สรุปหนี้" },
+    { href: "debts.html", icon: "fa-solid fa-scale-balanced", label: "สรุปยอดคืน" },
     { href: "polls.html", icon: "fa-solid fa-square-poll-vertical", label: "โหวต" },
     { href: "checklist.html", icon: "fa-solid fa-list-check", label: "เช็คลิสต์" },
   ];

@@ -1701,9 +1701,7 @@
           if (!btn) return;
           const name = btn.dataset.name;
           if (
-            !confirm(
-              `ออกรหัสกู้คืนให้ "${name}"?\nใช้เมื่อ ${name} เปลี่ยนเครื่องหรือล้างเบราว์เซอร์ แล้วเข้าชื่อเดิมไม่ได้\nเครื่องเดิมของ ${name} จะถูกออกจากระบบเมื่อใช้รหัสนี้`,
-            )
+            !(await uiConfirm(`ออกรหัสกู้คืนให้ "${name}"?\nใช้เมื่อ ${name} เปลี่ยนเครื่องหรือล้างเบราว์เซอร์ แล้วเข้าชื่อเดิมไม่ได้\nเครื่องเดิมของ ${name} จะถูกออกจากระบบเมื่อใช้รหัสนี้`, { title: "ออกรหัสกู้คืน", confirmText: "ออกรหัส", cancelText: "ยกเลิก", icon: "fa-solid fa-key" }))
           )
             return;
           btn.disabled = true;
@@ -1718,10 +1716,7 @@
             if (!res.ok) throw new Error(data.message || "ออกรหัสไม่สำเร็จ");
             const text = `รหัสกู้คืนของ ${data.name}: ${data.code}\nเข้าหน้าแรก พิมพ์ชื่อ "${data.name}" แล้วใส่รหัสนี้ในช่อง PIN (ใช้ได้ครั้งเดียว ภายใน ${data.expiresInMinutes} นาที)`;
             const copied = await copyText(text);
-            alert(
-              text +
-                (copied ? "\n\n(คัดลอกไว้แล้ว ส่งให้เพื่อนในแชทได้เลย)" : ""),
-            );
+            await uiAlert(text + (copied ? "\n\n(คัดลอกไว้แล้ว ส่งให้เพื่อนในแชทได้เลย)" : ""), { title: "รหัสกู้คืน", confirmText: "รับทราบ", icon: "fa-solid fa-key" });
           } catch (error) {
             showToast(error.message || "ออกรหัสไม่สำเร็จ", "error");
           } finally {
