@@ -39,10 +39,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<!-- Bean Validation (@Valid, @NotBlank, @Size) สำหรับ Request DTO -->
@@ -75,21 +71,6 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency> -->
-		
-		<!-- ============================================== -->
-		<!-- Advanced Features Dependencies -->
-		<!-- ============================================== -->
-		<!-- WebClient สำหรับต่อ API ดึงอัตราแลกเปลี่ยนสกุลเงินแบบเรียลไทม์ -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
-		
-		<!-- WebSocket สำหรับอัปเดตคะแนนโหวตและกิจกรรมกลุ่มแบบ Real-time -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-websocket</artifactId>
-		</dependency>
 		
 		<!-- ============================================== -->
 		<!-- Testing Dependencies -->
