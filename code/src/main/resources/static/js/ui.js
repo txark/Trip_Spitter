@@ -568,9 +568,9 @@ async function buildTripSummary(tripId) {
 
   const lines = [];
   lines.push(`🧳 สรุปทริป "${trip.title || `ทริป #${tripId}`}"`);
-  lines.push([range && `📅 ${range}`, `👥 ${members.length} คน`].filter(Boolean).join(" · "));
+  lines.push([range && `📅 ${range}`, `[ ${members.length} คน ]`].filter(Boolean).join(" · "));
   lines.push("");
-  lines.push(`💰 ค่าใช้จ่ายทั้งทริป ${fmt(Math.round(total * 100) / 100)} (${expenses.length} บิล)`);
+  lines.push(`💰 ค่าใช้จ่ายทั้งทริป ${fmt(Math.round(total * 100) / 100)} [ ${expenses.length} บิล ]`);
   if (members.length > 0) lines.push(`เฉลี่ยคนละ ${fmt(Math.round(total / members.length))}`);
   lines.push("");
 
@@ -578,25 +578,43 @@ async function buildTripSummary(tripId) {
   if (owing.length === 0) {
     lines.push("✅ เคลียร์ครบทุกคนแล้ว ไม่มีใครค้างใคร");
   } else {
-    lines.push("💸 ใครต้องโอนให้ใคร");
-    owing
-      .sort((a, b) => Number(b.amount) - Number(a.amount))
-      .forEach((t, i) => lines.push(`${i + 1}. ${name(t.from)} → ${name(t.to)} ${fmt(Number(t.amount))}`));
+    lines.push("💸 ยอดค่าใช้จ่ายที่ต้องชำระคืน");
+    // รวมตามคนที่ต้องคืน: คนค้างมากสุดขึ้นก่อน แล้วไล่ว่าต้องคืนให้ใครเท่าไร
+    const byDebtor = new Map();
+    owing.forEach((t) => {
+      const key = t.from?.id ?? name(t.from);
+      if (!byDebtor.has(key)) byDebtor.set(key, { from: t.from, items: [], sum: 0 });
+      const g = byDebtor.get(key);
+      g.items.push(t);
+      g.sum += Number(t.amount);
+    });
+    [...byDebtor.values()]
+      .sort((a, b) => b.sum - a.sum)
+      .forEach((g, i) => {
+        lines.push(`${i + 1}. ${name(g.from)}  ต้องคืนให้`);
+        g.items
+          .sort((a, b) => Number(b.amount) - Number(a.amount))
+          .forEach((t) => lines.push(`    • ${name(t.to)} : ${fmt(Number(t.amount))}`));
+      });
   }
   lines.push("");
 
   if (members.length > 0 && expenses.length > 0) {
-    lines.push("👤 แต่ละคน (จ่ายไป · ส่วนของตัวเอง)");
+    lines.push("👤 ค่าใช้จ่ายของแต่ละคน");
     [...members]
       .sort((a, b) => (paid[b.id] || 0) - (paid[a.id] || 0))
-      .forEach((m) => lines.push(`• ${name(m)}: ${fmt(paid[m.id] || 0)} · ${fmt(share[m.id] || 0)}`));
+      .forEach((m) => {
+        lines.push(`• ${name(m)}:`);
+        lines.push(`     • ทั้งหมด : ${fmt(paid[m.id] || 0)}`);
+        lines.push(`     • เฉพาะตัวเอง : ${fmt(share[m.id] || 0)}`);
+      });
     lines.push("");
   }
 
   const cats = EXPENSE_CATEGORIES.filter((c) => byCat[c.value] > 0);
   if (cats.length > 0) {
-    lines.push("📊 แยกตามหมวด");
-    lines.push(cats.map((c) => `${c.label} ${fmt(byCat[c.value])}`).join(" · "));
+    lines.push("📊 ค่าใช้จ่ายตามหมวด");
+    cats.forEach((c) => lines.push(`• ${c.label} ${fmt(byCat[c.value])}`));
     lines.push("");
   }
   lines.push("ส่งจาก Trip Splitter");
