@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Tag(name = "Trips - ทริปและสมาชิก")
 @RestController
-@RequestMapping("/api/v1/trips")
+@RequestMapping("/api/v1")
 public class TripController {
 
     private final TripService tripService;
@@ -43,21 +43,21 @@ public class TripController {
         this.guard = guard;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/trips/{id}")
     public ResponseEntity<TripResponse> getTripById(@PathVariable Long id) {
         guard.me(id); // ข้อมูลทริปมีรหัสเชิญ: ดูได้เฉพาะสมาชิก
         return ResponseEntity.ok(tripMapper.toResponse(tripService.getTripById(id)));
     }
 
     // คนสร้าง = เจ้าของ token เสมอ (creatorName ที่หน้าเว็บส่งมาไม่ได้ใช้)
-    @PostMapping("/create")
+    @PostMapping("/trips")
     public ResponseEntity<TripResponse> createTrip(@Valid @RequestBody CreateTripRequest request,
             @RequestParam(required = false) String creatorName) {
         var created = tripService.createTrip(tripMapper.toEntity(request), guard.user().getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(tripMapper.toResponse(created));
     }
 
-    @PostMapping("/join/{inviteCode}")
+    @PostMapping("/invitations/{inviteCode}/members")
     public ResponseEntity<TripResponse> joinTrip(@PathVariable String inviteCode,
             @RequestParam(required = false) String memberName) {
         String name = guard.user().getUsername();
@@ -69,14 +69,14 @@ public class TripController {
         return ResponseEntity.ok(tripMapper.toResponse(joinedMember.getTrip()));
     }
 
-    @PutMapping("/{tripId}/currency")
+    @PutMapping("/trips/{tripId}/currency")
     public ResponseEntity<TripResponse> updateCurrency(@PathVariable Long tripId, @RequestParam Long memberId,
             @RequestParam(required = false) String currency, @RequestParam(required = false) BigDecimal rate) {
         guard.self(tripId, memberId);
         return ResponseEntity.ok(tripMapper.toResponse(tripService.updateCurrency(tripId, memberId, currency, rate)));
     }
 
-    @PutMapping("/{tripId}/budget")
+    @PutMapping("/trips/{tripId}/budget")
     public ResponseEntity<TripResponse> updateBudget(@PathVariable Long tripId, @RequestParam Long memberId,
             @RequestParam(required = false) BigDecimal amount) {
         guard.self(tripId, memberId);
@@ -84,14 +84,14 @@ public class TripController {
     }
 
     // แก้วันเริ่ม/วันสิ้นสุด (รูปแบบ 2026-12-31)
-    @PutMapping("/{tripId}/dates")
+    @PutMapping("/trips/{tripId}/dates")
     public ResponseEntity<TripResponse> updateDates(@PathVariable Long tripId, @RequestParam Long memberId,
             @RequestParam String startDate, @RequestParam String endDate) {
         guard.self(tripId, memberId);
         return ResponseEntity.ok(tripMapper.toResponse(tripService.updateDates(tripId, memberId, startDate, endDate)));
     }
 
-    @PutMapping("/{tripId}/timezone")
+    @PutMapping("/trips/{tripId}/timezone")
     public ResponseEntity<TripResponse> updateTimeZone(@PathVariable Long tripId, @RequestParam Long memberId,
             @RequestParam String timeZone) {
         guard.self(tripId, memberId);
@@ -99,7 +99,7 @@ public class TripController {
     }
 
     // คนสร้างทริปออกรหัสกู้คืนให้สมาชิกที่เปลี่ยนเครื่อง/ล้างเบราว์เซอร์ แล้วเข้าชื่อเดิมไม่ได้
-    @PostMapping("/{tripId}/members/{memberId}/recovery")
+    @PostMapping("/trips/{tripId}/members/{memberId}/recovery-codes")
     public ResponseEntity<RecoveryCodeResponse> recoveryCode(@PathVariable Long tripId, @PathVariable Long memberId) {
         TripMember me = guard.me(tripId);
         if (!"ADMIN".equals(me.getRole())) {
@@ -114,7 +114,7 @@ public class TripController {
                 UserService.RECOVERY_TTL.toMinutes()));
     }
 
-    @GetMapping("/{tripId}/members")
+    @GetMapping("/trips/{tripId}/members")
     public ResponseEntity<List<MemberResponse>> getTripMembers(@PathVariable Long tripId) {
         guard.me(tripId);
         return ResponseEntity.ok(memberMapper.toResponses(tripService.getMembers(tripId)));

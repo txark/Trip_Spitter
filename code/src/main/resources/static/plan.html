@@ -4709,8 +4709,8 @@
         try {
           const [tripData, list, bills] = await Promise.all([
             request(`${API_BASE_URL}/trips/${tripId}`).catch(() => null),
-            request(`${API_BASE_URL}/activities/trip/${tripId}`),
-            request(`${API_BASE_URL}/expenses/trip/${tripId}`).catch(
+            request(`${API_BASE_URL}/trips/${tripId}/activities`),
+            request(`${API_BASE_URL}/trips/${tripId}/expenses`).catch(
               () => null,
             ),
           ]);
@@ -6900,7 +6900,7 @@
             scrollToActivity(updated.id);
           } else {
             const created = await request(
-              `${API_BASE_URL}/activities/add/${tripId}`,
+              `${API_BASE_URL}/trips/${tripId}/activities`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -7537,8 +7537,8 @@
               request(`${API_BASE_URL}/trips/${tripId}/members`).catch(
                 () => [],
               ),
-              request(`${API_BASE_URL}/activities/trip/${tripId}`),
-              request(`${API_BASE_URL}/expenses/trip/${tripId}`).catch(
+              request(`${API_BASE_URL}/trips/${tripId}/activities`),
+              request(`${API_BASE_URL}/trips/${tripId}/expenses`).catch(
                 () => [],
               ),
             ]);

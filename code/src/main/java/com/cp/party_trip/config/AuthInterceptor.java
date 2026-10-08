@@ -30,7 +30,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                 .ifPresent(user -> request.setAttribute(AuthGuard.ATTRIBUTE, user));
 
         boolean readOnly = "GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method);
-        boolean login = request.getRequestURI().endsWith("/api/v1/users/login");
+        boolean login = "POST".equalsIgnoreCase(method) && request.getRequestURI().endsWith("/api/v1/sessions");
         if (readOnly || login || request.getAttribute(AuthGuard.ATTRIBUTE) != null) {
             return true;
         }

@@ -12,7 +12,7 @@ sequenceDiagram
     participant S as UserServiceImpl
     participant R as UserRepo
     U->>UI: กรอกชื่อเล่น (และ PIN ถ้ามี)
-    UI->>C: POST /api/v1/users/login
+    UI->>C: POST /api/v1/sessions
     C->>S: login(ชื่อ, token เดิม, pin)
     S->>R: findByUsername(ชื่อ)
     alt ยังไม่มีผู้ใช้ชื่อนี้
@@ -43,7 +43,7 @@ sequenceDiagram
     participant S as TripServiceImpl
     participant TR as TripRepo
     participant MR as TripMemberRepo
-    U->>I: POST /api/v1/trips/join/{รหัส} + X-Auth-Token
+    U->>I: POST /api/v1/invitations/{รหัส}/members + X-Auth-Token
     I->>I: หาผู้ใช้จาก token (ไม่เจอ = 401)
     I->>C: ส่งต่อพร้อมผู้ใช้
     C->>S: joinTrip(รหัส, ชื่อเล่นของเจ้าของ token)
@@ -73,7 +73,7 @@ sequenceDiagram
     participant ST as SplitStrategy
     participant R as ExpenseRepo
     participant L as TripEventListener
-    U->>C: POST /api/v1/expenses/add/{tripId} (JSON)
+    U->>C: POST /api/v1/trips/{tripId}/expenses (JSON)
     C->>C: Bean Validation (@Valid)
     C->>G: self(tripId, recordedBy) ตรวจว่าเป็นสมาชิกและไม่ทำแทนคนอื่น
     C->>S: createExpense(...)
@@ -99,7 +99,7 @@ sequenceDiagram
     participant ER as ExpenseRepo
     participant SR as ExpenseSplitRepo
     participant RR as RepaymentRepo
-    U->>C: POST /api/v1/expenses/repay/{tripId}
+    U->>C: POST /api/v1/trips/{tripId}/repayments
     C->>S: receive(tripId, ผู้รับ, ผู้โอน, คำขอ)
     S->>MR: lockById(ผู้โอน) กันบันทึกซ้อนกัน
     S->>ER: findByTripId แล้วคัดบิลที่ผู้รับจ่าย
@@ -125,7 +125,7 @@ sequenceDiagram
     participant G as AuthGuard
     participant S as PollServiceImpl
     participant VR as PollVoteRepo
-    U->>C: POST /api/v1/polls/{pollId}/vote?optionId=...
+    U->>C: POST /api/v1/polls/{pollId}/votes?optionId=...
     C->>G: self(ทริปของโหวต, memberId)
     C->>S: castVote(pollId, optionId, memberId)
     S->>S: ตรวจโหวตยังเปิด (ไม่ปิด และไม่เลยเวลา) และเป็นสมาชิกทริป

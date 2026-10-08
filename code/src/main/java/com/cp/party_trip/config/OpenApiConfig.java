@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 // เอกสาร API (Swagger UI: /swagger-ui.html, JSON: /v3/api-docs)
-// ปุ่ม Authorize ใส่ token ที่ได้จาก POST /api/v1/users/login ลงช่อง X-Auth-Token ได้
+// ปุ่ม Authorize ใส่ token ที่ได้จาก POST /api/v1/sessions ลงช่อง X-Auth-Token ได้
 @Configuration
 public class OpenApiConfig {
     @Bean

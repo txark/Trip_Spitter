@@ -72,7 +72,7 @@ flowchart TB
 
 ### การยืนยันตัวตน
 
-ไม่มีรหัสผ่าน ใช้ชื่อเล่น + token ต่อเครื่อง: `POST /api/v1/users/login?username=...` ได้ token กลับมา
+ไม่มีรหัสผ่าน ใช้ชื่อเล่น + token ต่อเครื่อง: `POST /api/v1/sessions?username=...` ได้ token กลับมา
 ส่งในหัว `X-Auth-Token` ในทุก request ถัดไป ตั้ง PIN เพื่อเข้าจากเครื่องอื่นได้ และมีรหัสกู้คืนที่คนสร้างทริปออกให้เพื่อน
 
 ## Database Design (ER Diagram)
@@ -200,17 +200,24 @@ docker compose up --build
 
 เอกสารแบบโต้ตอบ: **`/swagger-ui.html`** (JSON: `/v3/api-docs`) กดปุ่ม **Authorize** ใส่ token ที่ได้จาก login
 
-| กลุ่ม | Base path | ตัวอย่าง |
-|---|---|---|
-| Users | `/api/v1/users` | `POST /login`, `POST /pin`, `GET /me` |
-| Trips | `/api/v1/trips` | `POST /create` (201), `POST /join/{code}`, `GET /{id}`, `PUT /{id}/budget` |
-| Trip events | `/api/v1/trips/{id}/events` | `GET` ความเคลื่อนไหวล่าสุด |
-| Expenses | `/api/v1/expenses` | `POST /add/{tripId}` (201), `PUT /{id}`, `DELETE /{id}` (204), `GET /trip/{id}/page?page=&size=&sort=` (แบ่งหน้า) |
-| Debts | `/api/v1/debts` | `GET /simplify/{tripId}`, `GET /summary-details/{tripId}` |
-| Activities | `/api/v1/activities` | `POST /add/{tripId}`, `GET /trip/{id}`, `DELETE /{id}` |
-| Checklist | `/api/v1/checklist` | `GET /{tripId}`, `POST`, `POST /bulk`, `PUT /{id}/assignees` |
-| Polls | `/api/v1/polls` | `POST`, `POST /{id}/vote`, `GET /{id}/results` |
-| History | `/api/v1/history` | `GET /recent/{userId}` |
+Endpoint ตั้งชื่อแบบ Resource-based (ชื่อเป็นคำนามพหูพจน์ ซ้อนตามความเป็นเจ้าของ ใช้ HTTP method บอกการกระทำ) ทุกตัวอยู่ใต้ `/api/v1`
+
+| Resource | Endpoint ตัวอย่าง |
+|---|---|
+| Sessions / Users | `POST /sessions` (เข้าสู่ระบบ), `GET /users/me`, `PUT /users/me/pin`, `PUT /users/me/username` |
+| Trips | `POST /trips` (201), `GET /trips/{id}`, `PUT /trips/{id}/budget`, `PUT /trips/{id}/dates` |
+| Invitations | `POST /invitations/{inviteCode}/members` (เข้าร่วมทริปด้วยรหัสเชิญ) |
+| Members | `GET /trips/{id}/members`, `POST /trips/{id}/members/{memberId}/recovery-codes` |
+| Expenses | `GET /trips/{id}/expenses`, `GET /trips/{id}/expenses/page?page=&size=&sort=` (แบ่งหน้า), `POST /trips/{id}/expenses` (201), `PUT /expenses/{id}`, `DELETE /expenses/{id}` (204), `PUT /expenses/{id}/splits/{memberId}/paid` |
+| Repayments | `POST /trips/{id}/repayments` (201), `DELETE /repayments/{id}` (204) |
+| Debts | `GET /trips/{id}/debt-transfers`, `GET /trips/{id}/members/{memberId}/debt-summary` |
+| Activities | `GET /trips/{id}/activities`, `POST /trips/{id}/activities` (201), `PUT /activities/{id}`, `DELETE /activities/{id}` |
+| Checklist items | `GET /trips/{id}/checklist-items`, `POST /trips/{id}/checklist-items/bulk`, `PATCH /checklist-items/{id}`, `PUT /checklist-items/{id}/assignees`, `DELETE /checklist-items/{id}` |
+| Polls | `GET /trips/{id}/polls`, `POST /polls` (201), `POST /polls/{id}/votes`, `GET /polls/{id}/results`, `PUT /polls/{id}/closed`, `DELETE /polls/{id}` |
+| Trip history | `GET /users/{userId}/trip-history`, `PUT /users/{userId}/trip-history/{tripId}` |
+| Trip events | `GET /trips/{id}/events` (ความเคลื่อนไหวล่าสุด) |
+
+รายการครบทุก endpoint (46 รายการ) ดูที่ Swagger UI
 
 รูปแบบ error เป็น JSON เดียวกันทุก endpoint: `{"message": "..."}` พร้อม HTTP status
 (400 ข้อมูลไม่ถูกต้อง / 401 ยังไม่ได้เข้าสู่ระบบ / 403 ไม่ใช่สมาชิกทริป / 404 ไม่พบ / 409 ข้อมูลชนกัน)

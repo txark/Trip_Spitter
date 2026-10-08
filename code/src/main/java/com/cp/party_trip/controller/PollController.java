@@ -22,7 +22,7 @@ import java.util.List;
 
 @Tag(name = "Polls - โหวต")
 @RestController
-@RequestMapping("/api/v1/polls")
+@RequestMapping("/api/v1")
 public class PollController {
     private final PollService pollService;
     private final PollMapper pollMapper;
@@ -35,7 +35,7 @@ public class PollController {
     }
 
     // โหวตทั้งหมดของทริป + ข้อที่ memberId เลือก
-    @GetMapping("/trip/{tripId}")
+    @GetMapping("/trips/{tripId}/polls")
     public ResponseEntity<List<PollSummaryResponse>> getTripPolls(
             @PathVariable Long tripId,
             @RequestParam(required = false) Long memberId) {
@@ -43,7 +43,7 @@ public class PollController {
         return ResponseEntity.ok(pollService.getTripPolls(tripId, memberId));
     }
 
-    @PostMapping("/{pollId}/vote")
+    @PostMapping("/polls/{pollId}/votes")
     public ResponseEntity<MessageResponse> vote(
             @PathVariable Long pollId,
             @RequestParam Long optionId,
@@ -58,13 +58,13 @@ public class PollController {
         }
     }
 
-    @GetMapping("/{pollId}/results")
+    @GetMapping("/polls/{pollId}/results")
     public ResponseEntity<List<PollResultResponse>> getResults(@PathVariable Long pollId) {
         guard.me(guard.tripOfPoll(pollId));
         return ResponseEntity.ok(pollService.getPollResults(pollId));
     }
 
-    @PostMapping("/{pollId}/options")
+    @PostMapping("/polls/{pollId}/options")
     public ResponseEntity<PollOptionResponse> addOption(
             @PathVariable Long pollId,
             @RequestParam String optionText,
@@ -74,19 +74,19 @@ public class PollController {
                 .body(pollMapper.toResponse(pollService.addOptionToPoll(pollId, optionText, me)));
     }
 
-    @PostMapping
+    @PostMapping("/polls")
     public ResponseEntity<PollResponse> createPoll(@Valid @RequestBody PollRequest request) {
         request.setMemberId(guard.self(request.getTripId(), request.getMemberId()).getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(pollMapper.toResponse(pollService.createPoll(request)));
     }
 
-    @PutMapping("/{pollId}/close")
+    @PutMapping("/polls/{pollId}/closed")
     public ResponseEntity<PollResponse> closePoll(@PathVariable Long pollId, @RequestParam Long memberId) {
         guard.self(guard.tripOfPoll(pollId), memberId);
         return ResponseEntity.ok(pollMapper.toResponse(pollService.closePoll(pollId, memberId)));
     }
 
-    @DeleteMapping("/{pollId}")
+    @DeleteMapping("/polls/{pollId}")
     public ResponseEntity<Void> deletePoll(@PathVariable Long pollId, @RequestParam Long memberId) {
         guard.self(guard.tripOfPoll(pollId), memberId);
         pollService.deletePoll(pollId, memberId);

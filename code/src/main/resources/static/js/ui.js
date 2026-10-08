@@ -53,7 +53,7 @@ async function loginAs(username, pin = "") {
   const query = `username=${encodeURIComponent(username)}${pin ? `&pin=${encodeURIComponent(pin)}` : ""}`;
   const token = authToken(username);
   try {
-    const res = await nativeFetch(`${API_BASE}/users/login?${query}`, {
+    const res = await nativeFetch(`${API_BASE}/sessions?${query}`, {
       method: "POST",
       headers: token ? { [AUTH_HEADER]: token } : {},
     });
@@ -118,7 +118,7 @@ window.fetch = async (input, init = {}) => {
   if (token && !headers.has(AUTH_HEADER)) headers.set(AUTH_HEADER, token);
   const res = await nativeFetch(input, { ...init, headers });
   // token หาย/ไม่ตรงชื่อ: บอกครั้งเดียวต่อหน้า ให้กลับไปเข้าใหม่ที่หน้าแรก
-  if (res.status === 401 && !url.includes("/users/login") && !authWarned) {
+  if (res.status === 401 && !url.includes("/sessions") && !authWarned) {
     authWarned = true;
     setTimeout(() => showToast("ยืนยันตัวตนไม่ผ่าน กรุณากลับไปเข้าสู่ระบบที่หน้าแรก", "error"), 0);
   }
@@ -614,8 +614,8 @@ async function buildTripSummary(tripId) {
   const [trip, members, expenses, transfers] = await Promise.all([
     get(`/trips/${tripId}`),
     get(`/trips/${tripId}/members`),
-    get(`/expenses/trip/${tripId}`),
-    get(`/debts/simplify/${tripId}`),
+    get(`/trips/${tripId}/expenses`),
+    get(`/trips/${tripId}/debt-transfers`),
   ]);
   const name = (m) => m?.guestName || `สมาชิก #${m?.id}`;
   const total = expenses.reduce((s, e) => s + Number(e.totalAmount || 0), 0);

@@ -1517,7 +1517,7 @@
 
       async function fetchPolls() {
         const data = await request(
-          `${API_BASE_URL}/polls/trip/${tripId}?memberId=${myMemberId ?? ""}`,
+          `${API_BASE_URL}/trips/${tripId}/polls?memberId=${myMemberId ?? ""}`,
         );
         // ใช้ remainingSeconds จากเซิร์ฟเวอร์ ไม่ใช้ closesAt ตรง ๆ กันนาฬิกาเครื่องผู้ใช้ไม่ตรง
         const now = Date.now();
@@ -1623,14 +1623,14 @@
           try {
             if (action === "vote") {
               const message = await request(
-                `${API_BASE_URL}/polls/${pollId}/vote?optionId=${btn.dataset.optionId}&memberId=${myMemberId}`,
+                `${API_BASE_URL}/polls/${pollId}/votes?optionId=${btn.dataset.optionId}&memberId=${myMemberId}`,
                 { method: "POST" },
               );
               await refreshPoll(pollId, card);
               showToast(message);
             } else if (action === "close") {
               await request(
-                `${API_BASE_URL}/polls/${pollId}/close?memberId=${myMemberId}`,
+                `${API_BASE_URL}/polls/${pollId}/closed?memberId=${myMemberId}`,
                 { method: "PUT" },
               );
               await refreshPoll(pollId, card, "stamp-shake");
@@ -1979,7 +1979,7 @@
           // โหลดแพลนไม่ได้ก็ยังใช้หน้าโหวตได้ (แค่ไม่มีปุ่มเพิ่มลงแพลน)
           const [, planList] = await Promise.all([
             fetchPolls(),
-            request(`${API_BASE_URL}/activities/trip/${tripId}`).catch(
+            request(`${API_BASE_URL}/trips/${tripId}/activities`).catch(
               () => null,
             ),
           ]);

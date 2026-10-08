@@ -129,4 +129,4 @@ classDiagram
 | DTO + Mapper | `ExpenseResponse`, `ActivityResponse` + `ExpenseMapper` |
 | Layered, MVC, DI | ตามกลุ่ม namespace Presentation / ServiceLayer / DataAndMapping และ Constructor Injection ทุกลูกศร |
 
-> `RepaymentEndpoints` ในแผนภาพคือ endpoint รับเงินคืนใน `ExpenseController` (`/expenses/repay/...`) แยกวาดเพื่อให้เห็น `RepaymentServiceImpl` ที่ส่ง event
+> `RepaymentEndpoints` ในแผนภาพคือ endpoint รับเงินคืนใน `ExpenseController` (`/trips/{id}/repayments`) แยกวาดเพื่อให้เห็น `RepaymentServiceImpl` ที่ส่ง event

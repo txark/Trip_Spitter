@@ -1104,7 +1104,7 @@
 
           // 2. ดึงข้อมูลสรุปยอดคืนและบิลสำรองจ่าย
           const res = await fetch(
-            `${API_BASE_URL}/debts/summary-details/${tripId}?userId=${myMemberId}`,
+            `${API_BASE_URL}/trips/${tripId}/members/${myMemberId}/debt-summary`,
           );
           if (!res.ok)
             throw new Error("ไม่สามารถเชื่อมต่อดึงข้อมูลสรุปยอดคืนได้");
@@ -1299,7 +1299,7 @@
           btn.disabled = true;
           try {
             const res = await fetch(
-              `${API_BASE_URL}/expenses/repay/${tripId}?receiverId=${myId}&senderId=${repayPerson.memberId}`,
+              `${API_BASE_URL}/trips/${tripId}/repayments?receiverId=${myId}&senderId=${repayPerson.memberId}`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1341,7 +1341,7 @@
           return;
         try {
           const res = await fetch(
-            `${API_BASE_URL}/expenses/repay/${id}?memberId=${myId}`,
+            `${API_BASE_URL}/repayments/${id}?memberId=${myId}`,
             { method: "DELETE" },
           );
           if (!res.ok) {
@@ -1379,7 +1379,7 @@
         button.textContent = "กำลังบันทึก...";
         try {
           const response = await fetch(
-            `${API_BASE_URL}/expenses/splits/${expenseId}/${memberId}/pay`,
+            `${API_BASE_URL}/expenses/${expenseId}/splits/${memberId}/paid`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },

@@ -21,7 +21,8 @@ COPY --from=build /app/target/*.jar app.jar
 USER appuser
 
 # จำกัดหน่วยความจำให้เหมาะกับ container เล็ก (เช่น Render ฟรี 512 MB)
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
+# TieredStopAtLevel=1: ใช้ JIT ตัวเบา (C1) เพราะ CPU ของแผนฟรีน้อยมาก ช่วยให้ start เร็วขึ้น
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss512k"
 # พอร์ตจริงมาจากตัวแปร PORT (Cloud ส่งมาให้) ไม่ตั้ง = 8090
 EXPOSE 8090
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
