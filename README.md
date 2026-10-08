@@ -1,5 +1,5 @@
 # Trip Expense Splitter
-โปรเจกต์ของรายวิชา CP353002 Principles of Software Design and Development (Spring Boot)
+โปรเจกต์ของรายวิชา CP353002 Principles of Software Design and Development
 
 ระบบวางแผนทริปและหารค่าใช้จ่ายสำหรับกลุ่มเพื่อน สร้างทริปแล้วชวนเพื่อนเข้าร่วมด้วยรหัสเชิญ
 วางแผนกิจกรรมรายวัน (เดินทาง ที่พัก อาหาร กิจกรรม) บันทึกบิลแล้วหารได้ทั้งแบบเท่ากันและกำหนดยอดเอง
