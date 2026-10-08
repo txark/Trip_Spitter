@@ -37,3 +37,6 @@ build/
 
 ### Python ###
 __pycache__/
+
+# ไฟล์ที่ Maven/IDE สร้างให้ตอน debug ไม่ต้องเก็บ
+effective-pom-*.log
